@@ -1,0 +1,545 @@
+import Phaser from 'phaser'
+
+import { WAVE_CONFIG, WAVE_REWARD_CONFIG, getWaveDefinition } from '../config/gameplayConfig'
+import { getGameRuntimeProfile } from '../../utils/device'
+
+export function createWaveDirector(scene, config) {
+  const {
+    zombies,
+    gameStore,
+    hud,
+    bossDirector,
+    spawnDirector,
+    upgradeDirector,
+    soundManager,
+    onCampaignVictory,
+    pauseGameplay,
+    resumeGameplay,
+  } = config
+  let currentWave = null
+  let remainingToSpawn = 0
+  let currentBoss = null
+  let spawnEvent = null
+  let bossSpawnEvent = null
+  let startEvent = null
+  let nextWaveEvent = null
+  let selectionEvent = null
+  let temporaryBuffEvent = null
+  let transitioning = false
+  let bossRewardActive = false
+  let lastMajorRewardWave = 0
+  const runtimeProfile = getGameRuntimeProfile()
+
+  function applyRuntimeBalance(waveConfig) {
+    if (!runtimeProfile.isMobile || !waveConfig) {
+      return waveConfig
+    }
+
+    const enemyCountScale = runtimeProfile.performance.enemyCountScale ?? 1
+    const maxAliveScale = runtimeProfile.performance.maxAliveScale ?? 1
+    const spawnIntervalScale = runtimeProfile.performance.spawnIntervalScale ?? 1
+    const supportZombieCount = Math.max(
+      waveConfig.isBossWave ? 3 : 4,
+      Math.round(waveConfig.supportZombieCount * enemyCountScale),
+    )
+
+    return {
+      ...waveConfig,
+      supportZombieCount,
+      totalZombies: supportZombieCount + (waveConfig.isBossWave ? 1 : 0),
+      maxAlive: Math.max(waveConfig.isBossWave ? 4 : 3, Math.round(waveConfig.maxAlive * maxAliveScale)),
+      spawnInterval: Math.round(waveConfig.spawnInterval * spawnIntervalScale),
+    }
+  }
+
+  function clearEvents() {
+    spawnEvent?.remove(false)
+    bossSpawnEvent?.remove(false)
+    startEvent?.remove(false)
+    nextWaveEvent?.remove(false)
+    selectionEvent?.remove(false)
+    spawnEvent = null
+    bossSpawnEvent = null
+    startEvent = null
+    nextWaveEvent = null
+    selectionEvent = null
+  }
+
+  function clearTemporaryBuffTimer() {
+    temporaryBuffEvent?.remove(false)
+    temporaryBuffEvent = null
+  }
+
+  function pickWeightedEntry(entries = []) {
+    const totalWeight = entries.reduce((sum, entry) => sum + (entry.weight ?? 1), 0)
+
+    if (!totalWeight) {
+      return null
+    }
+
+    let roll = Phaser.Math.FloatBetween(0, totalWeight)
+
+    for (const entry of entries) {
+      roll -= entry.weight ?? 1
+
+      if (roll <= 0) {
+        return entry
+      }
+    }
+
+    return entries[0] ?? null
+  }
+
+  function scheduleNextWave(delay = WAVE_CONFIG.interWaveDelay) {
+    nextWaveEvent?.remove(false)
+    nextWaveEvent = scene.time.delayedCall(delay, () => {
+      launchNextWave(gameStore.wave + 1)
+    })
+  }
+
+  function canRestoreAmmoReward() {
+    return Number.isFinite(gameStore.weaponAmmo)
+      && Number.isFinite(gameStore.weaponAmmoMax)
+      && gameStore.weaponAmmo < gameStore.weaponAmmoMax
+  }
+
+  function grantHealReward() {
+    const missingHealth = Math.max(0, gameStore.maxPlayerHealth - gameStore.health)
+
+    if (missingHealth <= 0) {
+      return null
+    }
+
+    const recoveredHealth = Math.min(missingHealth, WAVE_REWARD_CONFIG.healAmount)
+    gameStore.healPlayer(recoveredHealth)
+    soundManager?.play('heal')
+
+    return {
+      bannerText: recoveredHealth > 1 ? `PATCHED +${recoveredHealth}` : 'PATCHED UP',
+      bannerColor: '#86efac',
+    }
+  }
+
+  function grantAmmoReward() {
+    if (!canRestoreAmmoReward()) {
+      return null
+    }
+
+    const missingAmmo = gameStore.weaponAmmoMax - gameStore.weaponAmmo
+    const refillAmount = Math.min(
+      missingAmmo,
+      Math.max(
+        WAVE_REWARD_CONFIG.ammoRestoreMinimum,
+        Math.round(gameStore.weaponAmmoMax * WAVE_REWARD_CONFIG.ammoRestoreRatio),
+      ),
+    )
+    const restoredAmmo = gameStore.restoreWeaponAmmo(refillAmount)
+
+    if (!restoredAmmo?.restored) {
+      return null
+    }
+
+    soundManager?.play('pickup', {
+      volume: 1.05,
+      rate: 1.08,
+    })
+
+    return {
+      bannerText: `AMMO +${restoredAmmo.restored}`,
+      bannerColor: '#93c5fd',
+    }
+  }
+
+  function grantTemporaryBuffReward() {
+    clearTemporaryBuffTimer()
+
+    const reward = WAVE_REWARD_CONFIG.temporaryBuff
+    const expiresAt = Date.now() + reward.durationMs
+
+    gameStore.setTemporaryCombatBuff({
+      damage: reward.damage,
+      fireRate: reward.fireRate,
+      moveSpeed: reward.moveSpeed,
+    }, expiresAt, reward.bannerText)
+
+    temporaryBuffEvent = scene.time.delayedCall(reward.durationMs, () => {
+      gameStore.clearTemporaryCombatBuff()
+      temporaryBuffEvent = null
+    })
+
+    soundManager?.play('pickup', {
+      volume: 1.02,
+      rate: 1.12,
+    })
+
+    return {
+      bannerText: reward.bannerText,
+      bannerColor: reward.bannerColor,
+    }
+  }
+
+  function getAvailableMinorPassiveRewards() {
+    return (WAVE_REWARD_CONFIG.minorPassives ?? []).filter((reward) => {
+      const currentValue = Number(gameStore.playerStats?.[reward.stat]) || 0
+      return currentValue < (reward.max ?? Infinity)
+    })
+  }
+
+  function grantMinorPassiveReward() {
+    const availableRewards = getAvailableMinorPassiveRewards()
+    const reward = Phaser.Utils.Array.GetRandom(availableRewards)
+
+    if (!reward) {
+      return null
+    }
+
+    const currentValue = Number(gameStore.playerStats?.[reward.stat]) || 0
+    let nextValue = Math.min(reward.max ?? Infinity, currentValue + (reward.add ?? 0))
+
+    if (Number.isFinite(reward.precision)) {
+      nextValue = Number(nextValue.toFixed(reward.precision))
+    }
+
+    gameStore.setPlayerStats({
+      [reward.stat]: nextValue,
+    })
+
+    soundManager?.play('pickup', {
+      volume: 1,
+      rate: 0.96,
+    })
+
+    return {
+      bannerText: reward.bannerText,
+      bannerColor: reward.bannerColor,
+    }
+  }
+
+  function grantNormalWaveReward() {
+    const rewardPool = []
+
+    if (gameStore.health < gameStore.maxPlayerHealth) {
+      rewardPool.push({
+        weight: WAVE_REWARD_CONFIG.rewardWeights.heal,
+        apply: grantHealReward,
+      })
+    }
+
+    if (canRestoreAmmoReward()) {
+      rewardPool.push({
+        weight: WAVE_REWARD_CONFIG.rewardWeights.ammo,
+        apply: grantAmmoReward,
+      })
+    }
+
+    if (getAvailableMinorPassiveRewards().length > 0) {
+      rewardPool.push({
+        weight: WAVE_REWARD_CONFIG.rewardWeights.minorPassive,
+        apply: grantMinorPassiveReward,
+      })
+    }
+
+    rewardPool.push({
+      weight: WAVE_REWARD_CONFIG.rewardWeights.temporaryBuff,
+      apply: grantTemporaryBuffReward,
+    })
+
+    const reward = pickWeightedEntry(rewardPool)
+    const appliedReward = reward?.apply?.()
+
+    if (!appliedReward) {
+      return false
+    }
+
+    hud.flashBanner(appliedReward.bannerText, appliedReward.bannerColor)
+    return true
+  }
+
+  function getPendingBossCount() {
+    return currentWave?.boss && !currentWave.boss.spawned ? 1 : 0
+  }
+
+  function updateRemaining() {
+    gameStore.setZombiesRemaining(remainingToSpawn + getPendingBossCount() + zombies.countActive(true))
+  }
+
+  function pumpSpawn() {
+    if (!currentWave || transitioning || bossRewardActive) {
+      return
+    }
+
+    const activeCount = zombies.countActive(true)
+    const availableSlots = currentWave.maxAlive - activeCount
+
+    if (remainingToSpawn <= 0 || availableSlots <= 0) {
+      updateRemaining()
+
+      if (remainingToSpawn <= 0) {
+        spawnEvent?.remove(false)
+        spawnEvent = null
+      }
+
+      return
+    }
+
+    const batchSize = Math.min(WAVE_CONFIG.spawnBatchSize, availableSlots, remainingToSpawn)
+    spawnDirector.spawnBatch(currentWave, batchSize)
+    remainingToSpawn -= batchSize
+    updateRemaining()
+
+    if (remainingToSpawn <= 0) {
+      spawnEvent?.remove(false)
+      spawnEvent = null
+    }
+  }
+
+  function spawnBoss() {
+    if (!currentWave?.boss || currentWave.boss.spawned || transitioning) {
+      return null
+    }
+
+    currentWave.boss.spawned = true
+    currentBoss = spawnDirector.spawnBoss(currentWave)
+    bossDirector?.setBoss(currentBoss, currentWave)
+    hud.setBossTarget(currentBoss, currentBoss.bossLabel ?? currentBoss.typeName ?? 'Boss')
+    updateRemaining()
+
+    return currentBoss
+  }
+
+  function restartSpawnLoop() {
+    if (!currentWave || transitioning || bossRewardActive) {
+      return
+    }
+
+    if (remainingToSpawn <= 0) {
+      updateRemaining()
+      return
+    }
+
+    pumpSpawn()
+
+    if (!spawnEvent && remainingToSpawn > 0) {
+      spawnEvent = scene.time.addEvent({
+        delay: currentWave.spawnInterval,
+        loop: true,
+        callback: pumpSpawn,
+      })
+    }
+  }
+
+  function tryResolveWaveClear() {
+    if (
+      bossRewardActive
+      || remainingToSpawn !== 0
+      || zombies.countActive(true) !== 0
+      || transitioning
+    ) {
+      return false
+    }
+
+    transitioning = true
+    gameStore.setPhase('wave-clear')
+    hud.flashBanner(currentWave?.endsCampaign ? 'AREA SECURED' : 'AREA CLEAR', '#86efac')
+
+    if (currentWave?.endsCampaign && gameStore.runMode !== 'endless') {
+      selectionEvent = scene.time.delayedCall(WAVE_CONFIG.upgradeDelay, () => {
+        gameStore.finishVictory()
+        onCampaignVictory?.()
+      })
+      return true
+    }
+
+    selectionEvent = scene.time.delayedCall(WAVE_CONFIG.upgradeDelay, () => {
+      if (!currentWave?.bossRewardGranted && upgradeDirector?.shouldOfferSelection(currentWave, {
+        lastSelectionWave: lastMajorRewardWave,
+      })) {
+        showUpgradeSelection()
+        return
+      }
+
+      if (!currentWave?.isBossWave) {
+        grantNormalWaveReward()
+        scheduleNextWave(WAVE_REWARD_CONFIG.normalRewardDelay)
+        return
+      }
+
+      scheduleNextWave()
+    })
+
+    return true
+  }
+
+  function showBossRewardSelection() {
+    if (!currentWave?.isMiniBossWave || currentWave?.bossRewardGranted || bossRewardActive) {
+      return false
+    }
+
+    bossRewardActive = true
+    currentWave.bossRewardGranted = true
+    spawnEvent?.remove(false)
+    spawnEvent = null
+    pauseGameplay?.()
+
+    const selectionOpened = upgradeDirector?.showSelection(
+      currentWave,
+      () => {
+        lastMajorRewardWave = currentWave?.number ?? lastMajorRewardWave
+        bossRewardActive = false
+        const hostilesRemain = remainingToSpawn > 0 || zombies.countActive(true) > 0 || getPendingBossCount() > 0
+
+        if (hostilesRemain) {
+          gameStore.setPhase('running')
+          resumeGameplay?.()
+          restartSpawnLoop()
+          updateRemaining()
+          return
+        }
+
+        tryResolveWaveClear()
+      },
+      {
+        bossReward: true,
+        lastSelectionWave: lastMajorRewardWave,
+      },
+    )
+
+    if (!selectionOpened) {
+      bossRewardActive = false
+      const hostilesRemain = remainingToSpawn > 0 || zombies.countActive(true) > 0 || getPendingBossCount() > 0
+
+      if (hostilesRemain) {
+        gameStore.setPhase('running')
+        resumeGameplay?.()
+        restartSpawnLoop()
+      }
+
+      return false
+    }
+
+    return true
+  }
+
+  function launchNextWave(waveNumber) {
+    clearEvents()
+    transitioning = false
+    currentWave = applyRuntimeBalance(getWaveDefinition(waveNumber, {
+      mode: gameStore.runMode,
+    }))
+    currentWave.bossRewardGranted = false
+    currentBoss = null
+    remainingToSpawn = currentWave.supportZombieCount ?? currentWave.totalZombies
+    bossRewardActive = false
+    upgradeDirector?.hide()
+    bossDirector?.clearBoss()
+    hud.clearBossTarget()
+    resumeGameplay?.()
+
+    spawnDirector.selectWaveSpawnPoints(currentWave)
+    gameStore.setWave(currentWave.number)
+    gameStore.setWaveInfo(currentWave)
+    gameStore.setPhase('spawning')
+    updateRemaining()
+    hud.flashBanner(
+      currentWave.isBossWave ? currentWave.boss?.bannerText ?? 'BOSS INCOMING' : `WAVE ${currentWave.number}`,
+      currentWave.isBossWave ? currentWave.boss?.bannerColor ?? '#fb923c' : '#ffd166',
+    )
+
+    startEvent = scene.time.delayedCall(WAVE_CONFIG.startDelay, () => {
+      gameStore.setPhase('running')
+
+      if (currentWave.isBossWave) {
+        bossSpawnEvent = scene.time.delayedCall(currentWave.boss?.spawnDelayMs ?? 0, () => {
+          bossSpawnEvent = null
+          spawnBoss()
+        })
+      }
+
+      pumpSpawn()
+
+      if (remainingToSpawn > 0) {
+        spawnEvent = scene.time.addEvent({
+          delay: currentWave.spawnInterval,
+          loop: true,
+          callback: pumpSpawn,
+        })
+      }
+    })
+  }
+
+  function showUpgradeSelection() {
+    pauseGameplay?.()
+
+    const selectionOpened = upgradeDirector?.showSelection(currentWave, () => {
+      lastMajorRewardWave = currentWave?.number ?? lastMajorRewardWave
+      scheduleNextWave()
+    }, {
+      lastSelectionWave: lastMajorRewardWave,
+    })
+
+    if (!selectionOpened) {
+      if (!currentWave?.isBossWave) {
+        grantNormalWaveReward()
+        scheduleNextWave(WAVE_REWARD_CONFIG.normalRewardDelay)
+        return
+      }
+
+      scheduleNextWave()
+    }
+  }
+
+  function startWave(waveNumber) {
+    if (waveNumber <= 1) {
+      lastMajorRewardWave = 0
+      clearTemporaryBuffTimer()
+      gameStore.clearTemporaryCombatBuff()
+    }
+
+    launchNextWave(waveNumber)
+  }
+
+  function handleZombieKilled(zombie) {
+    if (zombie?.isBoss) {
+      currentBoss = null
+      bossDirector?.clearBoss()
+      hud.clearBossTarget()
+    }
+
+    if (currentBoss && (!currentBoss.active || currentBoss.isDead)) {
+      currentBoss = null
+      bossDirector?.clearBoss()
+      hud.clearBossTarget()
+    }
+
+    updateRemaining()
+
+    if (spawnEvent && remainingToSpawn > 0) {
+      pumpSpawn()
+    }
+
+    if (zombie?.isMiniBoss && showBossRewardSelection()) {
+      return
+    }
+
+    tryResolveWaveClear()
+  }
+
+  function stop() {
+    transitioning = true
+    currentBoss = null
+    bossRewardActive = false
+    bossDirector?.clearBoss()
+    hud.clearBossTarget()
+    upgradeDirector?.hide()
+    clearEvents()
+    clearTemporaryBuffTimer()
+    gameStore.clearTemporaryCombatBuff()
+  }
+
+  return {
+    refreshRemaining: updateRemaining,
+    startWave,
+    handleZombieKilled,
+    stop,
+  }
+}
