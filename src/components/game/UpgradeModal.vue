@@ -10,8 +10,7 @@
           <h2 class="upgrade-modal__title">Pick your next edge.</h2>
           <p
             v-if="autoPickSeconds > 0"
-            class="upgrade-modal__timer"
-          >
+            class="upgrade-modal__timer">
             Auto-picks in {{ autoPickSeconds }}s
           </p>
         </div>
