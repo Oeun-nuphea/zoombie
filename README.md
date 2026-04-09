@@ -111,3 +111,9 @@ The project combines **Phaser 3** (Heavy Lifting) and **Vue 3** (User Interface)
 - Yellow is shortgun
 - Blue is rifle
 - Green is SMG
+
+🟡 Shotgun — Each pull fires 5 bullets at once, dealing up to 5 damage in a single shot at close range. Against tankier zombies or crowded groups it's devastatingly powerful. Trade-off: only 10 shells total and very slow fire rate.
+
+🔵 Rifle — Doubles the damage per bullet (2 vs 1). Every hit on a walker or runner kills them instantly. Good range and tight spread. Best all-rounder.
+
+🟢 SMG — Fires every 80ms vs pistol's 130ms — nearly 1.6x faster. Great for sustained pressure and melting through zombie groups quickly with 48 rounds of ammo.
