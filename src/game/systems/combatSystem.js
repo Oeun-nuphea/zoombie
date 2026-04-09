@@ -45,8 +45,13 @@ export function createCombatDirector(scene, config) {
   function handleShot(shot) {
     createMuzzleFlash(scene, shot.x, shot.y, shot.rotation)
     flashCombatLight(shot.x, shot.y)
+    
+    // Weapon fire screen shake
+    const isShotgun = shot.weapon?.id === 'shotgun'
+    scene.cameras.main.shake(isShotgun ? 40 : 20, isShotgun ? 0.0025 : 0.001)
+
     soundManager?.play('shoot', {
-      volume: shot.weapon?.id === 'shotgun' ? 1.2 : 1,
+      volume: isShotgun ? 1.2 : 1,
     })
   }
 
@@ -138,6 +143,19 @@ export function createCombatDirector(scene, config) {
     }
 
     createBloodSplatter(scene, zombie.x, zombie.y, 1)
+    
+    // Regular floating damage text
+    const impactX = hitResult?.impactPoint?.x ?? zombie.x
+    const impactY = hitResult?.impactPoint?.y ?? zombie.y - 16
+    const damageAmount = hitResult?.damageTaken ?? bullet?.damage ?? 1
+    createFloatingCombatText(scene, impactX, impactY, damageAmount.toString(), {
+      color: '#fbbf24',
+      shadowColor: '#78350f',
+      fontSize: '18px',
+      duration: 500,
+      rise: 20,
+    })
+
     soundManager?.play('zombie-hit')
     upgradeDirector?.handleEnemyHit({
       zombie,
@@ -211,7 +229,8 @@ export function createCombatDirector(scene, config) {
           onComplete: () => pool.destroy(),
         })
 
-        scene.cameras.main.shake(140, 0.0018)
+        // Amplified barrel explosion shake
+        scene.cameras.main.shake(200, 0.004)
         soundManager?.play('shoot', { volume: 1.4, rate: 0.38 })
 
         // Damage all zombies in radius

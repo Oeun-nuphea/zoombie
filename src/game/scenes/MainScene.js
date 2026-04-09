@@ -256,7 +256,8 @@ export default class MainScene extends Phaser.Scene {
 
     if (
       this.gameStore.phase === "running" ||
-      this.gameStore.phase === "spawning"
+      this.gameStore.phase === "spawning" ||
+      this.gameStore.phase === "wave-clear"
     ) {
       this.playerController.update(time, delta);
     }

@@ -31,41 +31,42 @@ export function createBloodSplatter(scene, x, y, intensity = 1) {
   const stain = scene.add.graphics({ x, y })
   stain.setDepth(2)
 
-  for (let index = 0; index < 4 + scaledIntensity * 3; index += 1) {
-    stain.fillStyle(0x5c0b10, Phaser.Math.FloatBetween(0.18, 0.36))
+  // Wider, darker stains
+  for (let index = 0; index < 6 + scaledIntensity * 4; index += 1) {
+    stain.fillStyle(0x3e0108, Phaser.Math.FloatBetween(0.2, 0.5))
     stain.fillEllipse(
-      Phaser.Math.Between(-22, 22),
-      Phaser.Math.Between(-14, 14),
-      Phaser.Math.Between(6, 16),
-      Phaser.Math.Between(4, 10),
+      Phaser.Math.Between(-32, 32),
+      Phaser.Math.Between(-24, 24),
+      Phaser.Math.Between(10, 24),
+      Phaser.Math.Between(6, 14),
     )
   }
 
   const burst = scene.add.graphics({ x, y })
   burst.setDepth(24)
 
-  for (let index = 0; index < 6 + scaledIntensity * 4; index += 1) {
-    burst.fillStyle(0xef4444, Phaser.Math.FloatBetween(0.45, 0.85))
+  for (let index = 0; index < 8 + scaledIntensity * 5; index += 1) {
+    burst.fillStyle(0xdc2626, Phaser.Math.FloatBetween(0.5, 0.9))
     burst.fillCircle(
-      Phaser.Math.Between(-18, 18),
-      Phaser.Math.Between(-18, 18),
-      Phaser.Math.Between(2, 5),
+      Phaser.Math.Between(-24, 24),
+      Phaser.Math.Between(-24, 24),
+      Phaser.Math.Between(2, 6),
     )
   }
 
   scene.tweens.add({
     targets: burst,
     alpha: 0,
-    duration: 260,
+    duration: 320,
     onComplete: () => burst.destroy(),
   })
 
-  // Stain fades and is destroyed after a few seconds to prevent accumulation
+  // Stain fades and is destroyed after a much longer wait to keep the arena messy
   scene.tweens.add({
     targets: stain,
     alpha: 0,
-    delay: 4000,
-    duration: 1200,
+    delay: 12000, 
+    duration: 2500,
     onComplete: () => stain.destroy(),
   })
 }
