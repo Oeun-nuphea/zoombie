@@ -58,9 +58,31 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.explosionRadius = config.explosionRadius ?? 160
     this.explosionDamage = config.explosionDamage ?? 2
     this.explosionKnockback = config.explosionKnockback ?? 800
+    this.explosionKnockback = config.explosionKnockback ?? 800
     this.acidPoolDurationMs = config.acidPoolDurationMs ?? 2500
     // Shield zombie flags
     this.shielded = config.shielded ?? false
+    // Leaper flags
+    this.leaps = config.leaps ?? false
+    this.leapRangeMin = config.leapRangeMin
+    this.leapRangeMax = config.leapRangeMax
+    this.leapCooldownMs = config.leapCooldownMs
+    this.leapDurationMs = config.leapDurationMs
+    this.leapSpeed = config.leapSpeed
+    this.nextLeapAt = 0
+    this.isLeaping = false
+    this.leapUntil = 0
+    this.leapVector = new Phaser.Math.Vector2()
+    // Spitter flags
+    this.spits = config.spits ?? false
+    this.spitRangeMin = config.spitRangeMin
+    this.spitRangeMax = config.spitRangeMax
+    this.spitCooldownMs = config.spitCooldownMs
+    this.spitSpeed = config.spitSpeed
+    this.spitDamage = config.spitDamage
+    this.spitLifetimeMs = config.spitLifetimeMs
+    this.nextSpitAt = 0
+
     this.facingAngle = 0  // updated every frame as zombie chases player
     this.speedModifier = 1
     this.state = 'idle'
@@ -296,18 +318,90 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
       return
     }
 
+    if (this.isLeaping && time < this.leapUntil) {
+      this.setVelocity(this.leapVector.x * this.leapSpeed, this.leapVector.y * this.leapSpeed)
+      return
+    } else if (this.isLeaping && time >= this.leapUntil) {
+      this.isLeaping = false
+    }
+
     if (distance <= this.attackRange) {
       this.attack(time)
       this.setVelocity(this.body.velocity.x * 0.65, this.body.velocity.y * 0.65)
       return
     }
 
+    if (this.leaps && time >= this.nextLeapAt && !this.isAiSuspended(time)) {
+      if (distance >= this.leapRangeMin && distance <= this.leapRangeMax) {
+        this.nextLeapAt = time + this.leapCooldownMs + Phaser.Math.Between(0, 1000)
+        this.isLeaping = true
+        this.leapUntil = time + this.leapDurationMs
+        this.leapVector.set(target.x - this.x, target.y - this.y).normalize()
+        this.playLoop('attack')
+        
+        // Impact burst on leap
+        import('../systems/effectsSystem').then(({ createImpactBurst }) => {
+          createImpactBurst(this.scene, this.x, this.y + 20, {
+            color: 0x991b1b, radius: 10, endRadius: 28, particleCount: 8, duration: 160
+          })
+        })
+        return
+      }
+    }
+
+    let currentSteerX = steerX
+    let currentSteerY = steerY
+
+    if (this.spits && time >= this.nextSpitAt && !this.isAiSuspended(time)) {
+      if (distance >= this.spitRangeMin && distance <= this.spitRangeMax) {
+        this.nextSpitAt = time + this.spitCooldownMs + Phaser.Math.Between(0, 1000)
+        this.fireSpit(target)
+        this.playLoop('attack')
+        this.attackUntil = time + 400
+        this.setVelocity(this.body.velocity.x * 0.1, this.body.velocity.y * 0.1)
+        return
+      } else if (distance < this.spitRangeMin) {
+        // Move backward a bit to maintain distance
+        currentSteerX = this.x - (target.x - this.x)
+        currentSteerY = this.y - (target.y - this.y)
+      }
+    }
+
     const effectiveSpeed = Math.max(12, this.speed * (this.speedModifier ?? 1))
 
-    this.scene.physics.moveTo(this, steerX, steerY, effectiveSpeed)
+    this.scene.physics.moveTo(this, currentSteerX, currentSteerY, effectiveSpeed)
     // Track direction zombie is facing (toward player) for shield deflection
     this.facingAngle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y)
     this.playLoop('walk')
+  }
+
+  fireSpit(target) {
+    const projectile = this.scene.physics.add.sprite(this.x, this.y - 12, 'bullet')
+        .setTint(0x16a34a).setScale(1.3).setDepth(30)
+    projectile.body.setCircle(6)
+    const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y)
+    this.scene.physics.velocityFromRotation(angle, this.spitSpeed, projectile.body.velocity)
+    
+    // Add collision against player with active combat director
+    this.scene.physics.add.overlap(this.scene.player, projectile, (_player, proj) => {
+      if (proj.active) {
+        this.scene.combat?.handleBossAttack?.({ isBoss: true, active: true, isDead: false, damageCooldownMs: 0, x: this.x, y: this.y }, {
+          damage: this.spitDamage, fromX: proj.x, fromY: proj.y, knockbackForceScale: 0.8,
+          damageSource: 'spitter-projectile'
+        })
+        
+        import('../systems/effectsSystem').then(({ createImpactBurst }) => {
+          createImpactBurst(this.scene, proj.x, proj.y, {
+            color: 0x166534, radius: 10, endRadius: 28, particleCount: 12, duration: 180
+          })
+        })
+        
+        proj.destroy()
+      }
+    })
+
+    // Destroy after lifetime
+    this.scene.time.delayedCall(this.spitLifetimeMs, () => proj.destroy?.())
   }
 
   /**

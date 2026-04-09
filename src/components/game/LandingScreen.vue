@@ -56,6 +56,14 @@
           <button
             class="landing-screen__secondary-button"
             type="button"
+            @click="showShop = true"
+          >
+            Upgrades Shop
+          </button>
+
+          <button
+            class="landing-screen__secondary-button"
+            type="button"
             @click="toggleSound"
           >
             {{ soundMuted ? 'Sound Off' : 'Sound On' }}
@@ -67,6 +75,11 @@
         <div class="landing-screen__panel-block">
           <p class="landing-screen__panel-label">Best Score</p>
           <p class="landing-screen__panel-value">{{ formatScore(gameStore.bestScore) }}</p>
+        </div>
+
+        <div class="landing-screen__panel-block">
+          <p class="landing-screen__panel-label">Zombie Souls</p>
+          <p class="landing-screen__panel-value" style="color: #c084fc;">{{ gameStore.souls }}</p>
         </div>
 
         <div class="landing-screen__panel-block">
@@ -153,12 +166,49 @@
     </div>
 
     <div
-      v-if="showHowToPlay || showSettings"
+      v-if="showHowToPlay || showSettings || showShop"
       class="landing-screen__modal-backdrop responsive-overlay"
       @click.self="closePanels"
     >
       <div class="landing-screen__modal responsive-overlay__panel">
-        <template v-if="showHowToPlay">
+        <template v-if="showShop">
+          <p class="landing-screen__modal-label">Meta Shop</p>
+          <h2 class="landing-screen__modal-title">Spend Souls</h2>
+          <div class="landing-screen__modal-copy">
+            <p>You have <strong style="color: #c084fc; font-size: 1.1rem; text-shadow: 0 0 10px rgba(192,132,252,0.4);">{{ gameStore.souls }} Zombie Souls</strong>.</p>
+            <div style="display: flex; gap: 1rem; flex-direction: column; margin-top: 1.5rem;">
+              <div style="padding: 1rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
+                <div>
+                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Health +1</h4>
+                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">Currently: +{{ gameStore.metaUpgrades?.health || 0 }}</p>
+                </div>
+                <button 
+                  class="landing-screen__play-button" 
+                  style="min-width: auto; padding: 0.6rem 1rem;"
+                  :disabled="gameStore.souls < healthCost"
+                  @click="buyHealth"
+                  :style="gameStore.souls < healthCost ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''"
+                >Buy for {{ healthCost }}</button>
+              </div>
+
+              <div style="padding: 1rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
+                <div>
+                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Speed +5%</h4>
+                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">Currently: +{{ (gameStore.metaUpgrades?.speed || 0) * 5 }}%</p>
+                </div>
+                <button 
+                  class="landing-screen__play-button" 
+                  style="min-width: auto; padding: 0.6rem 1rem;"
+                  :disabled="gameStore.souls < speedCost"
+                  @click="buySpeed"
+                  :style="gameStore.souls < speedCost ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''"
+                >Buy for {{ speedCost }}</button>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template v-else-if="showHowToPlay">
           <p class="landing-screen__modal-label">How To Play</p>
           <h2 class="landing-screen__modal-title">Stay moving. Build the run.</h2>
           <div class="landing-screen__modal-copy">
@@ -200,7 +250,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { requestDocumentFullscreen } from '../../composables/useFullscreenMode'
@@ -214,12 +264,25 @@ const router = useRouter()
 const gameStore = useGameStore()
 const showHowToPlay = ref(false)
 const showSettings = ref(false)
+const showShop = ref(false)
 const soundMuted = ref(readStorage(STORAGE_KEYS.soundMuted, false))
 const runtimeProfile = getGameRuntimeProfile()
+
+const healthCost = computed(() => 50 * ((gameStore.metaUpgrades?.health || 0) + 1))
+const speedCost = computed(() => 40 * ((gameStore.metaUpgrades?.speed || 0) + 1))
+
+function buyHealth() {
+  gameStore.buyMetaUpgrade('health', healthCost.value)
+}
+
+function buySpeed() {
+  gameStore.buyMetaUpgrade('speed', speedCost.value)
+}
 
 function closePanels() {
   showHowToPlay.value = false
   showSettings.value = false
+  showShop.value = false
 }
 
 function toggleSound() {

@@ -17,4 +17,6 @@ export const STORAGE_KEYS = {
   endlessUnlocked: 'zoombie.endless-unlocked',
   soundMuted: 'zoombie.sound-muted',
   soundVolume: 'zoombie.sound-volume',
+  souls: 'zoombie.souls',
+  metaUpgrades: 'zoombie.meta-upgrades',
 }

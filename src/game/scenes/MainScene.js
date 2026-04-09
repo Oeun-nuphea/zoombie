@@ -15,6 +15,7 @@ import { createSpawnDirector } from "../systems/spawnSystem";
 import { createUpgradeDirector } from "../systems/upgradeSystem";
 import { createWaveDirector } from "../systems/waveSystem";
 import { createWeaponDirector } from "../systems/weaponSystem";
+import { createRadarSystem } from "../systems/radarSystem";
 import { pinia } from "../../stores";
 import { useGameStore } from "../../stores/gameStore";
 import { getSceneGameDimensions } from "../../utils/gameViewport";
@@ -65,6 +66,7 @@ export default class MainScene extends Phaser.Scene {
     this.cameras.main.centerOn(dimensions.width * 0.5, dimensions.height * 0.5);
     this.arena?.resize?.(dimensions);
     this.hud?.refreshLayout?.(dimensions);
+    this.radar?.refreshLayout?.(dimensions);
     this.spawnDirector?.refreshBounds?.();
 
     if (this.player) {
@@ -142,6 +144,11 @@ export default class MainScene extends Phaser.Scene {
       gameStore: this.gameStore,
       hud: this.hud,
       soundManager: this.soundManager,
+    });
+    this.radar = createRadarSystem(this, {
+      player: this.player,
+      zombies: this.zombies,
+      dimensions: { width, height },
     });
     this.upgradeDirector = createUpgradeDirector(this, {
       player: this.player,
@@ -266,6 +273,7 @@ export default class MainScene extends Phaser.Scene {
     }
 
     this.hud.update();
+    this.radar.update();
     this.dropDirector.update(time);
   }
 

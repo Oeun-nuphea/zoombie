@@ -19,6 +19,8 @@ export const useGameStore = defineStore('game', {
     phase: 'idle',
     runMode: 'normal',
     endlessUnlocked: readStorage(STORAGE_KEYS.endlessUnlocked, false),
+    souls: readStorage(STORAGE_KEYS.souls, 0),
+    metaUpgrades: readStorage(STORAGE_KEYS.metaUpgrades, { health: 0, speed: 0 }),
     score: 0,
     bestScore: readStorage(STORAGE_KEYS.bestScore, 0),
     lastScore: 0,
@@ -57,17 +59,19 @@ export const useGameStore = defineStore('game', {
   }),
   getters: {
     maxPlayerHealth(state) {
-      return state.playerStats.maxHP
+      return state.playerStats.maxHP + (state.metaUpgrades?.health ?? 0)
     },
     canAccessEndlessMode(state) {
       return Boolean(state.endlessUnlocked)
     },
     playerCombatStats(state) {
+      const metaSpeedBonus = (state.metaUpgrades?.speed ?? 0) * 0.05
+      
       return {
         ...state.playerStats,
         damage: Number(((state.playerStats.damage ?? 1) + (state.temporaryCombatBuff?.damage ?? 0)).toFixed(2)),
         fireRate: Number(((state.playerStats.fireRate ?? 1) + (state.temporaryCombatBuff?.fireRate ?? 0)).toFixed(2)),
-        moveSpeed: Number(((state.playerStats.moveSpeed ?? 1) + (state.temporaryCombatBuff?.moveSpeed ?? 0)).toFixed(2)),
+        moveSpeed: Number(((state.playerStats.moveSpeed ?? 1) + (state.temporaryCombatBuff?.moveSpeed ?? 0) + metaSpeedBonus).toFixed(2)),
       }
     },
   },
@@ -86,6 +90,22 @@ export const useGameStore = defineStore('game', {
         this.bestScore = this.score
         writeStorage(STORAGE_KEYS.bestScore, this.bestScore)
       }
+    },
+    addSouls(amount) {
+      this.souls += amount
+      writeStorage(STORAGE_KEYS.souls, this.souls)
+    },
+    buyMetaUpgrade(type, cost) {
+      if (this.souls >= cost) {
+        this.souls -= cost
+        if (!this.metaUpgrades) this.metaUpgrades = { health: 0, speed: 0 }
+        this.metaUpgrades[type] = (this.metaUpgrades[type] ?? 0) + 1
+        
+        writeStorage(STORAGE_KEYS.souls, this.souls)
+        writeStorage(STORAGE_KEYS.metaUpgrades, this.metaUpgrades)
+        return true
+      }
+      return false
     },
     setHealth(value) {
       this.health = value
@@ -265,6 +285,8 @@ export const useGameStore = defineStore('game', {
     },
     finishVictory() {
       const finishedAt = Date.now()
+      const earnedSouls = Math.max(1, Math.floor(this.score / 15))
+      this.addSouls(earnedSouls)
 
       this.phase = 'victory'
       this.zombiesRemaining = 0
@@ -284,6 +306,8 @@ export const useGameStore = defineStore('game', {
     },
     finishRun() {
       const finishedAt = Date.now()
+      const earnedSouls = Math.max(1, Math.floor(this.score / 15))
+      this.addSouls(earnedSouls)
 
       this.phase = 'game-over'
       this.zombiesRemaining = 0

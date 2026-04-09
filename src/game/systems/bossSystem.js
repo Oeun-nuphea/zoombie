@@ -179,28 +179,28 @@ export function createBossDirector(scene, config) {
   }
 
   function createSlamTelegraph(boss, ability) {
-    const glow = scene.add.circle(boss.x, boss.y, ability.radius * 0.44, 0xf97316, 0.12)
-    glow.setDepth(TELEGRAPH_DEPTH).setBlendMode(Phaser.BlendModes.ADD)
+    const dangerZone = scene.add.circle(boss.x, boss.y, ability.radius, 0xff0000, 0.25)
+    dangerZone.setDepth(TELEGRAPH_DEPTH).setBlendMode(Phaser.BlendModes.ADD)
+    dangerZone.setScale(0.1)
 
-    const ring = scene.add.circle(boss.x, boss.y, ability.radius * 0.68, 0xef4444, 0.08)
-    ring.setDepth(TELEGRAPH_DEPTH + 1).setStrokeStyle(5, 0xfb7185, 0.88)
+    const ring = scene.add.circle(boss.x, boss.y, ability.radius, 0xef4444, 0)
+    ring.setDepth(TELEGRAPH_DEPTH + 1).setStrokeStyle(3, 0xfca5a5, 0.8)
+
+    scene.tweens.add({
+      targets: dangerZone,
+      scale: 1,
+      duration: ability.warningMs,
+      ease: 'Linear',
+    })
 
     scene.tweens.add({
       targets: ring,
-      radius: ability.radius,
-      alpha: 0.24,
+      alpha: 0.5,
       duration: ability.warningMs,
-      ease: 'Sine.easeIn',
-    })
-    scene.tweens.add({
-      targets: glow,
-      radius: ability.radius * 0.82,
-      alpha: 0.18,
-      duration: ability.warningMs,
-      ease: 'Quad.easeOut',
+      ease: 'Linear',
     })
 
-    telegraphNodes.push(glow, ring)
+    telegraphNodes.push(dangerZone, ring)
   }
 
   function createChargeTelegraph(boss, targetPoint, ability) {
