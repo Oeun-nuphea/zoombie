@@ -176,12 +176,16 @@ export function createDropDirector(scene, config) {
       return null
     }
 
-    const roll = Math.random()
+    let roll = Math.random()
+    
+    // Elites have a much higher chance to drop health (5x)
+    const multiplier = zombie.isElite ? 5 : 1
+    
     let healthDropId = null
 
-    if (roll <= HEALTH_DROP_CONFIG.bigChance) {
+    if (roll <= HEALTH_DROP_CONFIG.bigChance * multiplier) {
       healthDropId = 'big'
-    } else if (roll <= HEALTH_DROP_CONFIG.bigChance + HEALTH_DROP_CONFIG.smallChance) {
+    } else if (roll <= (HEALTH_DROP_CONFIG.bigChance + HEALTH_DROP_CONFIG.smallChance) * multiplier) {
       healthDropId = 'small'
     }
 

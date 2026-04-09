@@ -204,6 +204,17 @@ export function createCombatDirector(scene, config) {
       createBloodSplatter(scene, zombie.x, zombie.y, 2)
       soundManager?.play('zombie-death')
 
+      if (zombie.isElite) {
+        createImpactBurst(scene, zombie.x, zombie.y - 10, {
+          color: zombie.eliteConfig?.tintColor ?? 0xfacc15,
+          radius: 14,
+          endRadius: 40,
+          particleCount: 10,
+          duration: 250,
+        })
+        hud.flashBanner('ELITE DOWN', zombie.eliteConfig?.labelColor ?? '#facc15')
+      }
+
       // Boomer explosion on death
       if (zombie.explodes) {
         const boomX = zombie.x

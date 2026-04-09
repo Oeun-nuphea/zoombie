@@ -39,6 +39,32 @@ export const ZOMBIE_CONFIG = {
   healthStepEvery: 2,
 }
 
+export const ELITE_MUTATIONS = {
+  enraged: {
+    id: 'enraged',
+    name: 'Enraged',
+    labelFormat: 'ENRAGED',
+    labelColor: '#fca5a5',
+    speedMultiplier: 1.6,
+    damageMultiplier: 1.5,
+    healthMultiplier: 1.0,
+    sizeMultiplier: 1.15,
+    tintColor: 0xff3b3b,
+  },
+  armored: {
+    id: 'armored',
+    name: 'Armored',
+    labelFormat: 'ARMORED',
+    labelColor: '#fde047',
+    speedMultiplier: 0.9,
+    damageMultiplier: 1.0,
+    healthMultiplier: 1.0,  // We'll manage physical damage reduction differently
+    damageReduction: 0.5,   // 50% damage reduction
+    sizeMultiplier: 1.25,
+    tintColor: 0xfacc15,
+  },
+}
+
 export const HEADSHOT_CONFIG = {
   damageMultiplier: 2.5,
   debugHitboxes: false,
@@ -940,6 +966,17 @@ export function buildZombieConfig(typeId, waveConfig) {
   const headHitRadiusScale = type.headHitRadiusScale ?? Math.max(HEADSHOT_CONFIG.defaultHeadRadiusScale, bodyHitRadiusScale * 0.62)
   const headHitOffsetYScale = type.headHitOffsetYScale ?? Math.max(HEADSHOT_CONFIG.defaultHeadOffsetYScale, bodyHitOffsetYScale + 0.17)
 
+  let mutationId = null
+  if (!type.bossOnly && waveConfig.number >= 3) {
+    let eliteChance = 0.05
+    if (waveConfig.number > 10) eliteChance += 0.02
+    
+    if (Math.random() <= eliteChance) {
+      const keys = Object.keys(ELITE_MUTATIONS)
+      mutationId = keys[Math.floor(Math.random() * keys.length)]
+    }
+  }
+
   return {
     typeId: type.id,
     typeName: type.name,
@@ -948,6 +985,7 @@ export function buildZombieConfig(typeId, waveConfig) {
     health: maxHealth,
     maxHealth,
     contactDamage,
+    eliteMutation: mutationId,
     scoreValue: type.scoreReward + bossTier * (type.scorePerTier ?? 0),
     scale: type.size,
     attackRange: type.attackRange,

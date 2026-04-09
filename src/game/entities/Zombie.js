@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import { HEADSHOT_CONFIG } from '../config/gameplayConfig'
+import { ELITE_MUTATIONS, HEADSHOT_CONFIG } from '../config/gameplayConfig'
 
 const ATTACK_HOLD_MS = 180
 
@@ -14,14 +14,26 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this)
 
     this.typeId = config.typeId
-    this.typeName = config.typeName
     this.animationPrefix = `zombie-${animationType}`
-    this.health = config.health
-    this.maxHealth = config.maxHealth ?? config.health
-    this.speed = config.speed
-    this.contactDamage = config.contactDamage
-    this.baseContactDamage = config.contactDamage  // preserved for screamer aura reset
-    this.scoreValue = config.scoreValue
+    
+    // Elite processing Setup
+    this.eliteMutationId = config.eliteMutation ?? null
+    this.eliteConfig = this.eliteMutationId ? ELITE_MUTATIONS[this.eliteMutationId] : null
+    this.isElite = Boolean(this.eliteMutationId)
+    
+    // Apply Elite Stat Modifiers
+    const maxHealthMult = this.eliteConfig?.healthMultiplier ?? 1
+    this.health = Math.max(1, Math.floor(config.health * maxHealthMult))
+    this.maxHealth = Math.max(1, Math.floor((config.maxHealth ?? config.health) * maxHealthMult))
+    this.speed = config.speed * (this.eliteConfig?.speedMultiplier ?? 1)
+    
+    const damageMult = this.eliteConfig?.damageMultiplier ?? 1
+    this.contactDamage = Math.max(1, Math.floor(config.contactDamage * damageMult))
+    this.baseContactDamage = this.contactDamage  // preserved for screamer aura reset
+    
+    // Elites are worth 2.5x score
+    this.scoreValue = Math.floor(config.scoreValue * (this.isElite ? 2.5 : 1))
+    this.typeName = this.isElite ? `${this.eliteConfig.name} ${config.typeName}` : config.typeName
     this.attackRange = config.attackRange
     this.damageCooldownMs = config.damageCooldownMs ?? 500
     this.hitStunMs = config.hitStunMs
@@ -121,18 +133,27 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.aura?.setBlendMode(Phaser.BlendModes.ADD).setDepth(4)
     this.shadow.setDepth(5)
     this.setOrigin(0.5, 0.82)
-    this.setScale(config.scale ?? 0.82)
+    this.setDepth(18)
+    
+    // Apply Elite visual modifiers
+    const eliteScaleMult = this.eliteConfig?.sizeMultiplier ?? 1
+    const baseScale = config.scale ?? 0.82
+    this.setScale(baseScale * eliteScaleMult)
+    
+    // Keep hitbox roughly aligned with potentially scaled up elites
     this.body.setSize(config.bodyWidth ?? 36, config.bodyHeight ?? 44)
     this.body.setOffset(config.bodyOffsetX ?? 46, config.bodyOffsetY ?? 70)
-    this.setDepth(18)
+    
     this.healthBar = scene.add.graphics().setDepth(19)
     this.setCollideWorldBounds(true)
     this.shadow.setScale(this.scaleX, this.scaleY)
     this.play(this.getAnimationKey('idle'))
     this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, this.handleAnimationComplete, this)
 
-    if (config.tintColor) {
-      this.setTint(config.tintColor)
+    // Apply primary tint (elite tint overrides native tint)
+    const activeTint = this.eliteConfig?.tintColor ?? config.tintColor
+    if (activeTint) {
+      this.setTint(activeTint)
     }
 
     // Screamer pulsing aura ring
@@ -486,8 +507,13 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
       }
     }
 
-    const damageTaken = Math.min(this.health, amount)
-    this.health -= amount
+    let actualDamage = amount
+    if (this.eliteConfig?.damageReduction) {
+      actualDamage = actualDamage * (1 - this.eliteConfig.damageReduction)
+    }
+
+    const damageTaken = Math.min(this.health, actualDamage)
+    this.health -= actualDamage
 
     if (this.health <= 0) {
       this.health = 0
