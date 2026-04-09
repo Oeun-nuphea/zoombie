@@ -640,6 +640,43 @@ export const ZOMBIE_TYPES = {
     animationType: 'spitter',
     tintColor: 0x4ade80,
   },
+  screamer: {
+    id: 'screamer',
+    name: 'Screamer',
+    healthMultiplier: 0.65,
+    speedMultiplier: 1.12,
+    size: 0.80,
+    damage: 0,
+    scoreReward: 30,
+    spawnWeight: 8,
+    unlockWave: 10,
+    weightRamp: 2,
+    attackRange: 0,
+    damageCooldownMs: 9999,
+    hitStunMs: 90,
+    wobbleAmount: 20,
+    wobbleSpeed: 0.018,
+    bodyWidth: 32,
+    bodyHeight: 42,
+    bodyOffsetX: 50,
+    bodyOffsetY: 71,
+    shadowWidth: 28,
+    shadowHeight: 14,
+    shadowAlpha: 0.22,
+    shadowColor: 0x2d0033,
+    poisonDamage: 0,
+    poisonDuration: 0,
+    poisonTickInterval: 0,
+    hurtRadiusScale: 0.20,
+    hurtOffsetYScale: 0.44,
+    tintColor: 0xe879f9,
+    animationType: 'runner',
+    // Screamer-specific
+    screams: true,
+    screamAuraRadius: 180,
+    screamSpeedBonus: 0.35,
+    screamDamageBonus: 1,
+  },
 }
 
 export function getSpawnPointDefinitions(dimensions = GAME_DIMENSIONS) {
@@ -979,5 +1016,11 @@ export function buildZombieConfig(typeId, waveConfig) {
     spitSpeed: type.spitSpeed ?? 420,
     spitDamage: type.spitDamage ?? 1,
     spitLifetimeMs: type.spitLifetimeMs ?? 2000,
+
+    // Screamer properties
+    screams: type.screams ?? false,
+    screamAuraRadius: type.screamAuraRadius ?? 180,
+    screamSpeedBonus: type.screamSpeedBonus ?? 0.35,
+    screamDamageBonus: type.screamDamageBonus ?? 1,
   }
 }

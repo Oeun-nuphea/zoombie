@@ -160,3 +160,112 @@ export function createFloatingCombatText(scene, x, y, text, options = {}) {
     },
   })
 }
+
+export function createLightningArc(scene, x1, y1, x2, y2, options = {}) {
+  const { color = 0xa5f3fc, depth = 32, segments = 6, duration = 180 } = options
+  const gfx = scene.add.graphics()
+  gfx.setDepth(depth).setBlendMode(Phaser.BlendModes.ADD)
+
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const len = Math.sqrt(dx * dx + dy * dy)
+  const nx = -dy / len
+  const ny = dx / len
+  const points = [{ x: x1, y: y1 }]
+
+  for (let i = 1; i < segments; i++) {
+    const t = i / segments
+    const jitter = Phaser.Math.Between(-22, 22)
+    points.push({
+      x: x1 + dx * t + nx * jitter,
+      y: y1 + dy * t + ny * jitter,
+    })
+  }
+
+  points.push({ x: x2, y: y2 })
+
+  // Outer glow pass
+  gfx.lineStyle(4, color, 0.28)
+  gfx.beginPath()
+  gfx.moveTo(points[0].x, points[0].y)
+  for (let i = 1; i < points.length; i++) {
+    gfx.lineTo(points[i].x, points[i].y)
+  }
+  gfx.strokePath()
+
+  // Core bright pass
+  gfx.lineStyle(1.5, 0xffffff, 0.9)
+  gfx.beginPath()
+  gfx.moveTo(points[0].x, points[0].y)
+  for (let i = 1; i < points.length; i++) {
+    gfx.lineTo(points[i].x, points[i].y)
+  }
+  gfx.strokePath()
+
+  scene.tweens.add({
+    targets: gfx,
+    alpha: 0,
+    duration,
+    ease: 'Quad.easeIn',
+    onComplete: () => gfx.destroy(),
+  })
+}
+
+export function createGrenadeExplosion(scene, x, y, radius = 120, options = {}) {
+  const { depth = 30, duration = 320 } = options
+
+  // Outer shockwave ring
+  const outerRing = scene.add.circle(x, y, 16, 0xfbbf24, 0.8)
+  outerRing.setDepth(depth).setBlendMode(Phaser.BlendModes.ADD)
+  scene.tweens.add({
+    targets: outerRing,
+    radius,
+    alpha: 0,
+    duration,
+    ease: 'Cubic.easeOut',
+    onComplete: () => outerRing.destroy(),
+  })
+
+  // Inner hot-white core flash
+  const core = scene.add.circle(x, y, 28, 0xfffde7, 0.95)
+  core.setDepth(depth + 1).setBlendMode(Phaser.BlendModes.ADD)
+  scene.tweens.add({
+    targets: core,
+    radius: 6,
+    alpha: 0,
+    duration: duration * 0.6,
+    ease: 'Quad.easeOut',
+    onComplete: () => core.destroy(),
+  })
+
+  // Sparks
+  const sparks = scene.add.graphics({ x, y })
+  sparks.setDepth(depth + 2).setBlendMode(Phaser.BlendModes.ADD)
+  const sparkCount = Math.min(14, Math.max(6, Math.round(radius / 10)))
+  for (let i = 0; i < sparkCount; i++) {
+    sparks.fillStyle(0xfb923c, Phaser.Math.FloatBetween(0.6, 1))
+    const angle = Phaser.Math.FloatBetween(0, Math.PI * 2)
+    const r = Phaser.Math.Between(Math.round(radius * 0.15), Math.round(radius * 0.55))
+    sparks.fillCircle(Math.cos(angle) * r, Math.sin(angle) * r, Phaser.Math.Between(3, 7))
+  }
+  scene.tweens.add({
+    targets: sparks,
+    alpha: 0,
+    scaleX: 1.3,
+    scaleY: 1.3,
+    duration,
+    ease: 'Quad.easeOut',
+    onComplete: () => sparks.destroy(),
+  })
+
+  // Ground scorch
+  const scorch = scene.add.circle(x, y, radius * 0.38, 0x1c0a00, 0.55)
+  scorch.setDepth(2)
+  scene.tweens.add({
+    targets: scorch,
+    alpha: 0,
+    delay: 2500,
+    duration: 800,
+    onComplete: () => scorch.destroy(),
+  })
+}

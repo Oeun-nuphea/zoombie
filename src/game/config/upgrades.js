@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-import { createFloatingCombatText, createImpactBurst } from '../systems/effectsSystem'
+import { createFloatingCombatText, createImpactBurst, createLightningArc } from '../systems/effectsSystem'
 import { PLAYER_CONFIG } from './gameplayConfig'
 
 export const UPGRADE_SELECTION_CONFIG = {
@@ -40,6 +40,18 @@ export const PLAYER_STAT_DEFAULTS = Object.freeze({
   slowAuraRadius: 0,
   slowAuraStrength: 0,
   headshotAmmoRestore: 0,
+  // Chain Lightning
+  chainLightningTargets: 0,
+  chainLightningDamage: 0,
+  // Vampiric Rounds
+  vampiricHpPerHit: 0,
+  // Frag Grenade
+  grenadeCooldownMs: 0,
+  grenadeRadius: 0,
+  grenadeDamage: 0,
+  grenadeMaxTargets: 0,
+  // Turret Drop
+  turretDurationMs: 0,
 })
 
 function clampStatValue(value, effect) {
@@ -508,6 +520,156 @@ export const UPGRADE_DEFINITIONS = {
           rise: 22,
           depth: 36,
         })
+      },
+    },
+  }),
+  chainLightning: createUpgradeDefinition({
+    id: 'chainLightning',
+    name: 'Chain Lightning',
+    description: 'Bullet kills arc electricity to 2 nearby enemies for partial damage. Extra stacks arc to one more target.',
+    shortDescription: 'Kills arc lightning to nearby enemies.',
+    quickLabel: 'CHAIN LIGHTNING',
+    type: UPGRADE_TYPES.event,
+    bossFeatured: true,
+    accentColor: '#67e8f9',
+    stackable: true,
+    maxStacks: 2,
+    weight: 0.80,
+    effects: [
+      { stat: 'chainLightningTargets', add: 2, max: 3 },
+      { stat: 'chainLightningDamage', add: 1, max: 2 },
+    ],
+    events: {
+      onKillEnemy(context) {
+        const { combat, scene, soundManager, stats, zombie, zombies } = context
+
+        if (
+          !combat || !scene || !zombie || zombie.isBoss
+          || (stats.chainLightningTargets ?? 0) <= 0
+          || (stats.chainLightningDamage ?? 0) <= 0
+        ) {
+          return
+        }
+
+        const chainCount = Math.min(Math.floor(stats.chainLightningTargets ?? 2), 3)
+        const chainDamage = Math.max(1, Math.floor(stats.chainLightningDamage ?? 1))
+        const searchRadius = 240
+        const originX = zombie.x
+        const originY = zombie.y
+
+        const targets = (zombies?.getChildren() ?? [])
+          .filter((z) => z?.active && !z.isDead && z !== zombie && !z.isBoss)
+          .map((z) => ({ z, d: Phaser.Math.Distance.Squared(originX, originY, z.x, z.y) }))
+          .filter(({ d }) => d <= searchRadius * searchRadius)
+          .sort((a, b) => a.d - b.d)
+          .slice(0, chainCount)
+
+        targets.forEach(({ z }) => {
+          createLightningArc(scene, originX, originY - 8, z.x, z.y - 8)
+          combat.damageZombie(z, chainDamage, { source: 'chain-lightning' })
+        })
+
+        if (targets.length > 0) {
+          soundManager?.play('headshot-hit', { volume: 0.7, rate: 1.6 })
+        }
+      },
+    },
+  }),
+  vampiricRounds: createUpgradeDefinition({
+    id: 'vampiricRounds',
+    name: 'Vampiric Rounds',
+    description: 'Each bullet hit restores a flat amount of HP. Extra stacks increase restoration per hit.',
+    shortDescription: 'Bullet hits restore HP.',
+    quickLabel: 'VAMPIRIC ROUNDS',
+    type: UPGRADE_TYPES.event,
+    bossFeatured: true,
+    accentColor: '#f0abfc',
+    stackable: true,
+    maxStacks: 2,
+    weight: 0.78,
+    effects: [
+      { stat: 'vampiricHpPerHit', add: 1, max: 2 },
+    ],
+    events: {
+      onHitEnemy(context) {
+        const { gameStore, scene, stats, zombie } = context
+
+        if (!scene || !zombie || (stats.vampiricHpPerHit ?? 0) <= 0) {
+          return
+        }
+
+        if ((gameStore?.health ?? 0) >= (gameStore?.maxPlayerHealth ?? 0)) {
+          return
+        }
+
+        const amount = Math.max(1, Math.floor(stats.vampiricHpPerHit ?? 1))
+        gameStore.healPlayer(amount)
+
+        createFloatingCombatText(scene, zombie.x, zombie.y - 20, `+${amount}`, {
+          color: '#f0abfc',
+          shadowColor: '#4a004e',
+          fontSize: '16px',
+          duration: 440,
+          rise: 14,
+          depth: 36,
+        })
+      },
+    },
+  }),
+  fragGrenade: createUpgradeDefinition({
+    id: 'fragGrenade',
+    name: 'Frag Grenade',
+    description: 'Press E to throw a grenade that explodes on landing. Extra stacks widen the blast and shorten the cooldown.',
+    shortDescription: 'Throw a grenade (E key).',
+    quickLabel: 'FRAG GRENADE',
+    type: UPGRADE_TYPES.active,
+    bossFeatured: true,
+    accentColor: '#fbbf24',
+    stackable: true,
+    maxStacks: 2,
+    weight: 0.75,
+    effects: [
+      { stat: 'grenadeCooldownMs', set: 5000, max: 5000 },
+      { stat: 'grenadeRadius', add: 110, max: 180 },
+      { stat: 'grenadeDamage', add: 2, max: 4 },
+      { stat: 'grenadeMaxTargets', add: 6, max: 12 },
+    ],
+    apply({ stats, upgrade }) {
+      // First stack sets baseline values; second stack improves them
+      const stacks = (stats.grenadeRadius > 0) ? 2 : 1
+      return {
+        ...stats,
+        grenadeCooldownMs: stacks === 1 ? 5000 : 3500,
+        grenadeRadius: stacks === 1 ? 110 : 180,
+        grenadeDamage: stacks === 1 ? 2 : 4,
+        grenadeMaxTargets: stacks === 1 ? 6 : 12,
+      }
+    },
+  }),
+  turretDrop: createUpgradeDefinition({
+    id: 'turretDrop',
+    name: 'Turret Drop',
+    description: 'Killing a boss deploys a temporary auto-turret that targets nearby enemies. Extra stacks increase turret duration.',
+    shortDescription: 'Boss kills spawn a turret.',
+    quickLabel: 'TURRET DROP',
+    type: UPGRADE_TYPES.event,
+    bossFeatured: true,
+    accentColor: '#86efac',
+    stackable: true,
+    maxStacks: 2,
+    weight: 0.70,
+    effects: [
+      { stat: 'turretDurationMs', add: 8000, max: 16000 },
+    ],
+    events: {
+      onKillEnemy(context) {
+        const { zombie, stats, scene } = context
+
+        if (!zombie?.isBoss || (stats.turretDurationMs ?? 0) <= 0 || !scene) {
+          return
+        }
+
+        scene.turretDirector?.spawnTurret(zombie.x, zombie.y, Math.max(1, Math.floor(stats.turretDurationMs ?? 8000)))
       },
     },
   }),

@@ -190,30 +190,30 @@
             <div style="display: flex; gap: 1rem; flex-direction: column; margin-top: 1.5rem;">
               <div style="padding: 1rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
                 <div>
-                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Health +1</h4>
-                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">Currently: +{{ gameStore.metaUpgrades?.health || 0 }}</p>
+                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Health +1 <span v-if="(gameStore.metaUpgrades?.health || 0) >= 20" style="color: #86efac; font-size: 0.75rem;">MAX</span></h4>
+                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">{{ gameStore.metaUpgrades?.health || 0 }} / 20 levels</p>
                 </div>
                 <button 
                   class="landing-screen__play-button" 
                   style="min-width: auto; padding: 0.6rem 1rem;"
-                  :disabled="gameStore.souls < healthCost"
+                  :disabled="gameStore.souls < healthCost || (gameStore.metaUpgrades?.health || 0) >= 20"
                   @click="buyHealth"
-                  :style="gameStore.souls < healthCost ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''"
-                >Buy for {{ healthCost }}</button>
+                  :style="(gameStore.souls < healthCost || (gameStore.metaUpgrades?.health || 0) >= 20) ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''"
+                >{{ (gameStore.metaUpgrades?.health || 0) >= 20 ? 'MAX LEVEL' : `Buy for ${healthCost}` }}</button>
               </div>
 
               <div style="padding: 1rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
                 <div>
-                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Speed +5%</h4>
-                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">Currently: +{{ (gameStore.metaUpgrades?.speed || 0) * 5 }}%</p>
+                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Speed +5% <span v-if="(gameStore.metaUpgrades?.speed || 0) >= 10" style="color: #86efac; font-size: 0.75rem;">MAX</span></h4>
+                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">{{ gameStore.metaUpgrades?.speed || 0 }} / 10 levels (+{{ (Math.min(gameStore.metaUpgrades?.speed || 0, 10)) * 5 }}%)</p>
                 </div>
                 <button 
                   class="landing-screen__play-button" 
                   style="min-width: auto; padding: 0.6rem 1rem;"
-                  :disabled="gameStore.souls < speedCost"
+                  :disabled="gameStore.souls < speedCost || (gameStore.metaUpgrades?.speed || 0) >= 10"
                   @click="buySpeed"
-                  :style="gameStore.souls < speedCost ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''"
-                >Buy for {{ speedCost }}</button>
+                  :style="(gameStore.souls < speedCost || (gameStore.metaUpgrades?.speed || 0) >= 10) ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''"
+                >{{ (gameStore.metaUpgrades?.speed || 0) >= 10 ? 'MAX LEVEL' : `Buy for ${speedCost}` }}</button>
               </div>
             </div>
           </div>

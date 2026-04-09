@@ -60,13 +60,14 @@ export const useGameStore = defineStore('game', {
   }),
   getters: {
     maxPlayerHealth(state) {
-      return state.playerStats.maxHP + (state.metaUpgrades?.health ?? 0)
+      const metaHealth = Math.min(state.metaUpgrades?.health ?? 0, 20)  // cap at +20
+      return state.playerStats.maxHP + metaHealth
     },
     canAccessEndlessMode(state) {
       return Boolean(state.endlessUnlocked)
     },
     playerCombatStats(state) {
-      const metaSpeedBonus = (state.metaUpgrades?.speed ?? 0) * 0.05
+      const metaSpeedBonus = Math.min(state.metaUpgrades?.speed ?? 0, 10) * 0.05  // cap at +50%
       
       let baseLifesteal = state.playerStats.lifesteal ?? 0;
       if (state.challengeMode === 'vampire') {
@@ -106,11 +107,15 @@ export const useGameStore = defineStore('game', {
       writeStorage(STORAGE_KEYS.souls, this.souls)
     },
     buyMetaUpgrade(type, cost) {
+      const caps = { health: 20, speed: 10 }
+      const cap = caps[type] ?? Infinity
+      if (!this.metaUpgrades) this.metaUpgrades = { health: 0, speed: 0 }
+      if ((this.metaUpgrades[type] ?? 0) >= cap) {
+        return false  // already at cap
+      }
       if (this.souls >= cost) {
         this.souls -= cost
-        if (!this.metaUpgrades) this.metaUpgrades = { health: 0, speed: 0 }
         this.metaUpgrades[type] = (this.metaUpgrades[type] ?? 0) + 1
-        
         writeStorage(STORAGE_KEYS.souls, this.souls)
         writeStorage(STORAGE_KEYS.metaUpgrades, this.metaUpgrades)
         return true

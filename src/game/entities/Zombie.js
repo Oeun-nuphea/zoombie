@@ -20,6 +20,7 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.maxHealth = config.maxHealth ?? config.health
     this.speed = config.speed
     this.contactDamage = config.contactDamage
+    this.baseContactDamage = config.contactDamage  // preserved for screamer aura reset
     this.scoreValue = config.scoreValue
     this.attackRange = config.attackRange
     this.damageCooldownMs = config.damageCooldownMs ?? 500
@@ -83,6 +84,12 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.spitLifetimeMs = config.spitLifetimeMs
     this.nextSpitAt = 0
 
+    // Screamer flags
+    this.screams = config.screams ?? false
+    this.screamAuraRadius = config.screamAuraRadius ?? 180
+    this.screamSpeedBonus = config.screamSpeedBonus ?? 0.35
+    this.screamDamageBonus = config.screamDamageBonus ?? 1
+
     this.facingAngle = 0  // updated every frame as zombie chases player
     this.speedModifier = 1
     this.state = 'idle'
@@ -127,6 +134,14 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     if (config.tintColor) {
       this.setTint(config.tintColor)
     }
+
+    // Screamer pulsing aura ring
+    this.screamAuraGraphic = this.screams
+      ? scene.add.circle(x, y, this.screamAuraRadius, 0xe879f9, 0.06)
+          .setStrokeStyle(1.5, 0xe879f9, 0.35)
+          .setDepth(6)
+          .setBlendMode(Phaser.BlendModes.ADD)
+      : null
   }
 
   getPhysicsBounds() {
@@ -286,6 +301,14 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
       this.resumeMovementState()
     }
 
+    // Update screamer aura position and pulse
+    if (this.screamAuraGraphic) {
+      this.screamAuraGraphic.setPosition(this.x, this.y)
+      const pulse = 0.9 + Math.sin((time + this.wobbleSeed) * 0.006) * 0.1
+      this.screamAuraGraphic.setAlpha(this.isDead ? 0 : 0.06 * pulse)
+      this.screamAuraGraphic.setStrokeStyle(1.5, 0xe879f9, this.isDead ? 0 : 0.35 * pulse)
+    }
+
     this.drawHealthBar()
   }
 
@@ -421,6 +444,35 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
 
   setSpeedModifier(multiplier = 1) {
     this.speedModifier = Phaser.Math.Clamp(Number(multiplier) || 1, 0.2, 1.4)
+  }
+
+  applyScreamAura(allZombies) {
+    if (!this.screams || this.isDead) {
+      return
+    }
+
+    allZombies.forEach((zombie) => {
+      if (!zombie?.active || zombie.isDead || zombie === this) {
+        return
+      }
+
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, zombie.x, zombie.y)
+
+      if (dist > this.screamAuraRadius) {
+        return
+      }
+
+      zombie.screamBuffed = true
+      zombie.screamSpeedBonus = Math.max(zombie.screamSpeedBonus ?? 0, this.screamSpeedBonus)
+      zombie.screamDmgBonus = Math.max(zombie.screamDmgBonus ?? 0, this.screamDamageBonus)
+    })
+  }
+
+  clearScreamBuff() {
+    this.screamBuffed = false
+    this.screamSpeedBonus = 0
+    this.screamDmgBonus = 0
+    this.contactDamage = this.baseContactDamage  // restore un-buffed value
   }
 
   takeDamage(amount = 1, options = {}) {
@@ -595,6 +647,7 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.aura?.destroy()
     this.shadow?.destroy()
     this.healthBar?.destroy()
+    this.screamAuraGraphic?.destroy()
     return super.destroy(fromScene)
   }
 }

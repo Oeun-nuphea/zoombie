@@ -12,6 +12,7 @@ import { createCombatHud } from "../systems/hudSystem";
 import { createPlayerController } from "../systems/playerControllerSystem";
 import { getSoundManager, registerSoundHotkeys } from "../systems/soundManager";
 import { createSpawnDirector } from "../systems/spawnSystem";
+import { createTurretDirector } from "../systems/turretSystem";
 import { createUpgradeDirector } from "../systems/upgradeSystem";
 import { createWaveDirector } from "../systems/waveSystem";
 import { createWeaponDirector } from "../systems/weaponSystem";
@@ -220,6 +221,12 @@ export default class MainScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor("#020617");
     this.input.mouse?.disableContextMenu();
     this.applyViewportLayout();
+
+    this.turretDirector = createTurretDirector(this, {
+      zombies: this.zombies,
+      combat: this.combat,
+    });
+
     this.waveDirector.startWave(this.gameStore.wave);
   }
 
@@ -266,11 +273,39 @@ export default class MainScene extends Phaser.Scene {
       this.upgradeDirector.update(time, delta);
       this.bossDirector.update(time, delta);
 
-      this.zombies.children.iterate((zombie) => {
+      const allZombies = this.zombies.getChildren()
+
+      // 1. Clear screamer buffs from last frame
+      allZombies.forEach((zombie) => zombie?.clearScreamBuff?.())
+
+      // 2. Chase + apply screamer aura from active screamers
+      allZombies.forEach((zombie) => {
         zombie?.chase(this.player);
-      });
+        zombie?.applyScreamAura?.(allZombies);
+      })
+
+      // 3. Apply accumulated scream buffs to movement speed and contact damage
+      allZombies.forEach((zombie) => {
+        if (!zombie?.active || zombie.isDead) return
+        if (zombie.screamBuffed) {
+          // Speed: capped by setSpeedModifier (max 1.4), so +35% = 1.35 is within bounds
+          zombie.setSpeedModifier(1 + (zombie.screamSpeedBonus ?? 0))
+          // Damage: capped at base + 2 to prevent runaway stacking
+          zombie.contactDamage = Math.min(
+            zombie.baseContactDamage + 2,
+            zombie.baseContactDamage + (zombie.screamDmgBonus ?? 0),
+          )
+        } else {
+          // Let upgradeSystem slow aura still control non-scream modifier
+          // Only reset if we weren't already slowed by the slow aura
+          if ((zombie.speedModifier ?? 1) > 1) {
+            zombie.setSpeedModifier(1)
+          }
+        }
+      })
 
       this.combat.update();
+      this.turretDirector?.update(time);
     }
 
     this.hud.update();

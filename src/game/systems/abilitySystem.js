@@ -1,12 +1,13 @@
 import Phaser from 'phaser'
 
-import { createImpactBurst } from './effectsSystem'
+import { createGrenadeExplosion, createImpactBurst } from './effectsSystem'
 
 export function createAbilitySystem(scene, config) {
   const { player, gameStore, hud, soundManager } = config
   const keyboard = scene.input.keyboard
   const dashKey = keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE) ?? null
   const shieldKey = keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.Q) ?? null
+  const grenadeKey = keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.E) ?? null
   const shieldRing = scene.add.circle(player.x, player.y + 4, 44, 0x93c5fd, 0)
 
   shieldRing.setDepth(24).setStrokeStyle(3, 0xe0f2fe, 0).setVisible(false)
@@ -15,6 +16,7 @@ export function createAbilitySystem(scene, config) {
   let dashLastUsedAt = -Infinity
   let shieldLastUsedAt = -Infinity
   let shieldActiveUntil = 0
+  let grenadeLastUsedAt = -Infinity
 
   function getStats() {
     return gameStore.playerCombatStats
@@ -137,6 +139,87 @@ export function createAbilitySystem(scene, config) {
     if ((shieldKey && Phaser.Input.Keyboard.JustDown(shieldKey)) || actions.shield) {
       activateShield(time)
     }
+
+    if ((grenadeKey && Phaser.Input.Keyboard.JustDown(grenadeKey)) || actions.grenade) {
+      activateGrenade(time, pointer)
+    }
+  }
+
+  function activateGrenade(time, pointer) {
+    const stats = getStats()
+    const cooldown = stats.grenadeCooldownMs ?? 0
+    const radius = stats.grenadeRadius ?? 0
+    const damage = stats.grenadeDamage ?? 0
+    const maxTargets = stats.grenadeMaxTargets ?? 6
+
+    if (radius <= 0 || damage <= 0) {
+      return false
+    }
+
+    if (time < grenadeLastUsedAt + cooldown) {
+      return false
+    }
+
+    const center = player.getPlayerCenter?.() ?? { x: player.x, y: player.y }
+    let targetX = center.x
+    let targetY = center.y
+
+    if (pointer) {
+      const dx = pointer.worldX - center.x
+      const dy = pointer.worldY - center.y
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      const clampedDist = Phaser.Math.Clamp(dist, 60, 420)
+      const norm = dist > 1 ? clampedDist / dist : 1
+      targetX = center.x + dx * norm
+      targetY = center.y + dy * norm
+    }
+
+    grenadeLastUsedAt = time
+
+    // Grenade projectile sprite (circle as stand-in)
+    const grenade = scene.add.circle(center.x, center.y - 4, 7, 0xfbbf24, 0.95)
+    grenade.setDepth(26).setStrokeStyle(2, 0xfef9c3, 0.9)
+
+    // Arc duration ~450ms
+    const travelMs = 450
+    scene.tweens.add({
+      targets: grenade,
+      x: targetX,
+      y: targetY - 18,          // high arc
+      duration: travelMs * 0.5,
+      ease: 'Sine.easeOut',
+      yoyo: false,
+      onComplete: () => {
+        // Fall to ground
+        scene.tweens.add({
+          targets: grenade,
+          y: targetY,
+          duration: travelMs * 0.5,
+          ease: 'Sine.easeIn',
+          onComplete: () => {
+            grenade.destroy()
+            // Explosion visual
+            createGrenadeExplosion(scene, targetX, targetY, radius)
+            scene.cameras.main.shake(180, 0.0035)
+            soundManager?.play('shoot', { volume: 1.3, rate: 0.32 })
+            hud?.flashBanner('GRENADE', '#fbbf24')
+            // Damage enemies
+            scene.combat?.damageEnemiesInRadius(
+              { x: targetX, y: targetY },
+              radius,
+              {
+                damage,
+                maxTargets,
+                source: 'grenade',
+                cameraShakeDuration: 0,
+              },
+            )
+          },
+        })
+      },
+    })
+
+    return true
   }
 
   function update(time = scene.time.now) {
@@ -173,6 +256,7 @@ export function createAbilitySystem(scene, config) {
   return {
     activateDash,
     activateShield,
+    activateGrenade,
     handleInput,
     update,
     getCooldownState(time = scene.time.now) {
@@ -182,6 +266,7 @@ export function createAbilitySystem(scene, config) {
         dashReady: Boolean(stats.dashDistance) && time >= dashLastUsedAt + stats.dashCooldownMs,
         shieldReady: Boolean(stats.shieldDurationMs) && time >= shieldLastUsedAt + stats.shieldCooldownMs,
         shieldActive: time < shieldActiveUntil,
+        grenadeReady: Boolean(stats.grenadeRadius) && time >= grenadeLastUsedAt + (stats.grenadeCooldownMs ?? 0),
       }
     },
   }
