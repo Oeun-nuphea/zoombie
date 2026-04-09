@@ -48,6 +48,14 @@
           <button
             class="landing-screen__secondary-button"
             type="button"
+            @click="goToPresentation"
+          >
+            Presentation
+          </button>
+
+          <button
+            class="landing-screen__secondary-button"
+            type="button"
             @click="toggleSound"
           >
             {{ soundMuted ? 'Sound Off' : 'Sound On' }}
@@ -247,6 +255,10 @@ async function startGame(mode = 'normal') {
   gameStore.startRun(mode)
   await enterMobileAppMode()
   await router.push('/game')
+}
+
+function goToPresentation() {
+  router.push('/presentation')
 }
 </script>
 
