@@ -99,8 +99,8 @@ const slides = [
   {
     title: '🎯 The Mission',
     text: [
-      'You play as a lone survivor trapped in a dark, escalating arena.',
-      '<strong>The Goal:</strong> Survive relentless waves of mutants, collect glowing weapon drops, and choose powerful upgrades to stay alive.',
+      'You are the only survivor, stuck in a dark arena where enemies keep getting stronger.',
+      '<strong>The Goal:</strong> Survive waves of enemies, collect weapons, and pick upgrades to stay alive.',
       '<strong>The Climax:</strong> Battle through 15 waves of increasing difficulty to slay the Final Boss — or go infinite in Endless Mode to set a high score!'
     ]
   },
@@ -111,8 +111,7 @@ const slides = [
       '<strong>Runner:</strong> Fast and fragile. Low HP but covers ground quickly.',
       '<strong>Tank:</strong> Slow but heavily armored. Deals double damage on contact.',
       '<strong>Toxic:</strong> Applies a poison DoT on hit.',
-      '<strong>Mini Boss:</strong> Large, tough zombie. Drops weapon rewards on death.',
-      '<strong>Giant Boss:</strong> The ultimate wave 15 threat with Ground Smash attacks!'
+      '<strong>Giant Boss:</strong> Large, tough zombie. Drops weapon and zombies rewards on death.',
     ]
   },
   {
