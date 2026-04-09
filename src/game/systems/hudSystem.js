@@ -6,9 +6,9 @@ export function createCombatHud(scene, _gameStore) {
   const isMobileHud = runtimeProfile.isMobile
   const initialDimensions = getSceneGameDimensions(scene)
   const initialCenterX = initialDimensions.width * 0.5
-  const bossLabelY = isMobileHud ? 160 : 150
-  const bossBarY = isMobileHud ? 188 : 178
-  const bannerBaseY = isMobileHud ? 250 : 230
+  const bossLabelY = isMobileHud ? 220 : 210
+  const bossBarY = isMobileHud ? 248 : 238
+  const bannerBaseY = isMobileHud ? 310 : 290
   const bannerShadowY = bannerBaseY + 6
   let bossTarget = null
 
@@ -22,6 +22,7 @@ export function createCombatHud(scene, _gameStore) {
   })
   bossLabel.setOrigin(0.5).setDepth(101).setVisible(false)
 
+  
   const bossBarFrame = scene.add.rectangle(initialCenterX, bossBarY, 432, 22, 0x120b0c, 0.92)
   bossBarFrame.setStrokeStyle(2, 0x7c2d12, 0.95).setDepth(100).setVisible(false)
 
@@ -85,6 +86,8 @@ export function createCombatHud(scene, _gameStore) {
     setBossBarVisible(Boolean(target))
   }
 
+  const BAR_FULL_WIDTH = 420
+
   function update() {
     const hasLivingBoss = bossTarget?.active && !bossTarget.isDead
 
@@ -93,14 +96,17 @@ export function createCombatHud(scene, _gameStore) {
       return
     }
 
-    const bossHealthRatio = Math.max(0, bossTarget.health / Math.max(1, bossTarget.maxHealth ?? bossTarget.health))
+    const maxHp = Math.ceil(Math.max(1, bossTarget.maxHealth ?? bossTarget.health))
+    const currentHp = Math.ceil(Math.max(0, bossTarget.health))
+    const bossHealthRatio = Math.max(0, currentHp / maxHp)
+
     bossBarFill.setScale(Math.max(bossHealthRatio, 0.001), 1)
     bossBarFill.setFillStyle(
       bossTarget.isFinalBoss
         ? (bossHealthRatio > 0.45 ? 0xef4444 : 0xb91c1c)
         : (bossHealthRatio > 0.5 ? 0xf97316 : 0xef4444),
     )
-    bossHpText.setText(`${Math.ceil(Math.max(0, bossTarget.health))} / ${Math.ceil(Math.max(1, bossTarget.maxHealth ?? bossTarget.health))}`)
+    bossHpText.setText(`${currentHp} / ${maxHp}`)
     setBossBarVisible(true)
   }
 

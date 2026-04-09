@@ -411,8 +411,8 @@ export const ZOMBIE_TYPES = {
     name: 'Mini Boss',
     bossOnly: true,
     bossKind: 'mini-boss',
-    healthMultiplier: 12.0,
-    healthBonusPerTier: 20,
+    healthBase: 100,
+    healthBonusPerTier: 100,
     speedMultiplier: 1.05,
     speedBonusPerTier: 6,
     size: 1.66,
@@ -447,9 +447,8 @@ export const ZOMBIE_TYPES = {
     name: 'Giant Zombie',
     bossOnly: true,
     bossKind: 'final-boss',
-    fixedHealth: 300,
-    healthMultiplier: 20.0,
-    healthBonusPerTier: 30,
+    healthBase: 100,
+    healthBonusPerTier: 100,
     speedMultiplier: 0.85,
     speedBonusPerTier: 4,
     size: 2.04,
@@ -723,10 +722,10 @@ export function getWaveDefinition(wave, options = {}) {
 export function buildZombieConfig(typeId, waveConfig) {
   const type = ZOMBIE_TYPES[typeId] ?? ZOMBIE_TYPES.walker
   const bossTier = type.bossOnly ? waveConfig.boss?.tier ?? 0 : 0
-  const maxHealth = type.fixedHealth ?? Math.max(
-    1,
-    Math.round(waveConfig.baseZombieHealth * type.healthMultiplier + bossTier * (type.healthBonusPerTier ?? 0)),
-  )
+  const maxHealth = type.fixedHealth
+    ?? (type.healthBase != null
+      ? Math.max(1, Math.round(type.healthBase + bossTier * (type.healthBonusPerTier ?? 0)))
+      : Math.max(1, Math.round(waveConfig.baseZombieHealth * (type.healthMultiplier ?? 1) + bossTier * (type.healthBonusPerTier ?? 0))))
   const contactDamage = Math.max(
     1,
     type.damage + Math.floor(bossTier / Math.max(1, type.damageTierInterval ?? Number.MAX_SAFE_INTEGER)) * (type.damagePerTier ?? 0),
