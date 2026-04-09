@@ -56,15 +56,22 @@ Every **3 waves** you are offered an upgrade selection. Every **5 waves** a Mini
 
 ## 🔫 Weapons
 
-| Weapon | Fire Rate | Pellets | Damage | Ammo | Notes |
-|---|---|---|---|---|---|
-| **Pistol** | 130ms | 1 | 1 | ∞ | Default fallback weapon, never runs out |
-| **Shotgun** | 460ms | 5 | 1 each | 10 | Wide spread, devastating at close range |
-| **Rifle** | 175ms | 1 | 2 | 24 | Accurate, solid mid-range damage |
-| **SMG** | 80ms | 1 | 1 | 48 | Fastest fire rate, great for hordes |
+| Weapon | Fire Rate | Pellets | Damage | Ammo | Drop Color | Notes |
+|---|---|---|---|---|---|---|
+| **Pistol** | 130ms | 1 | 1 | ∞ | ⚪ White | Default fallback weapon, never runs out |
+| **Shotgun** | 460ms | 5 | 1 each | 10 | 🟡 Yellow | Wide spread, devastating at close range |
+| **Rifle** | 175ms | 1 | 2 | 24 | 🔵 Blue | Accurate, solid mid-range damage |
+| **SMG** | 80ms | 1 | 1 | 48 | 🟢 Green | Fastest fire rate, great for hordes |
 
+### Weapon Details
+- ⚪ **Pistol** — Your reliable fallback. It never runs out of ammo so you're never truly unarmed.
+- 🟡 **Shotgun** — Each pull fires 5 bullets at once, dealing up to 5 damage in a single shot at close range. Against tankier zombies or crowded groups it's devastatingly powerful. Trade-off: only 10 shells total and very slow fire rate.
+- 🔵 **Rifle** — Doubles the damage per bullet (2 vs 1). Every hit on a walker or runner kills them instantly. Good range and tight spread. Best all-rounder.
+- 🟢 **SMG** — Fires every 80ms vs pistol's 130ms — nearly 1.6x faster. Great for sustained pressure and melting through zombie groups quickly with 48 rounds of ammo.
+
+### Combat Mechanics
 - Weapons are selected between waves from a pool of choices.
-- Weapons can **drop from defeated zombies** as floor pickups with random ammo.
+- Weapons can **drop from defeated zombies** as floor pickups with random ammo. You can easily spot what weapon has dropped by the glow color on the ground.
 - When your ammo runs out, the game auto-swaps back to the Pistol.
 - **Headshotting** a zombie deals **2.5× damage**.
 
