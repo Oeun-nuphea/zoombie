@@ -70,12 +70,23 @@
         </div>
       </div>
     </div>
+
+    <!-- Ammo display bottom-left -->
+    <div
+      class="hud-shell__ammo"
+      :class="{ 'hud-shell__ammo--low': weaponInfo.isLow }"
+    >
+      <span>{{ weaponInfo.name }}</span>
+      <strong v-if="weaponInfo.hasAmmo">{{ weaponInfo.ammo }} <em>/ {{ weaponInfo.maxAmmo }}</em></strong>
+      <strong v-else>∞</strong>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 
+import { getWeaponDefinition } from '../../game/config/gameplayConfig'
 import { formatScore } from '../../utils/helpers'
 
 function formatZombieTypes(waveInfo) {
@@ -87,7 +98,7 @@ function formatZombieTypes(waveInfo) {
   return types.join(', ')
 }
 
-defineProps({
+const props = defineProps({
   gameStore: {
     type: Object,
     required: true,
@@ -104,6 +115,19 @@ defineProps({
     type: Boolean,
     default: false,
   },
+})
+
+const weaponInfo = computed(() => {
+  const { weaponId, weaponAmmo, weaponAmmoMax } = props.gameStore
+  const hasAmmo = Number.isFinite(weaponAmmo) && Number.isFinite(weaponAmmoMax)
+  const def = getWeaponDefinition(weaponId)
+  return {
+    hasAmmo,
+    name: def?.name ?? weaponId ?? 'GUN',
+    ammo: weaponAmmo ?? 0,
+    maxAmmo: weaponAmmoMax ?? 0,
+    isLow: hasAmmo && weaponAmmoMax > 0 && weaponAmmo / weaponAmmoMax <= 0.25,
+  }
 })
 
 const isMobileHudActive = ref(false)
@@ -345,5 +369,52 @@ defineEmits(['toggle-fullscreen', 'toggle-sound', 'pause'])
   .hud-shell--mobile .hud-shell__chip--wave {
     min-width: 4.8rem;
   }
+}
+
+.hud-shell__ammo {
+  position: absolute;
+  bottom: max(1.4rem, env(safe-area-inset-bottom, 0px));
+  left: max(1.2rem, env(safe-area-inset-left, 0px));
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(7, 10, 14, 0.5);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  transition: border-color 200ms ease, background 200ms ease;
+  min-width: 7rem;
+}
+
+.hud-shell__ammo span {
+  display: block;
+  color: rgba(252, 211, 77, 0.86);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.hud-shell__ammo strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: #f8fafc;
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.hud-shell__ammo strong em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: rgba(248, 250, 252, 0.45);
+}
+
+.hud-shell__ammo--low {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(127, 15, 15, 0.45);
+}
+
+.hud-shell__ammo--low strong {
+  color: #fca5a5;
 }
 </style>

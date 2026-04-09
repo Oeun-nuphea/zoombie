@@ -106,3 +106,8 @@ The project combines **Phaser 3** (Heavy Lifting) and **Vue 3** (User Interface)
 ### Build Tools
 - Formatted gracefully using modern Vite, with CSS tailored via TailwindCSS v4.
 - End-to-end routing using standard Vue Router History. Easy deployments configurations ready with `vercel.json` rewrites. 
+
+### Pick UP
+- Yellow is shortgun
+- Blue is rifle
+- Green is SMG

@@ -305,13 +305,16 @@ export function createDropDirector(scene, config) {
     const weaponId = drop.getData('weaponId')
     const ammo = drop.getData('ammo')
     const maxAmmo = drop.getData('maxAmmo')
+    const prevAmmo = gameStore.weaponAmmo
     const weapon = weaponDirector.setWeapon(weaponId, {
       source: 'drop',
       ammo,
       maxAmmo,
     })
 
-    hud.flashBanner(`${weapon.name.toUpperCase()} PICKED`, '#bef264')
+    const newAmmoLabel = Number.isFinite(ammo) ? ` • ${ammo}/${maxAmmo} rounds` : ''
+    const oldAmmoLabel = Number.isFinite(prevAmmo) ? ` (had ${prevAmmo})` : ''
+    hud.flashBanner(`${weapon.name.toUpperCase()} PICKED${newAmmoLabel}${oldAmmoLabel}`, '#bef264')
     createPickupBurst(scene, drop.x, drop.y, weapon.dropColor ?? 0xf8fafc)
     soundManager?.play('pickup')
     destroyDrop(drop)
