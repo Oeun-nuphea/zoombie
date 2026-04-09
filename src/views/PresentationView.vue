@@ -17,6 +17,7 @@
 
     <!-- Main Slide Area -->
     <main class="presentation-main">
+      <div class="animated-bg"></div>
       <Transition name="slide-fade" mode="out-in">
         <div :key="currentSlide" class="slide-content">
           <h1 class="slide-title">{{ slides[currentSlide].title }}</h1>
@@ -24,17 +25,17 @@
           <div class="slide-body">
             <!-- Render custom lists if available -->
             <ul v-if="slides[currentSlide].list" class="slide-list">
-              <li v-for="(item, index) in slides[currentSlide].list" :key="index" v-html="item"></li>
+              <li v-for="(item, index) in slides[currentSlide].list" :key="index" v-html="item" class="stagger-item" :style="{ animationDelay: `${index * 0.15}s` }"></li>
             </ul>
 
             <!-- Render specific slide content -->
             <template v-else>
-              <p class="slide-text" v-for="(p, index) in slides[currentSlide].text" :key="index" v-html="p"></p>
+              <p class="slide-text stagger-item" v-for="(p, index) in slides[currentSlide].text" :key="index" v-html="p" :style="{ animationDelay: `${index * 0.1}s` }"></p>
             </template>
           </div>
 
           <!-- Call to action button on last slide -->
-          <button v-if="currentSlide === slides.length - 1" class="btn-cta" @click="startGame">
+          <button v-if="currentSlide === slides.length - 1" class="btn-cta stagger-item" :style="{ animationDelay: `${(slides[currentSlide].text?.length || slides[currentSlide].list?.length || 0) * 0.1 + 0.3}s` }" @click="startGame">
             Play Survival Arena Now!
           </button>
         </div>
@@ -67,10 +68,24 @@ import { requestDocumentFullscreen } from '../composables/useFullscreenMode'
 import { useGameStore } from '../stores/gameStore'
 import { getGameRuntimeProfile } from '../utils/device'
 
+import pickupSound from '../assets/sounds/pickup.wav'
+import shootSound from '../assets/sounds/shoot.wav'
+
 const router = useRouter()
 const gameStore = useGameStore()
 const currentSlide = ref(0)
 const runtimeProfile = getGameRuntimeProfile()
+
+const playSound = (src, vol = 0.3) => {
+  try {
+    const audio = new Audio(src)
+    audio.volume = vol
+    audio.play().catch(() => {})
+  } catch (e) {
+    // Ignore errors for un-interacted audio
+  }
+}
+
 
 const slides = [
   {
@@ -135,17 +150,22 @@ const slides = [
 function nextSlide() {
   if (currentSlide.value < slides.length - 1) {
     currentSlide.value++
+    playSound(pickupSound, 0.4)
   }
 }
 
 function prevSlide() {
   if (currentSlide.value > 0) {
     currentSlide.value--
+    playSound(pickupSound, 0.4)
   }
 }
 
 function goToSlide(index) {
-  currentSlide.value = index
+  if (currentSlide.value !== index) {
+    currentSlide.value = index
+    playSound(pickupSound, 0.4)
+  }
 }
 
 function goHome() {
@@ -176,6 +196,7 @@ async function enterMobileAppMode() {
 }
 
 async function startGame() {
+  playSound(shootSound, 0.6)
   gameStore.startRun('normal')
   await enterMobileAppMode()
   await router.push('/game')
@@ -253,7 +274,26 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+.animated-bg {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center center;
+  z-index: 0;
+  animation: gridMove 30s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes gridMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(40px); }
+}
+
 .slide-content {
+  z-index: 1;
   max-width: 800px;
   width: 100%;
   padding: 3rem;
@@ -263,6 +303,23 @@ onBeforeUnmount(() => {
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
+
+.stagger-item {
+  opacity: 0;
+  animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeUpIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 .slide-title {
   font-size: clamp(2rem, 5vw, 3.5rem);
@@ -310,13 +367,33 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   border-radius: 99px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-cta::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(to bottom right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(45deg);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { left: -100%; top: -100%; }
+  20% { left: 100%; top: 100%; }
+  100% { left: 100%; top: 100%; }
 }
 
 .btn-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(249, 115, 22, 0.4);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(249, 115, 22, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6);
 }
 
 .presentation-footer {
