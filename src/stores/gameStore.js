@@ -18,7 +18,8 @@ export const useGameStore = defineStore('game', {
   state: () => ({
     phase: 'idle',
     runMode: 'normal',
-    endlessUnlocked: readStorage(STORAGE_KEYS.endlessUnlocked, false),
+    challengeMode: 'none',
+    endlessUnlocked: true, // Unlocked by default for demo
     souls: readStorage(STORAGE_KEYS.souls, 0),
     metaUpgrades: readStorage(STORAGE_KEYS.metaUpgrades, { health: 0, speed: 0 }),
     score: 0,
@@ -67,8 +68,14 @@ export const useGameStore = defineStore('game', {
     playerCombatStats(state) {
       const metaSpeedBonus = (state.metaUpgrades?.speed ?? 0) * 0.05
       
+      let baseLifesteal = state.playerStats.lifesteal ?? 0;
+      if (state.challengeMode === 'vampire') {
+        baseLifesteal += 0.25; // +25% lifesteal
+      }
+
       return {
         ...state.playerStats,
+        lifesteal: baseLifesteal,
         damage: Number(((state.playerStats.damage ?? 1) + (state.temporaryCombatBuff?.damage ?? 0)).toFixed(2)),
         fireRate: Number(((state.playerStats.fireRate ?? 1) + (state.temporaryCombatBuff?.fireRate ?? 0)).toFixed(2)),
         moveSpeed: Number(((state.playerStats.moveSpeed ?? 1) + (state.temporaryCombatBuff?.moveSpeed ?? 0) + metaSpeedBonus).toFixed(2)),
@@ -82,6 +89,9 @@ export const useGameStore = defineStore('game', {
     setRunMode(mode = 'normal') {
       const wantsEndless = mode === 'endless'
       this.runMode = wantsEndless && !this.endlessUnlocked ? 'normal' : mode
+    },
+    setChallengeMode(challenge = 'none') {
+      this.challengeMode = challenge
     },
     addScore(amount = 1) {
       this.score += amount
@@ -323,8 +333,9 @@ export const useGameStore = defineStore('game', {
       this.lastRunMode = this.runMode
       this.clearTemporaryCombatBuff()
     },
-    startRun(mode = this.runMode) {
+    startRun(mode = this.runMode, challenge = this.challengeMode) {
       this.setRunMode(mode)
+      this.setChallengeMode(challenge)
       this.phase = 'starting'
       this.score = 0
       this.kills = 0
@@ -345,7 +356,7 @@ export const useGameStore = defineStore('game', {
     reset() {
       this.startRun()
     },
-    requestRestart(mode = this.runMode) {
+    requestRestart(mode = this.runMode, challenge = this.challengeMode) {
       if (this.phase === 'restarting') {
         console.debug('[GameReset] duplicate restart ignored', {
           runId: this.runId,
@@ -354,6 +365,7 @@ export const useGameStore = defineStore('game', {
       }
 
       this.setRunMode(mode)
+      this.setChallengeMode(challenge)
       this.pausedFromPhase = null
       this.clearUpgradeChoices()
       this.clearTemporaryCombatBuff()

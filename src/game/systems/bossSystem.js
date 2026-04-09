@@ -32,6 +32,7 @@ export function createBossDirector(scene, config) {
   let nextSlamAt = 0
   let nextChargeAt = 0
   let nextRangedAt = 0
+  let nextGatlingAt = 0
 
   scene.physics.add.overlap(player, bossProjectiles, (_playerSprite, projectile) => {
     impactProjectile(projectile, {
@@ -119,11 +120,13 @@ export function createBossDirector(scene, config) {
     const slam = getAbilityConfig('slam')
     const charge = getAbilityConfig('charge')
     const ranged = getAbilityConfig('ranged')
+    const gatling = getAbilityConfig('gatling')
 
     nextSummonAt = summon ? time + Math.max(1800, Math.round(summon.cooldownMs * 0.56)) : Number.POSITIVE_INFINITY
     nextSlamAt = slam ? time + Math.max(2200, Math.round(slam.cooldownMs * 0.62)) : Number.POSITIVE_INFINITY
     nextChargeAt = charge ? time + Math.max(2400, Math.round(charge.cooldownMs * 0.72)) : Number.POSITIVE_INFINITY
     nextRangedAt = ranged ? time + Math.max(1600, Math.round(ranged.cooldownMs * 0.52)) : Number.POSITIVE_INFINITY
+    nextGatlingAt = gatling ? time + Math.max(2000, Math.round(gatling.cooldownMs * 0.52)) : Number.POSITIVE_INFINITY
   }
 
   function scheduleAbility(abilityName, time = scene.time.now) {
@@ -152,6 +155,11 @@ export function createBossDirector(scene, config) {
 
     if (abilityName === 'ranged') {
       nextRangedAt = nextTime
+      return
+    }
+
+    if (abilityName === 'gatling') {
+      nextGatlingAt = nextTime
     }
   }
 
@@ -673,6 +681,80 @@ export function createBossDirector(scene, config) {
     scheduleAbility('ranged', time)
   }
 
+  function startGatlingAttack(time) {
+    const ability = getAbilityConfig('gatling')
+
+    if (!activeBoss?.active || activeBoss.isDead || !ability || currentAbilityState) {
+      return false
+    }
+
+    const targetPoint = {
+      x: player.x,
+      y: player.y,
+    }
+
+    activeBoss.beginWindup('gatling', ability.warningMs)
+    createRangedTelegraph(activeBoss, targetPoint, ability)
+    pulseBanner(ability.warningText ?? 'GATLING BURST', '#d9f99d', {
+      volume: 1.18,
+      rate: 0.95,
+    })
+
+    beginAbilityState({
+      type: 'gatling-windup',
+      executeAt: time + ability.warningMs,
+    })
+
+    return true
+  }
+
+  function resolveGatlingAttack(time) {
+    const abilityState = currentAbilityState
+    const ability = getAbilityConfig('gatling')
+
+    clearTelegraph()
+
+    if (!activeBoss?.active || activeBoss.isDead || !abilityState || !ability) {
+      currentAbilityState = null
+      activeBoss?.stopActiveAbility?.()
+      scheduleAbility('gatling', time)
+      return
+    }
+
+    currentAbilityState = {
+      type: 'gatling-active',
+      shotsFired: 0,
+      totalShots: ability.shots ?? 15,
+      nextShotAt: time,
+      delayMs: ability.shotDelayMs ?? 90,
+    }
+  }
+
+  function updateGatlingAttack(time) {
+    if (!currentAbilityState || currentAbilityState.type !== 'gatling-active' || !activeBoss?.active || activeBoss.isDead) {
+      return
+    }
+
+    const ability = getAbilityConfig('gatling')
+
+    if (time >= currentAbilityState.nextShotAt) {
+      const targetPoint = {
+        x: player.x + Phaser.Math.Between(-30, 30),
+        y: player.y + Phaser.Math.Between(-30, 30),
+      }
+      
+      spawnBossProjectile(targetPoint, ability)
+      currentAbilityState.shotsFired += 1
+      currentAbilityState.nextShotAt = time + currentAbilityState.delayMs
+
+      if (currentAbilityState.shotsFired >= currentAbilityState.totalShots) {
+        currentAbilityState = null
+        activeBoss.stopActiveAbility()
+        scheduleAbility('gatling', time)
+      }
+    }
+  }
+
   function startSummon(time) {
     const ability = getAbilityConfig('summon')
 
@@ -767,6 +849,10 @@ export function createBossDirector(scene, config) {
     if (canUseAbility('slam')) {
       nextSlamAt = Math.min(nextSlamAt, time + 1400)
     }
+
+    if (canUseAbility('gatling')) {
+      nextGatlingAt = Math.min(nextGatlingAt, time + 800)
+    }
   }
 
   function tryStartAbility(time) {
@@ -814,6 +900,17 @@ export function createBossDirector(scene, config) {
 
     if (canUseAbility('summon') && time >= nextSummonAt) {
       startSummon(time)
+      return
+    }
+
+    const gatling = getAbilityConfig('gatling')
+
+    if (
+      canUseAbility('gatling')
+      && gatling
+      && time >= nextGatlingAt
+    ) {
+      startGatlingAttack(time)
     }
   }
 
@@ -834,6 +931,16 @@ export function createBossDirector(scene, config) {
 
     if (currentAbilityState.type === 'ranged' && time >= currentAbilityState.executeAt) {
       resolveRangedAttack(time)
+      return
+    }
+
+    if (currentAbilityState.type === 'gatling-windup' && time >= currentAbilityState.executeAt) {
+      resolveGatlingAttack(time)
+      return
+    }
+
+    if (currentAbilityState.type === 'gatling-active') {
+      updateGatlingAttack(time)
       return
     }
 

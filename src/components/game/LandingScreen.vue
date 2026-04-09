@@ -15,9 +15,20 @@
         <p class="landing-screen__description">
           You are the last survivor in a dark, overrun arena. Waves of relentless undead pour in
           from every direction — Walkers, Runners, armored Tanks, and poison-spewing Toxics.
-          Scavenge weapons, draft powerful upgrades between waves, and craft a unique build
-          every run. No two games play the same.
         </p>
+        <p class="landing-screen__mode-desc">
+          Survive endless waves. Draft perks. Every run is unique.
+        </p>
+
+        <div style="margin-top: 2rem; max-width: 24rem;">
+          <p class="landing-screen__controls-mode" style="margin-bottom: 0.5rem; color: #fcd34d;">RUN MODIFIER</p>
+          <select v-model="selectedChallenge" style="background: rgba(15, 23, 42, 0.7); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.75rem 1rem; width: 100%; font-size: 0.9rem; margin-bottom: 0.5rem; outline: none; cursor: pointer;">
+            <option v-for="(challenge, key) in CHALLENGES" :key="key" :value="key">
+              {{ challenge.label }}
+            </option>
+          </select>
+          <p style="color: #94a3b8; font-size: 0.8rem; margin: 0; min-height: 2.2rem; line-height: 1.4;">{{ CHALLENGES[selectedChallenge].desc }}</p>
+        </div>
 
         <div class="landing-screen__actions">
           <button
@@ -256,7 +267,7 @@ import { useRouter } from 'vue-router'
 import { requestDocumentFullscreen } from '../../composables/useFullscreenMode'
 import { readStorage, writeStorage } from '../../services/storageService'
 import { useGameStore } from '../../stores/gameStore'
-import { APP_NAME, STORAGE_KEYS } from '../../utils/constants'
+import { APP_NAME, STORAGE_KEYS, CHALLENGES } from '../../utils/constants'
 import { getGameRuntimeProfile } from '../../utils/device'
 import { formatScore } from '../../utils/helpers'
 
@@ -265,6 +276,7 @@ const gameStore = useGameStore()
 const showHowToPlay = ref(false)
 const showSettings = ref(false)
 const showShop = ref(false)
+const selectedChallenge = ref('none')
 const soundMuted = ref(readStorage(STORAGE_KEYS.soundMuted, false))
 const runtimeProfile = getGameRuntimeProfile()
 
@@ -315,7 +327,7 @@ async function enterMobileAppMode() {
 
 async function startGame(mode = 'normal') {
   closePanels()
-  gameStore.startRun(mode)
+  gameStore.startRun(mode, selectedChallenge.value)
   await enterMobileAppMode()
   await router.push('/game')
 }

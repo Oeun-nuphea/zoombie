@@ -36,6 +36,7 @@ export function createCombatDirector(scene, config) {
   let poisonTickDamage = 0
   let poisonTickInterval = 0
   let lifestealCharge = 0
+  let lastVampireTick = 0
   let api = null
 
   function isBossTarget(zombie) {
@@ -76,6 +77,14 @@ export function createCombatDirector(scene, config) {
 
     lifestealCharge -= recoveredHealth
     gameStore.healPlayer(recoveredHealth)
+
+    createFloatingCombatText(scene, player.x, player.y - 12, `+${recoveredHealth}`, {
+      color: '#4ade80',
+      shadowColor: '#14532d',
+      fontSize: '22px',
+      duration: 500,
+      rise: 22,
+    })
   }
 
   function handleZombieDamaged(zombie, bullet, hitResult = {}) {
@@ -507,6 +516,32 @@ export function createCombatDirector(scene, config) {
     })
   }
 
+  function updateVampire() {
+    if (isGameOver || gameStore.challengeMode !== 'vampire') {
+      return
+    }
+
+    if (!['running', 'spawning', 'wave-clear'].includes(gameStore.phase)) {
+      return
+    }
+
+    const time = scene.time.now
+    if (lastVampireTick === 0) lastVampireTick = time
+    if (time < lastVampireTick + 3000) {
+      return
+    }
+
+    lastVampireTick = time
+    gameStore.damagePlayer(1)
+    scene.cameras.main.shake(20, 0.0015)
+    
+    if (gameStore.health <= 0) {
+      hud.flashBanner('BLED OUT', '#ef4444')
+      soundManager?.play('player-hit')
+      endRun()
+    }
+  }
+
   function update() {
     collisionDirector.update()
 
@@ -515,6 +550,7 @@ export function createCombatDirector(scene, config) {
     }
 
     updatePoison()
+    updateVampire()
   }
 
   api = {

@@ -20,3 +20,9 @@ export const STORAGE_KEYS = {
   souls: 'zoombie.souls',
   metaUpgrades: 'zoombie.meta-upgrades',
 }
+
+export const CHALLENGES = {
+  none: { id: 'none', label: 'Standard Run', desc: 'A regular survival run with default rules.' },
+  vampire: { id: 'vampire', label: 'Vampire Mode', desc: 'You take 1 damage every 3 seconds, but you gain +25% Lifesteal.' },
+  pistolOnly: { id: 'pistolOnly', label: 'Purist (Pistol Only)', desc: 'Zero weapon drops. Rely entirely on your Pistol and upgrades.' },
+}

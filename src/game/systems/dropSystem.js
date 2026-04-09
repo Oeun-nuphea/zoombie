@@ -191,6 +191,10 @@ export function createDropDirector(scene, config) {
   }
 
   function maybeSpawnDrop(zombie) {
+    if (gameStore.challengeMode === 'pistolOnly') {
+      return null
+    }
+
     if (Math.random() > WEAPON_DROP_CONFIG.baseDropChance) {
       return null
     }
