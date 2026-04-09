@@ -1,5 +1,5 @@
 git add .
-git commit -m "message"
+git commit -m "update on damage"
 
 git push origin main 
 

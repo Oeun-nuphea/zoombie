@@ -157,7 +157,8 @@ export function createCombatDirector(scene, config) {
     const impactX = hitResult?.impactPoint?.x ?? zombie.x
     const impactY = hitResult?.impactPoint?.y ?? zombie.y - 16
     const damageAmount = hitResult?.damageTaken ?? bullet?.damage ?? 1
-    createFloatingCombatText(scene, impactX, impactY, damageAmount.toString(), {
+    const displayDamage = Number.isFinite(damageAmount) ? Number(damageAmount.toFixed(1)) : damageAmount
+    createFloatingCombatText(scene, impactX, impactY, displayDamage.toString(), {
       color: '#fbbf24',
       shadowColor: '#78350f',
       fontSize: '18px',

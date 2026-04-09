@@ -218,7 +218,7 @@ export function createWaveDirector(scene, config) {
   function grantNormalWaveReward() {
     const rewardPool = []
 
-    if (gameStore.health < gameStore.maxPlayerHealth) {
+    if (gameStore.challengeMode !== 'noMercy' && gameStore.health < gameStore.maxPlayerHealth) {
       rewardPool.push({
         weight: WAVE_REWARD_CONFIG.rewardWeights.heal,
         apply: grantHealReward,
@@ -440,6 +440,14 @@ export function createWaveDirector(scene, config) {
     gameStore.setWaveInfo(currentWave)
     gameStore.setPhase('spawning')
     updateRemaining()
+
+    // Overtime: 40% faster spawns
+    if (gameStore.challengeMode === 'overtime') {
+      currentWave.spawnInterval = Math.max(
+        WAVE_CONFIG.minSpawnInterval,
+        Math.round(currentWave.spawnInterval * 0.6),
+      )
+    }
     hud.flashBanner(
       currentWave.isBossWave ? currentWave.boss?.bannerText ?? 'BOSS INCOMING' : `WAVE ${currentWave.number}`,
       currentWave.isBossWave ? currentWave.boss?.bannerColor ?? '#fb923c' : '#ffd166',

@@ -172,6 +172,10 @@ export function createDropDirector(scene, config) {
   }
 
   function maybeSpawnHealthDrop(zombie) {
+    if (gameStore.challengeMode === 'noMercy') {
+      return null
+    }
+
     const roll = Math.random()
     let healthDropId = null
 
@@ -268,7 +272,9 @@ export function createDropDirector(scene, config) {
 
   function handleZombieDefeat(zombie) {
     if (zombie?.isBoss && !zombie?.isFinalBoss) {
-      spawnBossReward(zombie)
+      if (gameStore.challengeMode !== 'noMercy') {
+        spawnBossReward(zombie)
+      }
       return
     }
 

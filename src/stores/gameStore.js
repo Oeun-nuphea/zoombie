@@ -74,10 +74,12 @@ export const useGameStore = defineStore('game', {
         baseLifesteal += 0.25; // +25% lifesteal
       }
 
+      const isGlassCannon = state.challengeMode === 'glassCannon'
+
       return {
         ...state.playerStats,
         lifesteal: baseLifesteal,
-        damage: Number(((state.playerStats.damage ?? 1) + (state.temporaryCombatBuff?.damage ?? 0)).toFixed(2)),
+        damage: Number(((state.playerStats.damage ?? 1) * (isGlassCannon ? 2 : 1) + (state.temporaryCombatBuff?.damage ?? 0)).toFixed(2)),
         fireRate: Number(((state.playerStats.fireRate ?? 1) + (state.temporaryCombatBuff?.fireRate ?? 0)).toFixed(2)),
         moveSpeed: Number(((state.playerStats.moveSpeed ?? 1) + (state.temporaryCombatBuff?.moveSpeed ?? 0) + metaSpeedBonus).toFixed(2)),
       }
@@ -95,7 +97,8 @@ export const useGameStore = defineStore('game', {
       this.challengeMode = challenge
     },
     addScore(amount = 1) {
-      this.score += amount
+      const multiplier = this.challengeMode === 'overtime' ? 1.75 : 1
+      this.score += Math.round(amount * multiplier)
 
       if (this.score > this.bestScore) {
         this.bestScore = this.score
@@ -244,13 +247,20 @@ export const useGameStore = defineStore('game', {
       }
     },
     healPlayer(amount = 1) {
+      if (this.challengeMode === 'noMercy') {
+        return  // healing blocked in No Mercy
+      }
       this.health = Math.min(this.maxPlayerHealth, this.health + amount)
     },
     restoreFullHealth() {
+      if (this.challengeMode === 'noMercy') {
+        return  // healing blocked in No Mercy
+      }
       this.health = this.maxPlayerHealth
     },
     damagePlayer(amount = 1) {
-      this.health = Math.max(0, this.health - amount)
+      const multiplier = this.challengeMode === 'glassCannon' ? 2 : 1
+      this.health = Math.max(0, this.health - amount * multiplier)
     },
     pauseRun() {
       if (!['running', 'spawning', 'wave-clear'].includes(this.phase)) {
