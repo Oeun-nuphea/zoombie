@@ -126,6 +126,7 @@ export default class MainScene extends Phaser.Scene {
     this.player = new Player(this, width * 0.5, height * 0.56, {
       getRunStats: () => this.gameStore.playerCombatStats,
       getHealth: () => this.gameStore.health,
+      getMaxHealth: () => this.gameStore.maxPlayerHealth,
     });
     this.hud = createCombatHud(this, this.gameStore);
     registerSoundHotkeys(this, {

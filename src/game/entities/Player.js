@@ -26,6 +26,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.runStatsProvider = config.getRunStats ?? null
     this.healthProvider = config.getHealth ?? null
+    this.maxHealthProvider = config.getMaxHealth ?? null
     this.lastFiredAt = -9999
     this.lastDamagedAt = -PLAYER_CONFIG.contactCooldown
     this.lastAimedAt = 0
@@ -390,7 +391,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   drawHealthBar() {
     this.healthBar.clear()
 
-    const maxHealth = this.getCombatStats().maxHP
+    const maxHealth = this.maxHealthProvider?.() ?? this.getCombatStats().maxHP
     const currentHealth = this.healthProvider?.() ?? maxHealth
 
     if (!maxHealth || this.isDead) {
@@ -405,7 +406,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.healthBar.fillStyle(0x000000, 0.7)
     this.healthBar.fillRect(x, y, width, height)
 
-    const healthWidth = Math.max(0, (currentHealth / maxHealth) * width)
+    const healthRatio = Math.min(1, Math.max(0, currentHealth / (maxHealth || 1)))
+    const healthWidth = healthRatio * width
     this.healthBar.fillStyle(0x22c55e, 1)
     this.healthBar.fillRect(x, y, healthWidth, height)
 
