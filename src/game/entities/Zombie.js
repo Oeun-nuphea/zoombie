@@ -411,6 +411,36 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
       }
     }
 
+    // Smart Obstacle Avoidance Steering
+    if (this.scene.obstacles) {
+      let avoidX = 0
+      let avoidY = 0
+      
+      this.scene.obstacles.children.iterate((obs) => {
+        if (!obs || !obs.active) return
+        
+        const dx = this.x - obs.x
+        const dy = this.y - obs.y
+        const distSq = dx * dx + dy * dy
+        const avoidanceThresholdSq = 14400 // 120 pixels
+        
+        if (distSq < avoidanceThresholdSq && distSq > 0) {
+          const dist = Math.sqrt(distSq)
+          // Stronger force the closer they are
+          const force = (120 - dist) / 120
+          // Push the steering target orthogonally around the obstacle
+          // We add both a direct push-away and a tangential push to slide around it
+          const cross = (dx * (target.y - this.y) - dy * (target.x - this.x)) > 0 ? 1 : -1
+          
+          avoidX += (dx / dist) * force * 150 + (-dy / dist) * cross * force * 120
+          avoidY += (dy / dist) * force * 150 + (dx / dist) * cross * force * 120
+        }
+      })
+      
+      currentSteerX += avoidX
+      currentSteerY += avoidY
+    }
+
     const effectiveSpeed = Math.max(12, this.speed * (this.speedModifier ?? 1))
 
     this.scene.physics.moveTo(this, currentSteerX, currentSteerY, effectiveSpeed)

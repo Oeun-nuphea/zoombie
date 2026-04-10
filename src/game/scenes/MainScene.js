@@ -92,6 +92,46 @@ export default class MainScene extends Phaser.Scene {
     }
   }
 
+  spawnObstacles(count = 5) {
+    const { width, height } = this.getWorldDimensions();
+    const centerX = width * 0.5;
+    const centerY = height * 0.5;
+
+    for (let i = 0; i < count; i++) {
+      let x, y;
+      let valid = false;
+      for (let attempts = 0; attempts < 15; attempts++) {
+        x = Phaser.Math.Between(200, width - 200);
+        y = Phaser.Math.Between(200, height - 200);
+        if (Phaser.Math.Distance.Between(x, y, centerX, centerY) > 280) {
+          valid = true;
+          break;
+        }
+      }
+      
+      if (valid) {
+        const types = ['obstacle-wall', 'obstacle-pillar', 'obstacle-crate'];
+        const type = Phaser.Utils.Array.GetRandom(types);
+        const obs = this.obstacles.create(x, y, type);
+        obs.setDepth(20);
+        obs.setRotation(Phaser.Math.FloatBetween(-0.06, 0.06));
+
+        if (type === 'obstacle-wall') {
+          obs.body.setSize(116, 44);
+          obs.body.setOffset(2, 2);
+        } else if (type === 'obstacle-pillar') {
+          obs.body.setSize(48, 48);
+          obs.body.setOffset(4, 4);
+        } else {
+          // obstacle-crate
+          obs.body.setSize(60, 60);
+          obs.body.setOffset(2, 2);
+        }
+      }
+    }
+    this.obstacles.refresh();
+  }
+
   create() {
     const { width, height } = this.getWorldDimensions();
 
@@ -123,11 +163,31 @@ export default class MainScene extends Phaser.Scene {
 
     this.arena = createArenaBackground(this);
 
+    this.obstacles = this.physics.add.staticGroup();
+    this.spawnObstacles(6);
+
     this.player = new Player(this, width * 0.5, height * 0.56, {
       getRunStats: () => this.gameStore.playerCombatStats,
       getHealth: () => this.gameStore.health,
       getMaxHealth: () => this.gameStore.maxPlayerHealth,
     });
+
+    this.physics.add.collider(this.player, this.obstacles);
+    this.physics.add.collider(this.zombies, this.obstacles);
+    this.physics.add.collider(this.bullets, this.obstacles, (bullet, obstacle) => {
+      if (!bullet.active) return;
+      bullet.disableBody(true, true);
+      const spark = this.add.circle(bullet.x, bullet.y, 4, 0xfacc15, 0.8);
+      spark.setDepth(30);
+      this.tweens.add({
+        targets: spark,
+        scale: 2.5,
+        alpha: 0,
+        duration: 120,
+        onComplete: () => spark.destroy(),
+      });
+    });
+
     this.hud = createCombatHud(this, this.gameStore);
     registerSoundHotkeys(this, {
       onMuteChange: (muted) => {
@@ -150,6 +210,7 @@ export default class MainScene extends Phaser.Scene {
     this.radar = createRadarSystem(this, {
       player: this.player,
       zombies: this.zombies,
+      obstacles: this.obstacles,
       dimensions: { width, height },
     });
     this.upgradeDirector = createUpgradeDirector(this, {

@@ -1778,4 +1778,49 @@ export function registerPlaceholderTextures(scene) {
     bulletGraphic.generateTexture('bullet', 20, 8)
     bulletGraphic.destroy()
   }
+
+  if (!scene.textures.exists('obstacle-wall')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    obGraphic.fillStyle(0x334155, 1)
+    obGraphic.fillRoundedRect(0, 0, 120, 48, 6)
+    obGraphic.fillStyle(0x475569, 1)
+    obGraphic.fillRoundedRect(2, 2, 116, 44, 5)
+    obGraphic.lineStyle(2, 0x1e293b, 1)
+    obGraphic.strokeRoundedRect(2, 2, 116, 44, 5)
+    obGraphic.generateTexture('obstacle-wall', 120, 48)
+    obGraphic.destroy()
+  }
+
+  if (!scene.textures.exists('obstacle-pillar')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    obGraphic.fillStyle(0x1e293b, 1)
+    obGraphic.fillRoundedRect(0, 0, 56, 56, 8)
+    obGraphic.fillStyle(0x334155, 1)
+    obGraphic.fillRoundedRect(6, 6, 44, 44, 6)
+    obGraphic.fillStyle(0x475569, 1)
+    obGraphic.fillCircle(28, 28, 14)
+    obGraphic.generateTexture('obstacle-pillar', 56, 56)
+    obGraphic.destroy()
+  }
+
+  if (!scene.textures.exists('obstacle-crate')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    obGraphic.fillStyle(0x78350f, 1) // Dark brown
+    obGraphic.fillRoundedRect(0, 0, 64, 64, 4)
+    obGraphic.fillStyle(0x92400e, 1) // Lighter brown
+    obGraphic.fillRoundedRect(4, 4, 56, 56, 2)
+    obGraphic.lineStyle(4, 0x78350f, 1)
+    obGraphic.strokeRect(4, 4, 56, 56)
+    obGraphic.beginPath()
+    obGraphic.moveTo(4, 4)
+    obGraphic.lineTo(60, 60)
+    obGraphic.stroke()
+    obGraphic.beginPath()
+    obGraphic.moveTo(60, 4)
+    obGraphic.lineTo(4, 60)
+    obGraphic.stroke()
+    obGraphic.generateTexture('obstacle-crate', 64, 64)
+    obGraphic.destroy()
+  }
 }
+
