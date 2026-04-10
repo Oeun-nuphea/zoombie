@@ -27,6 +27,7 @@ export default class BootScene extends Phaser.Scene {
     })
     
     this.load.tilemapTiledJSON('arena1', '/assets/maps/arena1.json')
+    this.load.tilemapTiledJSON('angkor', '/assets/maps/angkor.json')
   }
 
   create() {
