@@ -24,7 +24,7 @@ export const STORAGE_KEYS = {
 export const CHALLENGES = {
   none: { id: 'none', label: 'Standard Run', desc: 'A regular survival run with default rules.' },
   vampire: { id: 'vampire', label: 'Vampire Mode', desc: 'You take 1 damage every 3 seconds, but you gain +25% Lifesteal.' },
-  pistolOnly: { id: 'pistolOnly', label: 'Purist (Pistol Only)', desc: 'Zero weapon drops. Rely entirely on your Pistol and upgrades.' },
+  pistolOnly: { id: 'pistolOnly', label: 'Pistol Only', desc: 'Zero weapon drops. Rely entirely on your Pistol and upgrades.' },
   glassCannon: { id: 'glassCannon', label: 'Glass Cannon', desc: 'You deal 2× damage but also take 2× damage. High risk, high reward.' },
   overtime: { id: 'overtime', label: 'Overtime', desc: 'Enemies spawn 40% faster. Score is multiplied by 1.75×.' },
   noMercy: { id: 'noMercy', label: 'No Mercy', desc: 'No health drops spawn and no healing rewards between waves. Survive on skill alone.' },
