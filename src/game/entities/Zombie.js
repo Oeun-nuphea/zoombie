@@ -411,32 +411,100 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
       }
     }
 
-    // Smart Obstacle Avoidance Steering
+    // ─── Smart Obstacle Avoidance Steering (v2) ───
     if (this.scene.obstacles) {
       let avoidX = 0
       let avoidY = 0
-      
+
+      // Direction from zombie toward current steering target
+      const toTargetX = currentSteerX - this.x
+      const toTargetY = currentSteerY - this.y
+      const toTargetLen = Math.sqrt(toTargetX * toTargetX + toTargetY * toTargetY) || 1
+      const dirX = toTargetX / toTargetLen
+      const dirY = toTargetY / toTargetLen
+
+      // Velocity look-ahead position (predict where zombie will be in ~0.25s)
+      const lookAheadX = this.x + (this.body.velocity.x || 0) * 0.25
+      const lookAheadY = this.y + (this.body.velocity.y || 0) * 0.25
+
       this.scene.obstacles.children.iterate((obs) => {
         if (!obs || !obs.active) return
-        
+
+        // Use actual obstacle body size to compute avoidance radius
+        const obsBodyW = obs.body?.width ?? 60
+        const obsBodyH = obs.body?.height ?? 60
+        const obsRadius = Math.max(obsBodyW, obsBodyH) * 0.5
+        // Clearance buffer so zombies don't clip edges
+        const avoidanceRadius = obsRadius + 56
+        const avoidanceRadiusSq = avoidanceRadius * avoidanceRadius
+
         const dx = this.x - obs.x
         const dy = this.y - obs.y
         const distSq = dx * dx + dy * dy
-        const avoidanceThresholdSq = 14400 // 120 pixels
-        
-        if (distSq < avoidanceThresholdSq && distSq > 0) {
-          const dist = Math.sqrt(distSq)
-          // Stronger force the closer they are
-          const force = (120 - dist) / 120
-          // Push the steering target orthogonally around the obstacle
-          // We add both a direct push-away and a tangential push to slide around it
-          const cross = (dx * (target.y - this.y) - dy * (target.x - this.x)) > 0 ? 1 : -1
-          
-          avoidX += (dx / dist) * force * 150 + (-dy / dist) * cross * force * 120
-          avoidY += (dy / dist) * force * 150 + (dx / dist) * cross * force * 120
+
+        if (distSq >= avoidanceRadiusSq || distSq <= 0) return
+
+        const dist = Math.sqrt(distSq)
+        const nx = dx / dist  // normalized push-away direction
+        const ny = dy / dist
+
+        // ── 1. Proximity repulsion (stronger the closer) ──
+        const proximityForce = ((avoidanceRadius - dist) / avoidanceRadius)
+        const pushStrength = proximityForce * proximityForce * 200
+
+        avoidX += nx * pushStrength
+        avoidY += ny * pushStrength
+
+        // ── 2. Tangential slide (steer around, not into) ──
+        // Choose which side to slide based on cross product with direction to player
+        const cross = dx * (target.y - this.y) - dy * (target.x - this.x)
+        const slideDir = cross > 0 ? 1 : -1
+        // Tangent is perpendicular to the push-away normal
+        const tangentX = -ny * slideDir
+        const tangentY = nx * slideDir
+        const slideStrength = proximityForce * 180
+
+        avoidX += tangentX * slideStrength
+        avoidY += tangentY * slideStrength
+
+        // ── 3. Path-blocking detection ──
+        // If obstacle lies roughly between zombie and target, add extra steering
+        const toObsX = obs.x - this.x
+        const toObsY = obs.y - this.y
+        const dotForward = toObsX * dirX + toObsY * dirY
+
+        if (dotForward > 0 && dotForward < toTargetLen) {
+          // Perpendicular distance to our travel line
+          const perpDist = Math.abs(toObsX * (-dirY) + toObsY * dirX)
+          if (perpDist < avoidanceRadius * 1.1) {
+            // Obstacle is blocking our path – apply strong tangential detour
+            const blockForce = ((avoidanceRadius - perpDist) / avoidanceRadius) * 260
+            avoidX += tangentX * blockForce
+            avoidY += tangentY * blockForce
+          }
+        }
+
+        // ── 4. Look-ahead collision prediction ──
+        const laToObsX = obs.x - lookAheadX
+        const laToObsY = obs.y - lookAheadY
+        const laDistSq = laToObsX * laToObsX + laToObsY * laToObsY
+        if (laDistSq < avoidanceRadiusSq && laDistSq > 0) {
+          const laDist = Math.sqrt(laDistSq)
+          const laForce = ((avoidanceRadius - laDist) / avoidanceRadius) * 120
+          avoidX -= (laToObsX / laDist) * laForce
+          avoidY -= (laToObsY / laDist) * laForce
         }
       })
-      
+
+      // ── 5. Stuck detection – if velocity is near-zero for a while, nudge sideways ──
+      const velSq = (this.body.velocity.x || 0) ** 2 + (this.body.velocity.y || 0) ** 2
+      if (velSq < 100 && distance > this.attackRange * 1.5) {
+        // Pick a deterministic side using wobble seed to avoid oscillation
+        const sideSign = ((this.wobbleSeed & 1) === 0) ? 1 : -1
+        avoidX += -dirY * sideSign * 140
+        avoidY += dirX * sideSign * 140
+      }
+
       currentSteerX += avoidX
       currentSteerY += avoidY
     }
