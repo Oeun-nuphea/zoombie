@@ -19,6 +19,15 @@ export const STORAGE_KEYS = {
   soundVolume: 'zoombie.sound-volume',
   souls: 'zoombie.souls',
   metaUpgrades: 'zoombie.meta-upgrades',
+  unlockedMaps: 'zoombie.unlocked-maps',
+  selectedMap: 'zoombie.selected-map',
+}
+
+export const MAP_CONFIG = {
+  arena1: { id: 'arena1', label: 'Training Field', desc: 'A wide open field with scattered crates.', cost: 0, default: true },
+  angkor: { id: 'angkor', label: 'Angkor Temple', desc: 'Ancient temple layout. Fast paths, dangerous slow moats.', cost: 500, default: false },
+  pagoda: { id: 'pagoda', label: 'Serene Pagoda', desc: 'A tranquil shrine over deep mud. Heavily restricts movement.', cost: 750, default: false },
+  palace: { id: 'palace', label: 'Royal Palace', desc: 'Grand concrete plaza with intricate brick corridors.', cost: 1000, default: false },
 }
 
 export const CHALLENGES = {

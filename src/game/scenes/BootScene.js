@@ -28,6 +28,8 @@ export default class BootScene extends Phaser.Scene {
     
     this.load.tilemapTiledJSON('arena1', '/assets/maps/arena1.json')
     this.load.tilemapTiledJSON('angkor', '/assets/maps/angkor.json')
+    this.load.tilemapTiledJSON('pagoda', '/assets/maps/pagoda.json')
+    this.load.tilemapTiledJSON('palace', '/assets/maps/palace.json')
   }
 
   create() {

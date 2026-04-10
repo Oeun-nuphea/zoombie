@@ -37,14 +37,14 @@
 
         <!-- Primary Actions -->
         <div class="landing-screen__actions">
-          <button class="landing-screen__play-button" type="button" @click="startGame('normal')">
+          <button class="landing-screen__play-button" type="button" @click="initiateStartGame('normal')">
             ▶ Start Game
           </button>
           <button
             v-if="gameStore.endlessUnlocked"
             class="landing-screen__secondary-button"
             type="button"
-            @click="startGame('endless')"
+            @click="initiateStartGame('endless')"
           >
             ∞ Endless
           </button>
@@ -117,14 +117,62 @@
 
     <!-- ── Modals ── -->
     <div
-      v-if="showHowToPlay || showShop"
+      v-if="showHowToPlay || showShop || showMapSelector"
       class="landing-screen__modal-backdrop responsive-overlay"
       @click.self="closePanels"
     >
       <div class="landing-screen__modal responsive-overlay__panel">
 
+        <!-- Map Selector Mode -->
+        <template v-if="showMapSelector">
+          <p class="landing-screen__modal-label">Select Battleground</p>
+          <h2 class="landing-screen__modal-title">Where to Deploy?</h2>
+          <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
+            <div class="challenge-picker__grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+              <button
+                v-for="(mapConfig, key) in MAP_CONFIG"
+                :key="key"
+                type="button"
+                class="challenge-picker__card"
+                :class="{ 
+                  'challenge-picker__card--active': previewMap === key,
+                  'shop-item__btn--disabled': !mapConfig.default && !gameStore.unlockedMaps.includes(key)
+                }"
+                @click="previewMap = key"
+                style="padding: 1rem; border-radius: 12px; min-height: 5.5rem;"
+              >
+                <span class="challenge-picker__card-icon" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;">{{ MAP_ICONS[key] }}</span>
+                <span class="challenge-picker__card-name" style="font-size: 0.85rem;">{{ mapConfig.label }}</span>
+              </button>
+            </div>
+
+            <div class="shop-item" style="margin-top: 1.5rem;">
+              <div>
+                <h4 class="shop-item__name">{{ MAP_CONFIG[previewMap]?.label }}</h4>
+                <p class="shop-item__sub">{{ MAP_CONFIG[previewMap]?.desc }}</p>
+              </div>
+              <button
+                v-if="!MAP_CONFIG[previewMap]?.default && !gameStore.unlockedMaps.includes(previewMap)"
+                class="landing-screen__play-button shop-item__btn"
+                :disabled="gameStore.souls < MAP_CONFIG[previewMap].cost"
+                :class="{ 'shop-item__btn--disabled': gameStore.souls < MAP_CONFIG[previewMap].cost }"
+                @click="buyMap"
+              >
+                Unlock ({{ MAP_CONFIG[previewMap].cost }} 💀)
+              </button>
+              <button
+                v-else
+                class="landing-screen__play-button shop-item__btn"
+                @click="confirmMapAndStart"
+              >
+                ▶ Start
+              </button>
+            </div>
+          </div>
+        </template>
+
         <!-- Shop -->
-        <template v-if="showShop">
+        <template v-else-if="showShop">
           <p class="landing-screen__modal-label">Meta Shop</p>
           <h2 class="landing-screen__modal-title">Spend Souls</h2>
           <div class="landing-screen__modal-copy">
@@ -188,7 +236,7 @@ import { useRouter } from 'vue-router'
 import { requestDocumentFullscreen } from '../../composables/useFullscreenMode'
 import { readStorage, writeStorage } from '../../services/storageService'
 import { useGameStore } from '../../stores/gameStore'
-import { APP_NAME, STORAGE_KEYS, CHALLENGES } from '../../utils/constants'
+import { APP_NAME, STORAGE_KEYS, CHALLENGES, MAP_CONFIG } from '../../utils/constants'
 import { getGameRuntimeProfile } from '../../utils/device'
 import { formatScore } from '../../utils/helpers'
 
@@ -201,11 +249,21 @@ const CHALLENGE_ICONS = {
   noMercy: '💀',
 }
 
+const MAP_ICONS = {
+  arena1: '🏕️',
+  angkor: '🛕',
+  pagoda: '⛩️',
+  palace: '🏯',
+}
+
 const router = useRouter()
 const gameStore = useGameStore()
 const showHowToPlay = ref(false)
 const showShop = ref(false)
+const showMapSelector = ref(false)
+const pendingRunMode = ref('normal')
 const selectedChallenge = ref('none')
+const previewMap = ref(gameStore.selectedMap || 'arena1')
 const soundMuted = ref(readStorage(STORAGE_KEYS.soundMuted, false))
 const runtimeProfile = getGameRuntimeProfile()
 
@@ -215,9 +273,20 @@ const speedCost = computed(() => 40 * ((gameStore.metaUpgrades?.speed || 0) + 1)
 function buyHealth() { gameStore.buyMetaUpgrade('health', healthCost.value) }
 function buySpeed() { gameStore.buyMetaUpgrade('speed', speedCost.value) }
 
+function handleMapSelect(key) {
+  previewMap.value = key;
+}
+
+function buyMap() {
+  const mapItem = MAP_CONFIG[previewMap.value];
+  if (!mapItem) return;
+  gameStore.buyMap(previewMap.value, mapItem.cost);
+}
+
 function closePanels() {
   showHowToPlay.value = false
   showShop.value = false
+  showMapSelector.value = false
 }
 
 function toggleSound() {
@@ -238,7 +307,14 @@ async function enterMobileAppMode() {
   try { await requestDocumentFullscreen() } catch { /* ignore */ }
 }
 
-async function startGame(mode = 'normal') {
+function initiateStartGame(mode = 'normal') {
+  pendingRunMode.value = mode
+  showMapSelector.value = true
+}
+
+async function confirmMapAndStart() {
+  gameStore.selectMap(previewMap.value)
+  const mode = pendingRunMode.value
   closePanels()
   gameStore.startRun(mode, selectedChallenge.value)
   await enterMobileAppMode()

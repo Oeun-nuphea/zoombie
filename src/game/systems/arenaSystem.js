@@ -91,12 +91,11 @@ function resizeArenaMap(scene, map, assetConfig, dimensions = getSceneGameDimens
 }
 
 export function createArenaBackground(scene) {
-  // Try to load the tilemap if it exists in cache
-  const availableMaps = ['arena1', 'angkor'].filter(key => scene.cache.tilemap.has(key));
+  // Try to load the scheduled tilemap
+  const scheduledMapKey = scene.gameStore?.currentRunMap ?? 'arena1';
 
-  if (availableMaps.length > 0 && scene.textures.exists('terrain-tiles')) {
-    const chosenMapKey = Phaser.Math.RND.pick(availableMaps);
-    const map = scene.make.tilemap({ key: chosenMapKey });
+  if (scene.cache.tilemap.has(scheduledMapKey) && scene.textures.exists('terrain-tiles')) {
+    const map = scene.make.tilemap({ key: scheduledMapKey });
     const tileset = map.addTilesetImage('terrain', 'terrain-tiles', 64, 64);
     
     const groundLayer = map.createLayer('Ground', tileset, 0, 0);

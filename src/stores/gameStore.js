@@ -22,6 +22,9 @@ export const useGameStore = defineStore('game', {
     endlessUnlocked: true, // Unlocked by default for demo
     souls: readStorage(STORAGE_KEYS.souls, 0),
     metaUpgrades: readStorage(STORAGE_KEYS.metaUpgrades, { health: 0, speed: 0 }),
+    unlockedMaps: readStorage(STORAGE_KEYS.unlockedMaps, ['arena1']),
+    selectedMap: readStorage(STORAGE_KEYS.selectedMap, 'arena1'),
+    currentRunMap: null,
     score: 0,
     bestScore: readStorage(STORAGE_KEYS.bestScore, 0),
     lastScore: 0,
@@ -124,6 +127,26 @@ export const useGameStore = defineStore('game', {
         return true
       }
       return false
+    },
+    unlockMap(mapId) {
+      if (!this.unlockedMaps.includes(mapId)) {
+        this.unlockedMaps = [...this.unlockedMaps, mapId];
+        writeStorage(STORAGE_KEYS.unlockedMaps, this.unlockedMaps);
+      }
+    },
+    buyMap(mapId, cost) {
+      if (this.unlockedMaps.includes(mapId)) return false;
+      if (this.souls >= cost) {
+        this.souls -= cost;
+        writeStorage(STORAGE_KEYS.souls, this.souls);
+        this.unlockMap(mapId);
+        return true;
+      }
+      return false;
+    },
+    selectMap(mapId) {
+      this.selectedMap = mapId;
+      writeStorage(STORAGE_KEYS.selectedMap, this.selectedMap);
     },
     setHealth(value) {
       this.health = value
@@ -367,6 +390,9 @@ export const useGameStore = defineStore('game', {
       this.wave = 1
       this.zombiesRemaining = 0
       this.equipWeapon(DEFAULT_WEAPON_ID, null, null)
+
+      // Resolve the map for this run
+      this.currentRunMap = this.selectedMap;
     },
     reset() {
       this.startRun()
