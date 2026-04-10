@@ -32,10 +32,10 @@ export const WEAPON_POOL_CONFIG = {
 }
 
 export const ZOMBIE_CONFIG = {
-  baseSpeed: 80,
-  speedPerWave: 5,
-  maxSpeed: 175,
-  baseHealth: 1,
+  baseSpeed: 100,
+  speedPerWave: 7,
+  maxSpeed: 200,
+  baseHealth: 2,
   healthStepEvery: 2,
 }
 
@@ -283,7 +283,7 @@ export const ZOMBIE_TYPES = {
     size: 0.84,
     damage: 1,
     scoreReward: 10,
-    spawnWeight: 72,
+    spawnWeight: 60,
     unlockWave: 1,
     weightRamp: -5,
     attackRange: 68,
@@ -313,8 +313,8 @@ export const ZOMBIE_TYPES = {
     size: 0.74,
     damage: 1,
     scoreReward: 15,
-    spawnWeight: 18,
-    unlockWave: 2,
+    spawnWeight: 24,
+    unlockWave: 1,
     weightRamp: 4,
     attackRange: 60,
     damageCooldownMs: 420,
@@ -343,8 +343,8 @@ export const ZOMBIE_TYPES = {
     size: 1.08,
     damage: 2,
     scoreReward: 24,
-    spawnWeight: 10,
-    unlockWave: 4,
+    spawnWeight: 14,
+    unlockWave: 3,
     weightRamp: 3,
     attackRange: 76,
     damageCooldownMs: 700,
@@ -373,8 +373,8 @@ export const ZOMBIE_TYPES = {
     size: 0.9,
     damage: 1,
     scoreReward: 18,
-    spawnWeight: 12,
-    unlockWave: 5,
+    spawnWeight: 14,
+    unlockWave: 4,
     weightRamp: 4,
     attackRange: 70,
     damageCooldownMs: 560,
@@ -403,8 +403,8 @@ export const ZOMBIE_TYPES = {
     size: 0.88,
     damage: 1,
     scoreReward: 22,
-    spawnWeight: 9,
-    unlockWave: 6,
+    spawnWeight: 11,
+    unlockWave: 5,
     weightRamp: 3,
     attackRange: 64,
     damageCooldownMs: 600,
@@ -440,8 +440,8 @@ export const ZOMBIE_TYPES = {
     size: 0.96,
     damage: 2,
     scoreReward: 28,
-    spawnWeight: 7,
-    unlockWave: 7,
+    spawnWeight: 9,
+    unlockWave: 6,
     weightRamp: 2,
     attackRange: 72,
     damageCooldownMs: 700,
@@ -473,8 +473,8 @@ export const ZOMBIE_TYPES = {
     size: 0.82,
     damage: 2,
     scoreReward: 20,
-    spawnWeight: 14,
-    unlockWave: 8,
+    spawnWeight: 16,
+    unlockWave: 6,
     weightRamp: 3,
     attackRange: 64,
     damageCooldownMs: 500,
@@ -508,8 +508,8 @@ export const ZOMBIE_TYPES = {
     size: 0.86,
     damage: 1,
     scoreReward: 18,
-    spawnWeight: 12,
-    unlockWave: 9,
+    spawnWeight: 14,
+    unlockWave: 7,
     weightRamp: 3,
     attackRange: 68,
     damageCooldownMs: 500,
@@ -674,8 +674,8 @@ export const ZOMBIE_TYPES = {
     size: 0.80,
     damage: 0,
     scoreReward: 30,
-    spawnWeight: 8,
-    unlockWave: 10,
+    spawnWeight: 10,
+    unlockWave: 8,
     weightRamp: 2,
     attackRange: 0,
     damageCooldownMs: 9999,
@@ -727,17 +727,17 @@ export function getSpawnPointDefinitions(dimensions = GAME_DIMENSIONS) {
 export const SPAWN_POINT_DEFINITIONS = getSpawnPointDefinitions()
 
 export const WAVE_CONFIG = {
-  startCount: 5,
-  countIncreasePerWave: 2,
+  startCount: 7,
+  countIncreasePerWave: 3,
   spawnBatchSize: 2,
-  baseSpawnInterval: 460,
-  spawnIntervalDecay: 24,
-  minSpawnInterval: 140,
-  baseAliveCap: 4,
+  baseSpawnInterval: 330,
+  spawnIntervalDecay: 30,
+  minSpawnInterval: 120,
+  baseAliveCap: 6,
   aliveCapIncreaseEvery: 2,
-  interWaveDelay: 360,
-  upgradeDelay: 780,
-  startDelay: 260,
+  interWaveDelay: 320,
+  upgradeDelay: 700,
+  startDelay: 220,
 }
 
 export const WAVE_REWARD_CONFIG = {
@@ -800,15 +800,15 @@ export const WAVE_REWARD_CONFIG = {
 }
 
 function getSpawnPointCount(wave) {
-  if (wave >= 7) {
+  if (wave >= 5) {
     return 4
   }
 
-  if (wave >= 5) {
+  if (wave >= 3) {
     return 3
   }
 
-  if (wave >= 3) {
+  if (wave >= 2) {
     return 2
   }
 
@@ -831,9 +831,7 @@ function getMiniBossSupportCount(wave) {
 }
 
 function getBaseSupportZombieCount(wave) {
-  const earlyWaveRelief = wave <= 3 ? 1 : 0
-
-  return Math.max(4, WAVE_CONFIG.startCount + (wave - 1) * WAVE_CONFIG.countIncreasePerWave - earlyWaveRelief)
+  return Math.max(5, WAVE_CONFIG.startCount + (wave - 1) * WAVE_CONFIG.countIncreasePerWave)
 }
 
 function getBossEncounter(wave, mode = RUN_MODE_CONFIG.normal.id) {
@@ -967,9 +965,10 @@ export function buildZombieConfig(typeId, waveConfig) {
   const headHitOffsetYScale = type.headHitOffsetYScale ?? Math.max(HEADSHOT_CONFIG.defaultHeadOffsetYScale, bodyHitOffsetYScale + 0.17)
 
   let mutationId = null
-  if (!type.bossOnly && waveConfig.number >= 3) {
-    let eliteChance = 0.05
-    if (waveConfig.number > 10) eliteChance += 0.02
+  if (!type.bossOnly && waveConfig.number >= 2) {
+    let eliteChance = 0.08
+    if (waveConfig.number >= 5) eliteChance += 0.04
+    if (waveConfig.number >= 10) eliteChance += 0.04
     
     if (Math.random() <= eliteChance) {
       const keys = Object.keys(ELITE_MUTATIONS)

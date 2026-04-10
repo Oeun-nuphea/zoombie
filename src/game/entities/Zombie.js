@@ -521,6 +521,8 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     const projectile = this.scene.physics.add.sprite(this.x, this.y - 12, 'bullet')
         .setTint(0x16a34a).setScale(1.3).setDepth(30)
     projectile.body.setCircle(6)
+    projectile.setCollideWorldBounds(true)
+    projectile.body.onWorldBounds = true
     const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y)
     this.scene.physics.velocityFromRotation(angle, this.spitSpeed, projectile.body.velocity)
     
@@ -542,8 +544,26 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
       }
     })
 
-    // Destroy after lifetime
-    this.scene.time.delayedCall(this.spitLifetimeMs, () => proj.destroy?.())
+    // Destroy on obstacle hit
+    if (this.scene.obstacles) {
+      this.scene.physics.add.collider(projectile, this.scene.obstacles, () => {
+        projectile.destroy()
+      })
+    }
+
+    // Destroy on world bounds
+    this.scene.physics.world.on('worldbounds', (body) => {
+      if (body.gameObject === projectile) {
+        projectile.destroy()
+      }
+    })
+
+    // Destroy after lifetime (was using wrong variable name `proj` — caused ReferenceError crash)
+    this.scene.time.delayedCall(this.spitLifetimeMs, () => {
+      if (projectile.active) {
+        projectile.destroy()
+      }
+    })
   }
 
   /**
