@@ -242,7 +242,14 @@ export function registerGameCollisions(scene, config) {
       return true
     }
 
-    const damageMultiplier = hitInfo.isHeadshot ? zombie.headshotMultiplier ?? HEADSHOT_CONFIG.damageMultiplier : 1
+    let highGroundMultiplier = 1
+    const tile = scene.arena?.groundLayer?.getTileAtWorldXY(player?.x || 0, player?.y || 0)
+    if (tile && (tile.index === 2 || tile.index === 3)) {
+      highGroundMultiplier = 1.25 // 25% damage boost from high ground
+    }
+
+    const baseMultiplier = hitInfo.isHeadshot ? zombie.headshotMultiplier ?? HEADSHOT_CONFIG.damageMultiplier : 1
+    const damageMultiplier = baseMultiplier * highGroundMultiplier
     const totalDamage = bullet.damage * damageMultiplier
     const hitResult = zombie.takeDamage(totalDamage, {
       hitZone: hitInfo.zone,

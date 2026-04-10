@@ -1791,6 +1791,55 @@ export function registerPlaceholderTextures(scene) {
     obGraphic.destroy()
   }
 
+  // ── Terrain Tileset Generation ──
+  if (!scene.textures.exists('terrain-tiles')) {
+    const tg = scene.make.graphics({ add: false })
+    // We are creating a 256x256 tileset (4x4 tiles of 64x64 each)
+    
+    // Tile 1 (Grass base) at x:0, y:0
+    tg.fillStyle(0x2d3a21, 1)
+    tg.fillRect(0, 0, 64, 64)
+    tg.fillStyle(0x3a4a2b, 1)
+    tg.fillCircle(16, 16, 8)
+    tg.fillCircle(48, 40, 12)
+    tg.fillStyle(0x455635, 1)
+    tg.fillRect(20, 20, 4, 8)
+
+    // Tile 2 (Dirt/Path) at x:64, y:0
+    tg.fillStyle(0x4a3b2b, 1)
+    tg.fillRect(64, 0, 64, 64)
+    tg.fillStyle(0x5a4a35, 1)
+    tg.fillRect(70, 10, 20, 10)
+    tg.fillCircle(100, 40, 12)
+    
+    // Tile 3 (Concrete floor) at x:128, y:0
+    tg.fillStyle(0x2e353b, 1)
+    tg.fillRect(128, 0, 64, 64)
+    tg.fillStyle(0x3e474f, 1)
+    tg.fillRect(130, 2, 60, 60)
+    tg.fillStyle(0x4e5860, 1)
+    tg.fillRect(140, 10, 8, 8)
+
+    // Tile 4 (Brick Wall - Obstacle) at x:192, y:0
+    tg.fillStyle(0x5a2b2b, 1)
+    tg.fillRect(192, 0, 64, 64)
+    tg.fillStyle(0x7a3a3a, 1)
+    for(let y=0; y<64; y+=16) {
+      for(let x=0; x<64; x+=32) {
+        tg.fillRect(192 + x + (y%32===0?0:16), y, 28, 12)
+      }
+    }
+    
+    // Tile 5 (Water/Mud) at x:0, y:64
+    tg.fillStyle(0x1a2b3a, 1)
+    tg.fillRect(0, 64, 64, 64)
+    tg.fillStyle(0x2a3e5c, 1)
+    tg.fillRect(10, 74, 44, 44)
+    
+    tg.generateTexture('terrain-tiles', 256, 256)
+    tg.destroy()
+  }
+
   if (!scene.textures.exists('obstacle-pillar')) {
     const obGraphic = scene.make.graphics({ add: false })
     obGraphic.fillStyle(0x1e293b, 1)

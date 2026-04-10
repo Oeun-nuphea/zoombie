@@ -25,6 +25,8 @@ export default class BootScene extends Phaser.Scene {
     ARENA_MAP_ASSETS.forEach(asset => {
       this.load.image(asset.key, asset.url)
     })
+    
+    this.load.tilemapTiledJSON('arena1', '/assets/maps/arena1.json')
   }
 
   create() {

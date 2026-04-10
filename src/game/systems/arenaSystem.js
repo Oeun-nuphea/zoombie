@@ -91,6 +91,43 @@ function resizeArenaMap(scene, map, assetConfig, dimensions = getSceneGameDimens
 }
 
 export function createArenaBackground(scene) {
+  // Try to load the tilemap if it exists in cache
+  if (scene.cache.tilemap.has('arena1') && scene.textures.exists('terrain-tiles')) {
+    const map = scene.make.tilemap({ key: 'arena1' });
+    const tileset = map.addTilesetImage('terrain', 'terrain-tiles', 64, 64);
+    
+    const groundLayer = map.createLayer('Ground', tileset, 0, 0);
+    const wallLayer = map.createLayer('Walls', tileset, 0, 0);
+
+    groundLayer.setDepth(0);
+    if (wallLayer) {
+      wallLayer.setDepth(15); // Below player but above ground
+    }
+
+    // Set world bounds based on map dimensions
+    const widthInPixels = map.widthInPixels;
+    const heightInPixels = map.heightInPixels;
+    scene.physics.world.setBounds(0, 0, widthInPixels, heightInPixels);
+
+    function resize(dimensions = getSceneGameDimensions(scene)) {
+      // Center the map in the screen if it's smaller, otherwise offset
+      const x = Math.max(0, (dimensions.width - widthInPixels) / 2);
+      const y = Math.max(0, (dimensions.height - heightInPixels) / 2);
+      groundLayer.setPosition(x, y);
+      if (wallLayer) wallLayer.setPosition(x, y);
+    }
+
+    resize();
+
+    return {
+      map,
+      groundLayer,
+      wallLayer,
+      resize,
+    };
+  }
+
+  // Fallback to old background logic if map not loaded
   const selectedMapConfig = Phaser.Math.RND.pick(ARENA_MAP_ASSETS)
 
   if (scene.textures.exists(selectedMapConfig.key)) {

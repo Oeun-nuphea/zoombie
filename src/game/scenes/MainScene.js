@@ -17,6 +17,7 @@ import { createUpgradeDirector } from "../systems/upgradeSystem";
 import { createWaveDirector } from "../systems/waveSystem";
 import { createWeaponDirector } from "../systems/weaponSystem";
 import { createRadarSystem } from "../systems/radarSystem";
+import { createPathfindingSystem } from "../systems/pathfindingSystem";
 import { pinia } from "../../stores";
 import { useGameStore } from "../../stores/gameStore";
 import { getSceneGameDimensions } from "../../utils/gameViewport";
@@ -171,6 +172,14 @@ export default class MainScene extends Phaser.Scene {
       getHealth: () => this.gameStore.health,
       getMaxHealth: () => this.gameStore.maxPlayerHealth,
     });
+    this.player.setDepth(20);
+
+    this.pathfinding = createPathfindingSystem(this, {
+      arena: this.arena,
+      target: this.player,
+      obstacles: this.obstacles,
+      updateIntervalMs: 250, // Run BFS every 250ms
+    });
 
     this.physics.add.collider(this.player, this.obstacles);
     this.physics.add.collider(this.zombies, this.obstacles);
@@ -187,6 +196,25 @@ export default class MainScene extends Phaser.Scene {
         onComplete: () => spark.destroy(),
       });
     });
+
+    if (this.arena.wallLayer) {
+      this.arena.wallLayer.setCollisionByExclusion([-1]);
+      this.physics.add.collider(this.player, this.arena.wallLayer);
+      this.physics.add.collider(this.zombies, this.arena.wallLayer);
+      this.physics.add.collider(this.bullets, this.arena.wallLayer, (bullet) => {
+        if (!bullet.active) return;
+        bullet.disableBody(true, true);
+        const spark = this.add.circle(bullet.x, bullet.y, 4, 0xfacc15, 0.8);
+        spark.setDepth(30);
+        this.tweens.add({
+          targets: spark,
+          scale: 2.5,
+          alpha: 0,
+          duration: 120,
+          onComplete: () => spark.destroy(),
+        });
+      });
+    }
 
     this.hud = createCombatHud(this, this.gameStore);
     registerSoundHotkeys(this, {
@@ -293,8 +321,14 @@ export default class MainScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (this.combat.isGameOver) {
+    if (this.isEnding || this.combat?.isGameOver || this.physics.world.isPaused) {
       return;
+    }
+
+    this.pathfinding?.update(time);
+    this.playerController?.update(time, delta);
+    if (this.weaponDirector && this.weaponDirector.update) {
+      this.weaponDirector.update(time, delta);
     }
 
     // Spawn companion bot at wave 8
@@ -323,17 +357,13 @@ export default class MainScene extends Phaser.Scene {
       this.gameStore.phase,
     );
 
-    if (
-      this.gameStore.phase === "running" ||
-      this.gameStore.phase === "spawning" ||
-      this.gameStore.phase === "wave-clear"
-    ) {
-      this.playerController.update(time, delta);
-    }
-
     if (isActiveCombatPhase) {
-      this.upgradeDirector.update(time, delta);
-      this.bossDirector.update(time, delta);
+      if (this.upgradeDirector && this.upgradeDirector.update) {
+        this.upgradeDirector.update(time, delta);
+      }
+      if (this.bossDirector && this.bossDirector.update) {
+        this.bossDirector.update(time, delta);
+      }
 
       const allZombies = this.zombies.getChildren()
 
@@ -367,7 +397,9 @@ export default class MainScene extends Phaser.Scene {
       })
 
       this.combat.update();
-      this.turretDirector?.update(time);
+      if (this.turretDirector && this.turretDirector.update) {
+        this.turretDirector.update(time);
+      }
     }
 
     this.hud.update();

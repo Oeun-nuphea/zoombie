@@ -339,9 +339,19 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     }
 
     const time = this.scene.time.now
+    const flow = this.scene.pathfinding?.getFlowDirection(this.x, this.y)
+    let baseTargetX = target.x
+    let baseTargetY = target.y
+    
+    // Override absolute target with flow direction if it exists
+    if (flow && (flow.x !== 0 || flow.y !== 0)) {
+      baseTargetX = this.x + flow.x * 140
+      baseTargetY = this.y + flow.y * 140
+    }
+
     const wobblePhase = (time + this.wobbleSeed) * this.wobbleSpeed
-    const steerX = target.x + Math.sin(wobblePhase) * this.wobbleAmount
-    const steerY = target.y + Math.cos(wobblePhase * 0.8) * this.wobbleAmount * 0.35
+    const steerX = baseTargetX + Math.sin(wobblePhase) * this.wobbleAmount
+    const steerY = baseTargetY + Math.cos(wobblePhase * 0.8) * this.wobbleAmount * 0.35
     const distance = Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y)
 
     this.setFlipX(steerX < this.x)
@@ -509,7 +519,13 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
       currentSteerY += avoidY
     }
 
-    const effectiveSpeed = Math.max(12, this.speed * (this.speedModifier ?? 1))
+    let terrainModifier = 1;
+    const tile = this.scene.arena?.groundLayer?.getTileAtWorldXY(this.x, this.y);
+    if (tile && tile.index === 5) { // mud area
+      terrainModifier = 0.6;
+    }
+
+    const effectiveSpeed = Math.max(12, this.speed * (this.speedModifier ?? 1) * terrainModifier)
 
     this.scene.physics.moveTo(this, currentSteerX, currentSteerY, effectiveSpeed)
     // Track direction zombie is facing (toward player) for shield deflection
