@@ -46,9 +46,10 @@
             How to Play
           </button>
 
-          <button class="landing-screen__secondary-button" type="button" @click="goToPresentation">
+          <a href="https://canva.link/d64kcta3h0ey7fw" target="_blank" class="landing-screen__secondary-button"
+            type="button">
             Presentation
-          </button>
+          </a>
 
           <button class="landing-screen__secondary-button" type="button" @click="showShop = true">
             Upgrades Shop
@@ -367,12 +368,16 @@ function goToPresentation() {
 .landing-screen__secondary-button,
 .landing-screen__settings-toggle,
 .landing-screen__modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 3.2rem;
   border: 0;
   border-radius: 999px;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+  text-decoration: none;
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,

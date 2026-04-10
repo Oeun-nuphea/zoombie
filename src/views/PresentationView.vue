@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="redirect-screen">
     <div class="redirect-screen__backdrop"></div>
     <div class="redirect-screen__content">
@@ -130,4 +130,4 @@ onMounted(() => {
 .redirect-screen__back:hover {
   color: #f8fafc;
 }
-</style>
+</style> -->
