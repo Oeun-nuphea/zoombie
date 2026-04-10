@@ -2,9 +2,8 @@ const fs = require('fs');
 
 const w = 40;
 const h = 30;
-// Grass base (Tile 1)
-const groundData = Array(w * h).fill(1);
-// Empty walls (0 is empty)
+// Base: Massive Water Lake (Tile 5)
+const groundData = Array(w * h).fill(5);
 const wallData = Array(w * h).fill(0);
 
 function setWall(x, y, type = 4) {
@@ -15,46 +14,37 @@ function setGround(x, y, type) {
   if (x >= 0 && x < w && y >= 0 && y < h) groundData[y * w + x] = type;
 }
 
-// Map Design: Serene Pagoda
-// Surrounded mostly by water/mud. Narrow dirt bridges lead to a central concrete pagada.
+// Serene Pagoda Design: A tiny floating structure connected by scattered stepping stones and long bridges.
 
-// 1. Enormous moat surrounding the entire area (except edges where zombies spawn)
-for (let x = 2; x < w - 2; x++) {
-  for (let y = 2; y < h - 2; y++) {
-    setGround(x, y, 5); // Water/mud by default
-  }
-}
+// 1. Main cross bridges (Concrete Tile 3)
+for (let x = 0; x < w; x++) { setGround(x, h/2, 3); setGround(x, h/2 - 1, 3); }
+for (let y = 0; y < h; y++) { setGround(w/2, y, 3); setGround(w/2 - 1, y, 3); }
 
-// 2. Dirt Bridges (Vertical and Horizontal to the center)
-for (let x = 0; x < w; x++) {
-  if (Math.abs(x - w/2) < 2) {
-    for (let y = 0; y < h; y++) setGround(x, y, 2);
-  }
-}
-for (let y = 0; y < h; y++) {
-  if (Math.abs(y - h/2) < 3) {
-    for (let x = 0; x < w; x++) setGround(x, y, 2);
-  }
-}
-
-// 3. Central Pagoda Concrete Floor
-for (let x = 12; x < w - 12; x++) {
+// 2. Central Pagoda Platform (Concrete Tile 3)
+for (let x = 14; x < w - 14; x++) {
   for (let y = 10; y < h - 10; y++) {
-    // Octagonal shaped-like concrete pad
-    if (Math.abs(x - w/2) + Math.abs(y - h/2) < 14) {
-      setGround(x, y, 3);
-    }
+    setGround(x, y, 3);
   }
 }
 
-// 4. Shrine walls inside
-for (let x = 16; x < w - 16; x++) {
-  for (let y = 12; y < h - 12; y++) {
-    const isEdge = x === 16 || x === w - 17 || y === 12 || y === h - 13;
-    const isGate = x === w/2 || y === h/2; // tiny 1-wide gap gates
-    
-    if (isEdge && !isGate) {
-      setWall(x, y, 4);
+// 3. Pagoda Pillars / Small walls (Tile 4)
+// Only in the corners of the central platform
+setWall(14, 10, 4); setWall(15, 10, 4); setWall(14, 11, 4);
+setWall(w-15, 10, 4); setWall(w-16, 10, 4); setWall(w-15, 11, 4);
+setWall(14, h-11, 4); setWall(15, h-11, 4); setWall(14, h-12, 4);
+setWall(w-15, h-11, 4); setWall(w-16, h-11, 4); setWall(w-15, h-12, 4);
+
+// 4. Lilypads / Stepping stones scattered randomly (Grass Tile 1)
+// We add strategic patches of grass in the water to run through
+for (let i = 0; i < 40; i++) {
+  const cx = Math.floor(Math.random() * (w - 4)) + 2;
+  const cy = Math.floor(Math.random() * (h - 4)) + 2;
+  // create a small blob
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      if (Math.random() > 0.3) {
+        setGround(cx + dx, cy + dy, 1);
+      }
     }
   }
 }
@@ -64,29 +54,15 @@ const map = {
   height: h, width: w,
   infinite: false,
   layers: [
-    {
-      data: groundData,
-      height: h, width: w,
-      id: 1, name: "Ground",
-      opacity: 1, type: "tilelayer", visible: true, x: 0, y: 0
-    },
-    {
-      data: wallData,
-      height: h, width: w,
-      id: 2, name: "Walls",
-      opacity: 1, type: "tilelayer", visible: true, x: 0, y: 0
-    }
+    { data: groundData, height: h, width: w, id: 1, name: "Ground", opacity: 1, type: "tilelayer", visible: true, x: 0, y: 0 },
+    { data: wallData, height: h, width: w, id: 2, name: "Walls", opacity: 1, type: "tilelayer", visible: true, x: 0, y: 0 }
   ],
   nextlayerid: 3, nextobjectid: 1,
   orientation: "orthogonal", renderorder: "right-down",
   tiledversion: "1.10.2", tileheight: 64, tilewidth: 64,
-  tilesets: [{
-    firstgid: 1, name: "terrain", image: "terrain-tiles.png",
-    imageheight: 256, imagewidth: 256, margin: 0, spacing: 0,
-    tilecount: 16, tileheight: 64, tilewidth: 64
-  }],
+  tilesets: [{ firstgid: 1, name: "terrain", image: "terrain-tiles.png", imageheight: 256, imagewidth: 256, margin: 0, spacing: 0, tilecount: 16, tileheight: 64, tilewidth: 64 }],
   type: "map", version: "1.10"
 };
 
 fs.writeFileSync('public/assets/maps/pagoda.json', JSON.stringify(map, null, 2));
-console.log('Pagoda map created implicitly!');
+console.log('Pagoda map completely redesigned!');
