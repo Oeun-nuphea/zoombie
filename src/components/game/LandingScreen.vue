@@ -20,14 +20,22 @@
           Survive endless waves. Draft perks. Every run is unique.
         </p>
 
-        <div style="margin-top: 2rem; max-width: 24rem;">
-          <p class="landing-screen__controls-mode" style="margin-bottom: 0.5rem; color: #fcd34d;">RUN MODIFIER</p>
-          <select v-model="selectedChallenge" style="background: rgba(15, 23, 42, 0.7); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.75rem 1rem; width: 100%; font-size: 0.9rem; margin-bottom: 0.5rem; outline: none; cursor: pointer;">
-            <option v-for="(challenge, key) in CHALLENGES" :key="key" :value="key">
-              {{ challenge.label }}
-            </option>
-          </select>
-          <p style="color: #94a3b8; font-size: 0.8rem; margin: 0; min-height: 2.2rem; line-height: 1.4;">{{ CHALLENGES[selectedChallenge].desc }}</p>
+        <div class="challenge-picker">
+          <p class="challenge-picker__label">Run Modifier</p>
+          <div class="challenge-picker__grid">
+            <button
+              v-for="(challenge, key) in CHALLENGES"
+              :key="key"
+              type="button"
+              class="challenge-picker__card"
+              :class="{ 'challenge-picker__card--active': selectedChallenge === key }"
+              @click="selectedChallenge = key"
+            >
+              <span class="challenge-picker__card-icon">{{ CHALLENGE_ICONS[key] }}</span>
+              <span class="challenge-picker__card-name">{{ challenge.label }}</span>
+            </button>
+          </div>
+          <p class="challenge-picker__desc">{{ CHALLENGES[selectedChallenge].desc }}</p>
         </div>
 
         <div class="landing-screen__actions">
@@ -104,9 +112,6 @@
           <p class="landing-screen__panel-label">What Awaits You</p>
           <ul class="landing-screen__awaits">
             <li>15 escalating waves of undead chaos</li>
-            <li>4 deadly zombie types with unique abilities</li>
-            <li>Epic boss encounters every 5 waves</li>
-            <li>Progression upgrades that reshape each run</li>
             <li>Endless Mode for the truly fearless</li>
           </ul>
         </div>
@@ -118,62 +123,14 @@
             <li><span>WASD</span><strong>Move</strong></li>
             <li><span>Mouse</span><strong>Aim</strong></li>
             <li><span>Click</span><strong>Shoot</strong></li>
-            <li><span>Space</span><strong>Dash when unlocked</strong></li>
           </ul>
           <p class="landing-screen__controls-mode" style="margin-top: 0.75rem">Mobile</p>
           <ul class="landing-screen__controls">
             <li><span>Joystick</span><strong>Move</strong></li>
             <li><span>Auto</span><strong>Aim &amp; Fire</strong></li>
-            <li><span>Dash / Shield</span><strong>Tap when unlocked</strong></li>
           </ul>
         </div>
       </aside>
-    </div>
-
-    <div class="landing-screen__features">
-      <div class="landing-screen__feature-card">
-        <span class="landing-screen__feature-icon">🧟</span>
-        <h3 class="landing-screen__feature-title">4 Zombie Types</h3>
-        <p class="landing-screen__feature-text">
-          Walkers swarm in numbers. Runners close the gap fast.
-          Tanks absorb punishment. Toxics leave a lingering poison.
-          Learn their patterns or get overwhelmed.
-        </p>
-      </div>
-
-      <div class="landing-screen__feature-card">
-        <span class="landing-screen__feature-icon">🔫</span>
-        <h3 class="landing-screen__feature-title">Arsenal of Weapons</h3>
-        <p class="landing-screen__feature-text">
-          Switch between the reliable Pistol, devastating close-range
-          Shotgun, precise Rifle, and bullet-hose SMG. Loot drops
-          from fallen zombies keep your loadout evolving.
-        </p>
-      </div>
-
-      <div class="landing-screen__feature-card">
-        <span class="landing-screen__feature-icon">⬆️</span>
-        <h3 class="landing-screen__feature-title">Progression upgrades</h3>
-        <p class="landing-screen__feature-text">
-          Draft 1 of 3 upgrade cards every few waves — boost damage,
-          fire rate, speed, lifesteal, or add extra projectiles.
-          Every run creates a different power fantasy.
-        </p>
-      </div>
-
-      <div class="landing-screen__feature-card">
-        <span class="landing-screen__feature-icon">💀</span>
-        <h3 class="landing-screen__feature-title">Boss Encounters</h3>
-        <p class="landing-screen__feature-text">
-          Mini Bosses arrive every 5 waves with reinforcements.
-          Survive all 15 waves to face the Giant Boss — a towering
-          monstrosity with ground-smash AoE and summon abilities.
-        </p>
-      </div>
-    </div>
-
-    <div class="landing-screen__footer">
-      <p>Survive 15 waves, defeat the giant boss, and unlock Endless Mode.</p>
     </div>
 
     <div
@@ -268,6 +225,15 @@ import { requestDocumentFullscreen } from '../../composables/useFullscreenMode'
 import { readStorage, writeStorage } from '../../services/storageService'
 import { useGameStore } from '../../stores/gameStore'
 import { APP_NAME, STORAGE_KEYS, CHALLENGES } from '../../utils/constants'
+
+const CHALLENGE_ICONS = {
+  none: '🎮',
+  vampire: '🧛',
+  pistolOnly: '🔫',
+  glassCannon: '💥',
+  overtime: '⚡',
+  noMercy: '💀',
+}
 import { getGameRuntimeProfile } from '../../utils/device'
 import { formatScore } from '../../utils/helpers'
 
@@ -625,6 +591,86 @@ function goToPresentation() {
   line-height: 1.65;
 }
 
+/* ── Challenge Picker ────────────────────────────────────── */
+.challenge-picker {
+  margin-top: 2rem;
+  max-width: 26rem;
+}
+
+.challenge-picker__label {
+  margin: 0 0 0.6rem;
+  color: #fcd34d;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.challenge-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.challenge-picker__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #cbd5e1;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.challenge-picker__card:hover {
+  border-color: rgba(252, 211, 77, 0.35);
+  background: rgba(252, 211, 77, 0.07);
+  transform: translateY(-1px);
+}
+
+.challenge-picker__card--active {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  color: #fcd34d;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.22), inset 0 0 0 1px rgba(251, 191, 36, 0.25);
+}
+
+.challenge-picker__card-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.challenge-picker__card-name {
+  font-size: 0.66rem;
+}
+
+.challenge-picker__desc {
+  margin: 0.65rem 0 0;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  min-height: 2.4rem;
+  padding: 0.5rem 0.65rem;
+  border-left: 2px solid rgba(252, 211, 77, 0.3);
+  transition: color 150ms ease;
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
 .landing-screen__footer {
   position: relative;
   z-index: 1;
