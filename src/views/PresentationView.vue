@@ -1,477 +1,133 @@
 <template>
-  <div class="presentation-wrapper">
-    <!-- Header with Back Button -->
-    <header class="presentation-header">
-      <button class="btn-back" @click="goHome">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"
-          stroke-linecap="round">
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        Back to Game
-      </button>
-      <div class="slide-indicator">
-        Slide {{ currentSlide + 1 }} / {{ slides.length }}
-      </div>
-    </header>
-
-    <!-- Main Slide Area -->
-    <main class="presentation-main">
-      <div class="animated-bg"></div>
-      <Transition name="slide-fade" mode="out-in">
-        <div :key="currentSlide" class="slide-content">
-          <h1 class="slide-title">{{ slides[currentSlide].title }}</h1>
-
-          <div class="slide-body">
-            <!-- Render custom lists if available -->
-            <ul v-if="slides[currentSlide].list" class="slide-list">
-              <li v-for="(item, index) in slides[currentSlide].list" :key="index" v-html="item" class="stagger-item" :style="{ animationDelay: `${index * 0.15}s` }"></li>
-            </ul>
-
-            <!-- Render specific slide content -->
-            <template v-else>
-              <p class="slide-text stagger-item" v-for="(p, index) in slides[currentSlide].text" :key="index" v-html="p" :style="{ animationDelay: `${index * 0.1}s` }"></p>
-            </template>
-          </div>
-
-          <!-- Call to action button on last slide -->
-          <button v-if="currentSlide === slides.length - 1" class="btn-cta stagger-item" :style="{ animationDelay: `${(slides[currentSlide].text?.length || slides[currentSlide].list?.length || 0) * 0.1 + 0.3}s` }" @click="startGame">
-            Play Survival Arena Now!
-          </button>
-        </div>
-      </Transition>
-    </main>
-
-    <!-- Footer Controls -->
-    <footer class="presentation-footer">
-      <button class="nav-control" :disabled="currentSlide === 0" @click="prevSlide">
-        Prev
-      </button>
-
-      <div class="dots-container">
-        <button v-for="i in slides.length" :key="i" class="nav-dot" :class="{ active: currentSlide === i - 1 }"
-          @click="goToSlide(i - 1)"></button>
-      </div>
-
-      <button class="nav-control" :disabled="currentSlide === slides.length - 1" @click="nextSlide">
-        Next
-      </button>
-    </footer>
+  <div class="redirect-screen">
+    <div class="redirect-screen__backdrop"></div>
+    <div class="redirect-screen__content">
+      <p class="redirect-screen__eyebrow">Presentation</p>
+      <h1 class="redirect-screen__title">Opening Canva…</h1>
+      <p class="redirect-screen__sub">If the page didn't open automatically, tap the button below.</p>
+      <a
+        class="redirect-screen__btn"
+        href="https://canva.link/d64kcta3h0ey7fw"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open Presentation ↗
+      </a>
+      <button class="redirect-screen__back" @click="goHome">← Back to Game</button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { requestDocumentFullscreen } from '../composables/useFullscreenMode'
-import { useGameStore } from '../stores/gameStore'
-import { getGameRuntimeProfile } from '../utils/device'
-
-import pickupSound from '../assets/sounds/pickup.wav'
-import shootSound from '../assets/sounds/shoot.wav'
-
 const router = useRouter()
-const gameStore = useGameStore()
-const currentSlide = ref(0)
-const runtimeProfile = getGameRuntimeProfile()
-
-const playSound = (src, vol = 0.3) => {
-  try {
-    const audio = new Audio(src)
-    audio.volume = vol
-    audio.play().catch(() => {})
-  } catch (e) {
-    // Ignore errors for un-interacted audio
-  }
-}
-
-
-const slides = [
-  {
-    title: '🧟 Survival Arena',
-    text: [
-      '<strong>A browser-based 2D top-down zombie survival game.</strong>',
-      'Built with Vue 3, Phaser 3, and Pinia',
-      'Fight through increasingly difficult zombie waves',
-      'Battle terrifying bosses across 15 waves',
-      'Survive nonstop action and chaos',
-      'Unlock Endless Mode for infinite survival'
-    ]
-  },
-  {
-    title: '🛠️ Tech Stack',
-    list: [
-      '<strong>Gemini</strong> - Generate UI, Generate Animation',
-      '<strong>ChatGPT</strong> - Generate Game Logic, Generate Game Design',
-      '<strong>Vue 3</strong> - UI Framework & Routing',
-      '<strong>Phaser 3</strong> - 2D Game Engine',
-      '<strong>Pinia</strong> - Game State Management',
-      '<strong>TailwindCSS</strong> - Styling & Layouts',
-      '<strong>Vite</strong> - Build Tool & Dev Server'
-    ]
-  },
-  {
-    title: '🎯 The Mission',
-    text: [
-      'You are the only survivor, stuck in a dark arena where enemies keep getting stronger.',
-      '<strong>The Goal:</strong> Survive waves of enemies, collect weapons, and pick upgrades to stay alive.',
-      '<strong>The Climax:</strong> Battle through 15 waves of increasing difficulty to slay the Final Boss — or go infinite in Endless Mode to set a high score!'
-    ]
-  },
-  {
-    title: '🧟 The Horde',
-    list: [
-      '<strong>Walker:</strong> Standard zombie. Balanced health and speed.',
-      '<strong>Runner:</strong> Fast and fragile. Low HP but covers ground quickly.',
-      '<strong>Tank:</strong> Slow but heavily armored. Deals double damage on contact.',
-      '<strong>Toxic:</strong> Applies a poison DoT on hit.',
-      '<strong>Giant Boss:</strong> Large, tough zombie. Drops weapon and zombies rewards on death.',
-    ]
-  },
-  {
-    title: '🔫 The Arsenal',
-    list: [
-      '⚪ <strong>Pistol:</strong> Your reliable fallback. Never runs out of ammo.',
-      '🟡 <strong>Shotgun:</strong> Fires 5 bullets at once at close range. Devastating but slow.',
-      '🔵 <strong>Rifle:</strong> Doubles the damage per bullet. Kills basic zombies instantly.',
-      '🟢 <strong>SMG:</strong> Fastest fire rate, great for melting through zombie groups quickly.'
-    ]
-  },
-  {
-    title: '🚀 Ready to Survive?',
-    text: [
-      'Can you reach wave 15 and defeat the Giant Boss?',
-      'Experience dynamic combat, draft unique upgrades, and survive the night.'
-    ]
-  }
-]
-
-function nextSlide() {
-  if (currentSlide.value < slides.length - 1) {
-    currentSlide.value++
-    playSound(pickupSound, 0.4)
-  }
-}
-
-function prevSlide() {
-  if (currentSlide.value > 0) {
-    currentSlide.value--
-    playSound(pickupSound, 0.4)
-  }
-}
-
-function goToSlide(index) {
-  if (currentSlide.value !== index) {
-    currentSlide.value = index
-    playSound(pickupSound, 0.4)
-  }
-}
 
 function goHome() {
   router.push('/')
 }
 
-function isStandaloneDisplayMode() {
-  if (typeof window === 'undefined') {
-    return false
-  }
-
-  return (
-    window.matchMedia?.('(display-mode: standalone)')?.matches === true
-    || window.navigator?.standalone === true
-  )
-}
-
-async function enterMobileAppMode() {
-  if (!runtimeProfile.isMobile || isStandaloneDisplayMode()) {
-    return
-  }
-
-  try {
-    await requestDocumentFullscreen()
-  } catch {
-    // Fallback if needed
-  }
-}
-
-async function startGame() {
-  playSound(shootSound, 0.6)
-  gameStore.startRun('normal')
-  await enterMobileAppMode()
-  await router.push('/game')
-}
-
-function handleKeydown(e) {
-  if (e.key === 'ArrowRight' || e.key === 'Space') {
-    nextSlide()
-  } else if (e.key === 'ArrowLeft') {
-    prevSlide()
-  }
-}
-
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydown)
+  window.open('https://canva.link/d64kcta3h0ey7fw', '_blank', 'noopener,noreferrer')
 })
 </script>
 
 <style scoped>
-.presentation-wrapper {
+.redirect-screen {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: radial-gradient(circle at center, #1b0f24 0%, #080a0d 100%);
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(248, 113, 113, 0.18), transparent 34%),
+    radial-gradient(circle at 80% 0%, rgba(245, 158, 11, 0.14), transparent 28%),
+    linear-gradient(180deg, #080a0d 0%, #11161c 50%, #060709 100%);
   color: #f8fafc;
   font-family: inherit;
 }
 
-.presentation-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2.5rem;
-  z-index: 10;
-}
-
-.btn-back {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
-  padding: 0.6rem 1.2rem;
-  border-radius: 99px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.btn-back:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.slide-indicator {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.presentation-main {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.animated-bg {
+.redirect-screen__backdrop {
   position: absolute;
   inset: 0;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 40px 40px;
-  background-position: center center;
-  z-index: 0;
-  animation: gridMove 30s linear infinite;
-  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(7, 9, 12, 0.88) 0%, rgba(7, 9, 12, 0.6) 48%, rgba(7, 9, 12, 0.85) 100%),
+    url('/assets/maps/field-map.png') center / cover no-repeat;
+  filter: saturate(0.6) brightness(0.35);
+  transform: scale(1.05);
 }
 
-@keyframes gridMove {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(40px); }
-}
-
-.slide-content {
+.redirect-screen__content {
+  position: relative;
   z-index: 1;
-  max-width: 800px;
-  width: 100%;
-  padding: 3rem;
-  background: rgba(10, 13, 17, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  max-width: 28rem;
+  padding: 2rem;
 }
 
-.stagger-item {
-  opacity: 0;
-  animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes fadeUpIn {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-
-.slide-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 900;
-  font-style: italic;
-  margin-bottom: 2rem;
+.redirect-screen__eyebrow {
+  margin: 0;
   color: #fcd34d;
-  text-shadow: 0 4px 15px rgba(252, 211, 77, 0.2);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
 }
 
-.slide-text,
-.slide-list {
-  font-size: clamp(1.1rem, 2vw, 1.35rem);
-  line-height: 1.7;
-  color: rgba(226, 232, 240, 0.9);
+.redirect-screen__title {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.slide-text {
-  margin-bottom: 1.5rem;
+.redirect-screen__sub {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
-.slide-list {
-  padding-left: 1.5rem;
-  margin-bottom: 0;
-}
-
-.slide-list li {
-  margin-bottom: 1rem;
-}
-
-.slide-list li::marker {
-  color: #fbbf24;
-}
-
-.btn-cta {
+.redirect-screen__btn {
   display: inline-block;
-  margin-top: 2.5rem;
+  padding: 1rem 2rem;
   background: linear-gradient(180deg, #fbbf24 0%, #f97316 100%);
   color: #130b06;
-  border: none;
-  padding: 1.2rem 2.5rem;
-  font-size: 1.1rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  font-size: 0.95rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  border-radius: 99px;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
-  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.5);
-  position: relative;
-  overflow: hidden;
+  text-decoration: none;
+  border-radius: 999px;
+  box-shadow: 0 14px 32px rgba(249, 115, 22, 0.28);
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.btn-cta::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(to bottom right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-  transform: rotate(45deg);
-  animation: shine 3s infinite;
+.redirect-screen__btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(249, 115, 22, 0.4);
 }
 
-@keyframes shine {
-  0% { left: -100%; top: -100%; }
-  20% { left: 100%; top: 100%; }
-  100% { left: 100%; top: 100%; }
-}
-
-.btn-cta:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(249, 115, 22, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6);
-}
-
-.presentation-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2.5rem 2rem;
-}
-
-.nav-control {
+.redirect-screen__back {
   background: none;
   border: none;
-  color: #fbbf24;
-  font-size: 1rem;
-  font-weight: 800;
+  color: rgba(226, 232, 240, 0.5);
+  font: inherit;
+  font-size: 0.82rem;
   cursor: pointer;
-  padding: 0.5rem 1rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 1;
-  transition: opacity 0.2s;
-}
-
-.nav-control:disabled {
-  opacity: 0.2;
-  cursor: default;
-}
-
-.dots-container {
-  display: flex;
-  gap: 0.6rem;
-}
-
-.nav-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
-  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: color 150ms ease;
   padding: 0;
-  transition: background 0.2s, transform 0.2s;
 }
 
-.nav-dot.active {
-  background: #fbbf24;
-  transform: scale(1.3);
-}
-
-.nav-dot:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-/* Transitions */
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-enter-from {
-  opacity: 0;
-  transform: translateX(40px);
-}
-
-.slide-fade-leave-to {
-  opacity: 0;
-  transform: translateX(-40px);
-}
-
-@media (max-width: 640px) {
-
-  .presentation-header,
-  .presentation-footer {
-    padding: 1rem;
-  }
-
-  .slide-content {
-    padding: 2rem 1.5rem;
-  }
+.redirect-screen__back:hover {
+  color: #f8fafc;
 }
 </style>

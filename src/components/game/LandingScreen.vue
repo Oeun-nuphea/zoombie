@@ -23,14 +23,8 @@
         <div class="challenge-picker">
           <p class="challenge-picker__label">Run Modifier</p>
           <div class="challenge-picker__grid">
-            <button
-              v-for="(challenge, key) in CHALLENGES"
-              :key="key"
-              type="button"
-              class="challenge-picker__card"
-              :class="{ 'challenge-picker__card--active': selectedChallenge === key }"
-              @click="selectedChallenge = key"
-            >
+            <button v-for="(challenge, key) in CHALLENGES" :key="key" type="button" class="challenge-picker__card"
+              :class="{ 'challenge-picker__card--active': selectedChallenge === key }" @click="selectedChallenge = key">
               <span class="challenge-picker__card-icon">{{ CHALLENGE_ICONS[key] }}</span>
               <span class="challenge-picker__card-name">{{ challenge.label }}</span>
             </button>
@@ -39,52 +33,28 @@
         </div>
 
         <div class="landing-screen__actions">
-          <button
-            class="landing-screen__play-button"
-            type="button"
-            @click="startGame('normal')"
-          >
+          <button class="landing-screen__play-button" type="button" @click="startGame('normal')">
             Start Game
           </button>
 
-          <button
-            v-if="gameStore.endlessUnlocked"
-            class="landing-screen__secondary-button"
-            type="button"
-            @click="startGame('endless')"
-          >
+          <button v-if="gameStore.endlessUnlocked" class="landing-screen__secondary-button" type="button"
+            @click="startGame('endless')">
             Endless
           </button>
 
-          <button
-            class="landing-screen__secondary-button"
-            type="button"
-            @click="showHowToPlay = true"
-          >
+          <button class="landing-screen__secondary-button" type="button" @click="showHowToPlay = true">
             How to Play
           </button>
 
-          <button
-            class="landing-screen__secondary-button"
-            type="button"
-            @click="goToPresentation"
-          >
+          <button class="landing-screen__secondary-button" type="button" @click="goToPresentation">
             Presentation
           </button>
 
-          <button
-            class="landing-screen__secondary-button"
-            type="button"
-            @click="showShop = true"
-          >
+          <button class="landing-screen__secondary-button" type="button" @click="showShop = true">
             Upgrades Shop
           </button>
 
-          <button
-            class="landing-screen__secondary-button"
-            type="button"
-            @click="toggleSound"
-          >
+          <button class="landing-screen__secondary-button" type="button" @click="toggleSound">
             {{ soundMuted ? 'Sound Off' : 'Sound On' }}
           </button>
         </div>
@@ -133,44 +103,47 @@
       </aside>
     </div>
 
-    <div
-      v-if="showHowToPlay || showSettings || showShop"
-      class="landing-screen__modal-backdrop responsive-overlay"
-      @click.self="closePanels"
-    >
+    <div v-if="showHowToPlay || showSettings || showShop" class="landing-screen__modal-backdrop responsive-overlay"
+      @click.self="closePanels">
       <div class="landing-screen__modal responsive-overlay__panel">
         <template v-if="showShop">
           <p class="landing-screen__modal-label">Meta Shop</p>
           <h2 class="landing-screen__modal-title">Spend Souls</h2>
           <div class="landing-screen__modal-copy">
-            <p>You have <strong style="color: #c084fc; font-size: 1.1rem; text-shadow: 0 0 10px rgba(192,132,252,0.4);">{{ gameStore.souls }} Zombie Souls</strong>.</p>
+            <p>You have <strong
+                style="color: #c084fc; font-size: 1.1rem; text-shadow: 0 0 10px rgba(192,132,252,0.4);">{{
+                gameStore.souls }} Zombie Souls</strong>.</p>
             <div style="display: flex; gap: 1rem; flex-direction: column; margin-top: 1.5rem;">
-              <div style="padding: 1rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
+              <div
+                style="padding: 1rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
                 <div>
-                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Health +1 <span v-if="(gameStore.metaUpgrades?.health || 0) >= 20" style="color: #86efac; font-size: 0.75rem;">MAX</span></h4>
-                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">{{ gameStore.metaUpgrades?.health || 0 }} / 20 levels</p>
+                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Health +1 <span
+                      v-if="(gameStore.metaUpgrades?.health || 0) >= 20"
+                      style="color: #86efac; font-size: 0.75rem;">MAX</span></h4>
+                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">{{ gameStore.metaUpgrades?.health
+                    || 0 }} / 20 levels</p>
                 </div>
-                <button 
-                  class="landing-screen__play-button" 
-                  style="min-width: auto; padding: 0.6rem 1rem;"
+                <button class="landing-screen__play-button" style="min-width: auto; padding: 0.6rem 1rem;"
                   :disabled="gameStore.souls < healthCost || (gameStore.metaUpgrades?.health || 0) >= 20"
                   @click="buyHealth"
-                  :style="(gameStore.souls < healthCost || (gameStore.metaUpgrades?.health || 0) >= 20) ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''"
-                >{{ (gameStore.metaUpgrades?.health || 0) >= 20 ? 'MAX LEVEL' : `Buy for ${healthCost}` }}</button>
+                  :style="(gameStore.souls < healthCost || (gameStore.metaUpgrades?.health || 0) >= 20) ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''">{{
+                    (gameStore.metaUpgrades?.health || 0) >= 20 ? 'MAX LEVEL' : `Buy for ${healthCost}` }}</button>
               </div>
 
-              <div style="padding: 1rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
+              <div
+                style="padding: 1rem; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
                 <div>
-                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Speed +5% <span v-if="(gameStore.metaUpgrades?.speed || 0) >= 10" style="color: #86efac; font-size: 0.75rem;">MAX</span></h4>
-                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">{{ gameStore.metaUpgrades?.speed || 0 }} / 10 levels (+{{ (Math.min(gameStore.metaUpgrades?.speed || 0, 10)) * 5 }}%)</p>
+                  <h4 style="margin: 0; color: #f8fafc; font-size: 1.1rem;">Base Speed +5% <span
+                      v-if="(gameStore.metaUpgrades?.speed || 0) >= 10"
+                      style="color: #86efac; font-size: 0.75rem;">MAX</span></h4>
+                  <p style="margin: 0.25rem 0 0; color: #94a3b8; font-size: 0.85rem;">{{ gameStore.metaUpgrades?.speed
+                    || 0 }} / 10 levels (+{{ (Math.min(gameStore.metaUpgrades?.speed || 0, 10)) * 5 }}%)</p>
                 </div>
-                <button 
-                  class="landing-screen__play-button" 
-                  style="min-width: auto; padding: 0.6rem 1rem;"
+                <button class="landing-screen__play-button" style="min-width: auto; padding: 0.6rem 1rem;"
                   :disabled="gameStore.souls < speedCost || (gameStore.metaUpgrades?.speed || 0) >= 10"
                   @click="buySpeed"
-                  :style="(gameStore.souls < speedCost || (gameStore.metaUpgrades?.speed || 0) >= 10) ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''"
-                >{{ (gameStore.metaUpgrades?.speed || 0) >= 10 ? 'MAX LEVEL' : `Buy for ${speedCost}` }}</button>
+                  :style="(gameStore.souls < speedCost || (gameStore.metaUpgrades?.speed || 0) >= 10) ? 'opacity: 0.5; filter: grayscale(1); cursor: not-allowed;' : ''">{{
+                    (gameStore.metaUpgrades?.speed || 0) >= 10 ? 'MAX LEVEL' : `Buy for ${speedCost}` }}</button>
               </div>
             </div>
           </div>
@@ -180,12 +153,14 @@
           <p class="landing-screen__modal-label">How To Play</p>
           <h2 class="landing-screen__modal-title">Stay moving. Build the run.</h2>
           <div class="landing-screen__modal-copy">
-            <p>Every few waves you draft an upgrade. Boss waves drop weapon rewards. Strong builds come from synergy, not one stat.</p>
+            <p>Every few waves you draft an upgrade. Boss waves drop weapon rewards. Strong builds come from synergy,
+              not one stat.</p>
             <ul class="landing-screen__modal-list">
               <li>Keep distance from tanks and toxic zombies.</li>
               <li>Headshots hit harder and can trigger ammo recovery upgrades.</li>
               <li>Dash and shield only appear after you pick the related upgrades.</li>
-              <li><strong>On mobile</strong> — the gun auto-aims and auto-fires at the nearest threat. Use the joystick to move; no tapping to shoot required.</li>
+              <li><strong>On mobile</strong> — the gun auto-aims and auto-fires at the nearest threat. Use the joystick
+                to move; no tapping to shoot required.</li>
             </ul>
           </div>
         </template>
@@ -194,22 +169,14 @@
           <p class="landing-screen__modal-label">Settings</p>
           <h2 class="landing-screen__modal-title">Quick Setup</h2>
           <div class="landing-screen__modal-copy">
-            <button
-              class="landing-screen__settings-toggle"
-              type="button"
-              @click="toggleSound"
-            >
+            <button class="landing-screen__settings-toggle" type="button" @click="toggleSound">
               {{ soundMuted ? 'Enable Sound' : 'Mute Sound' }}
             </button>
             <p>Fullscreen mode is available once the game starts. Press <strong>M</strong> in-game for instant mute.</p>
           </div>
         </template>
 
-        <button
-          class="landing-screen__modal-close"
-          type="button"
-          @click="closePanels"
-        >
+        <button class="landing-screen__modal-close" type="button" @click="closePanels">
           Close
         </button>
       </div>
@@ -306,7 +273,7 @@ function goToPresentation() {
 <style scoped>
 .landing-screen {
   position: relative;
-  height: 100vh;
+  min-height: 100vh;
   overflow: hidden;
   background:
     radial-gradient(circle at 20% 20%, rgba(248, 113, 113, 0.24), transparent 34%),
@@ -340,10 +307,10 @@ function goToPresentation() {
   position: relative;
   z-index: 1;
   display: grid;
-  height: 100%;
+  min-height: calc(100vh - 5rem);
   grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 24rem);
   gap: 2rem;
-  align-items: center;
+  align-items: end;
   padding: clamp(1.5rem, 3vw, 3rem);
 }
 
@@ -455,7 +422,7 @@ function goToPresentation() {
   backdrop-filter: blur(18px);
 }
 
-.landing-screen__panel-block + .landing-screen__panel-block {
+.landing-screen__panel-block+.landing-screen__panel-block {
   margin-top: 1.15rem;
   padding-top: 1.15rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -720,7 +687,7 @@ function goToPresentation() {
   padding-left: 1rem;
 }
 
-.landing-screen__modal-list li + li {
+.landing-screen__modal-list li+li {
   margin-top: 0.55rem;
 }
 
