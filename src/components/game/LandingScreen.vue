@@ -306,7 +306,7 @@ function goToPresentation() {
 <style scoped>
 .landing-screen {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
   overflow: hidden;
   background:
     radial-gradient(circle at 20% 20%, rgba(248, 113, 113, 0.24), transparent 34%),
@@ -340,10 +340,10 @@ function goToPresentation() {
   position: relative;
   z-index: 1;
   display: grid;
-  min-height: calc(100vh - 5rem);
+  height: 100%;
   grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 24rem);
   gap: 2rem;
-  align-items: end;
+  align-items: center;
   padding: clamp(1.5rem, 3vw, 3rem);
 }
 
