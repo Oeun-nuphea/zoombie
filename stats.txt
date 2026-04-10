@@ -1,0 +1,62 @@
+frame:0    pts:0       pts_time:0
+lavfi.astats.Overall.Peak_level=-inf
+frame:1    pts:623     pts_time:0.014127
+lavfi.astats.Overall.Peak_level=-inf
+frame:2    pts:1775    pts_time:0.0402494
+lavfi.astats.Overall.Peak_level=-inf
+frame:3    pts:2927    pts_time:0.0663719
+lavfi.astats.Overall.Peak_level=-inf
+frame:4    pts:4079    pts_time:0.0924943
+lavfi.astats.Overall.Peak_level=-inf
+frame:5    pts:5231    pts_time:0.118617
+lavfi.astats.Overall.Peak_level=-inf
+frame:6    pts:6383    pts_time:0.144739
+lavfi.astats.Overall.Peak_level=-inf
+frame:7    pts:7535    pts_time:0.170862
+lavfi.astats.Overall.Peak_level=-inf
+frame:8    pts:8687    pts_time:0.196984
+lavfi.astats.Overall.Peak_level=-inf
+frame:9    pts:9839    pts_time:0.223107
+lavfi.astats.Overall.Peak_level=-inf
+frame:10   pts:10991   pts_time:0.249229
+lavfi.astats.Overall.Peak_level=-inf
+frame:11   pts:12143   pts_time:0.275351
+lavfi.astats.Overall.Peak_level=-inf
+frame:12   pts:13295   pts_time:0.301474
+lavfi.astats.Overall.Peak_level=-inf
+frame:13   pts:14447   pts_time:0.327596
+lavfi.astats.Overall.Peak_level=-inf
+frame:14   pts:15599   pts_time:0.353719
+lavfi.astats.Overall.Peak_level=-inf
+frame:15   pts:16751   pts_time:0.379841
+lavfi.astats.Overall.Peak_level=-inf
+frame:16   pts:17903   pts_time:0.405964
+lavfi.astats.Overall.Peak_level=-inf
+frame:17   pts:19055   pts_time:0.432086
+lavfi.astats.Overall.Peak_level=-135.745274
+frame:18   pts:20207   pts_time:0.458209
+lavfi.astats.Overall.Peak_level=-61.458836
+frame:19   pts:21359   pts_time:0.484331
+lavfi.astats.Overall.Peak_level=-54.561702
+frame:20   pts:22511   pts_time:0.510454
+lavfi.astats.Overall.Peak_level=-41.739487
+frame:21   pts:23663   pts_time:0.536576
+lavfi.astats.Overall.Peak_level=-37.131701
+frame:22   pts:24815   pts_time:0.562698
+lavfi.astats.Overall.Peak_level=-3.570020
+frame:23   pts:25967   pts_time:0.588821
+lavfi.astats.Overall.Peak_level=-3.378670
+frame:24   pts:27119   pts_time:0.614943
+lavfi.astats.Overall.Peak_level=-10.117065
+frame:25   pts:28271   pts_time:0.641066
+lavfi.astats.Overall.Peak_level=-15.349578
+frame:26   pts:29423   pts_time:0.667188
+lavfi.astats.Overall.Peak_level=-2.691458
+frame:27   pts:30575   pts_time:0.693311
+lavfi.astats.Overall.Peak_level=-3.637037
+frame:28   pts:31727   pts_time:0.719433
+lavfi.astats.Overall.Peak_level=-12.840469
+frame:29   pts:32879   pts_time:0.745556
+lavfi.astats.Overall.Peak_level=-15.855045
+frame:30   pts:34031   pts_time:0.771678
+lavfi.astats.Overall.Peak_level=-3.304784

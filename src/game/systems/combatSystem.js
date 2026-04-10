@@ -51,9 +51,12 @@ export function createCombatDirector(scene, config) {
     const isShotgun = shot.weapon?.id === 'shotgun'
     scene.cameras.main.shake(isShotgun ? 40 : 20, isShotgun ? 0.0025 : 0.001)
 
-    soundManager?.play('shoot', {
-      volume: isShotgun ? 1.2 : 1,
-    })
+    if (isShotgun) {
+      soundManager?.play('shotgun-shoot', { volume: 1.2 })
+    } else {
+      soundManager?.play('shoot', { volume: 1 })
+    }
+
   }
 
   function applyLifesteal(damageDealt = 0, options = {}) {
@@ -200,9 +203,13 @@ export function createCombatDirector(scene, config) {
         volume: isFinalBoss ? 1.4 : 1.3,
         rate: isFinalBoss ? 0.58 : 0.76,
       })
+      soundManager?.play('zombie-die', {
+        volume: isFinalBoss ? 1.1 : 0.9,
+        rate: isFinalBoss ? 0.62 : 0.82,
+      })
     } else {
       createBloodSplatter(scene, zombie.x, zombie.y, 2)
-      soundManager?.play('zombie-death')
+      soundManager?.play('zombie-die')
 
       if (zombie.isElite) {
         createImpactBurst(scene, zombie.x, zombie.y - 10, {
@@ -511,6 +518,7 @@ export function createCombatDirector(scene, config) {
     gameStore.setZombiesRemaining(0)
     hud.clearBossTarget()
     hud.flashBanner('OVER RUN', '#fb7185')
+    soundManager?.play('player-die')
     soundManager?.play('game-over')
     scene.physics.pause()
     onGameOver?.()

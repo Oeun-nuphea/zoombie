@@ -117,3 +117,7 @@ The project combines **Phaser 3** (Heavy Lifting) and **Vue 3** (User Interface)
 🔵 Rifle — Doubles the damage per bullet (2 vs 1). Every hit on a walker or runner kills them instantly. Good range and tight spread. Best all-rounder.
 
 🟢 SMG — Fires every 80ms vs pistol's 130ms — nearly 1.6x faster. Great for sustained pressure and melting through zombie groups quickly with 48 rounds of ammo.
+
+
+
+// die sound and zombie sound

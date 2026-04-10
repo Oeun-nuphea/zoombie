@@ -2,9 +2,12 @@ import bgmUrl from '../../assets/sounds/bgm.wav'
 import gameOverUrl from '../../assets/sounds/game-over.wav'
 import healUrl from '../../assets/sounds/heal.wav'
 import pickupUrl from '../../assets/sounds/pickup.wav'
+import playerDieUrl from '../../assets/sounds/player--die.mp3'
 import playerHitUrl from '../../assets/sounds/player-hit.wav'
-import shootUrl from '../../assets/sounds/shoot.wav'
+import shootUrl from '../../assets/sounds/gun-sound.wav'
+import shotgunShootUrl from '../../assets/sounds/snop-sound.wav'
 import zombieDeathUrl from '../../assets/sounds/zombie-death.wav'
+import zombieDieUrl from '../../assets/sounds/zombie-die.mp3'
 import zombieHitUrl from '../../assets/sounds/zombie-hit.wav'
 
 export const DEFAULT_SOUND_VOLUME = 0.72
@@ -17,6 +20,14 @@ export const SOUND_DEFINITIONS = {
     poolSize: 6,
     cooldownMs: 24,
     detuneRange: [-45, 25],
+  },
+  'shotgun-shoot': {
+    key: 'shotgun-shoot',
+    src: shotgunShootUrl,
+    volume: 0.38,
+    poolSize: 4,
+    cooldownMs: 80,
+    detuneRange: [-30, 20],
   },
   'zombie-hit': {
     key: 'zombie-hit',
@@ -49,6 +60,22 @@ export const SOUND_DEFINITIONS = {
     poolSize: 3,
     cooldownMs: 110,
     detuneRange: [-30, 0],
+  },
+  'player-die': {
+    key: 'player-die',
+    src: playerDieUrl,
+    volume: 0.55,
+    poolSize: 1,
+    cooldownMs: 800,
+    allowRestart: false,
+  },
+  'zombie-die': {
+    key: 'zombie-die',
+    src: zombieDieUrl,
+    volume: 0.36,
+    poolSize: 5,
+    cooldownMs: 40,
+    detuneRange: [-90, 30],
   },
   pickup: {
     key: 'pickup',
