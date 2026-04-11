@@ -18,6 +18,7 @@ import { createWaveDirector } from "../systems/waveSystem";
 import { createWeaponDirector } from "../systems/weaponSystem";
 import { createRadarSystem } from "../systems/radarSystem";
 import { createPathfindingSystem } from "../systems/pathfindingSystem";
+import { createFogOfWarSystem } from "../systems/fogOfWarSystem";
 import { pinia } from "../../stores";
 import { useGameStore } from "../../stores/gameStore";
 import { getSceneGameDimensions } from "../../utils/gameViewport";
@@ -67,6 +68,7 @@ export default class MainScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, dimensions.width, dimensions.height);
     this.cameras.main.centerOn(dimensions.width * 0.5, dimensions.height * 0.5);
     this.arena?.resize?.(dimensions);
+    this.fogOfWar?.resize?.();
     this.hud?.refreshLayout?.(dimensions);
     this.radar?.refreshLayout?.(dimensions);
     this.spawnDirector?.refreshBounds?.();
@@ -179,6 +181,12 @@ export default class MainScene extends Phaser.Scene {
       target: this.player,
       obstacles: this.obstacles,
       updateIntervalMs: 250, // Run BFS every 250ms
+    });
+
+    // Fog of War — created AFTER the player so it renders on top of everything
+    this.fogOfWar = createFogOfWarSystem(this, {
+      player: this.player,
+      visibilityFraction: 0.84, // ~84% of shorter axis — 3× the original vision radius
     });
 
     this.physics.add.collider(this.player, this.obstacles);
@@ -405,6 +413,7 @@ export default class MainScene extends Phaser.Scene {
     this.hud.update();
     this.radar.update();
     this.dropDirector.update(time);
+    this.fogOfWar?.update(delta);
   }
 
   scheduleGameOver() {
