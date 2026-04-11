@@ -28,6 +28,8 @@ export function createWaveDirector(scene, config) {
   let transitioning = false
   let bossRewardActive = false
   let lastMajorRewardWave = 0
+  let allSpawnedAt = null // timestamp when remainingToSpawn first hit 0 (used to detect stuck zombies)
+  const STUCK_ZOMBIE_TIMEOUT_MS = 12000 // force-kill after 12 s of no wave clear
   const runtimeProfile = getGameRuntimeProfile()
 
   function applyRuntimeBalance(waveConfig) {
@@ -277,6 +279,10 @@ export function createWaveDirector(scene, config) {
       if (remainingToSpawn <= 0) {
         spawnEvent?.remove(false)
         spawnEvent = null
+        // Start the stuck-zombie clock when no more zombies will spawn
+        if (allSpawnedAt === null) {
+          allSpawnedAt = scene.time.now
+        }
       }
 
       return
@@ -290,6 +296,9 @@ export function createWaveDirector(scene, config) {
     if (remainingToSpawn <= 0) {
       spawnEvent?.remove(false)
       spawnEvent = null
+      if (allSpawnedAt === null) {
+        allSpawnedAt = scene.time.now
+      }
     }
   }
 
@@ -332,13 +341,37 @@ export function createWaveDirector(scene, config) {
     if (
       bossRewardActive
       || remainingToSpawn !== 0
-      || zombies.countActive(true) !== 0
       || transitioning
     ) {
       return false
     }
 
+    const activeZombies = zombies.countActive(true)
+
+    // Safety sweep: if all zombies were spawned 12+ s ago but some are still active
+    // (wedged in walls, unreachable, etc.), force-destroy them so the wave can progress.
+    if (activeZombies > 0 && allSpawnedAt !== null) {
+      const elapsed = scene.time.now - allSpawnedAt
+      if (elapsed >= STUCK_ZOMBIE_TIMEOUT_MS) {
+        zombies.getChildren().forEach((zombie) => {
+          if (zombie?.active && !zombie.isDead) {
+            zombie.die?.()
+          }
+        })
+        // Give the death animations one frame to fire, then re-check
+        scene.time.delayedCall(50, () => tryResolveWaveClear())
+        allSpawnedAt = null
+        return false
+      }
+    }
+
+    if (activeZombies !== 0) {
+      return false
+    }
+
     transitioning = true
+    allSpawnedAt = null
+    resumeGameplay?.() // safety: ensure physics is running before wave-clear events fire
     gameStore.setPhase('wave-clear')
     hud.flashBanner(currentWave?.endsCampaign ? 'AREA SECURED' : 'AREA CLEAR', '#86efac')
 
@@ -396,6 +429,9 @@ export function createWaveDirector(scene, config) {
           return
         }
 
+        // Always resume physics before handing off to wave-clear logic —
+        // if transitioning is stale-true the wave would silently lock otherwise.
+        resumeGameplay?.()
         tryResolveWaveClear()
       },
       {
@@ -430,6 +466,7 @@ export function createWaveDirector(scene, config) {
     currentBoss = null
     remainingToSpawn = currentWave.supportZombieCount ?? currentWave.totalZombies
     bossRewardActive = false
+    allSpawnedAt = null
     upgradeDirector?.hide()
     bossDirector?.clearBoss()
     hud.clearBossTarget()

@@ -1,5 +1,5 @@
 git add .
-git commit -m "update on damage"
+git commit -m "update on map"
 
 git push origin main 
 
