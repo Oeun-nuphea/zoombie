@@ -42,6 +42,14 @@ export default class MainScene extends Phaser.Scene {
   }
 
   getWorldDimensions() {
+    // When a tilemap is loaded, the world is the map size, not the screen size.
+    // Fall back to screen dimensions only for fallback (procedural) arenas.
+    if (this.arena?.map) {
+      return {
+        width: this.arena.map.widthInPixels,
+        height: this.arena.map.heightInPixels,
+      };
+    }
     return getSceneGameDimensions(this);
   }
 
@@ -62,15 +70,25 @@ export default class MainScene extends Phaser.Scene {
 
   applyViewportLayout() {
     const dimensions = this.getWorldDimensions();
+    const screenDimensions = getSceneGameDimensions(this);
 
     this.worldDimensions = dimensions;
+
+    // Physics world = full tilemap/arena size
     this.physics.world.setBounds(0, 0, dimensions.width, dimensions.height);
+
+    // Camera scrolls through the full world and is bounded to it
     this.cameras.main.setBounds(0, 0, dimensions.width, dimensions.height);
-    this.cameras.main.centerOn(dimensions.width * 0.5, dimensions.height * 0.5);
-    this.arena?.resize?.(dimensions);
+
+    // Only re-center camera on initial layout (if player not yet following)
+    if (!this._cameraFollowing) {
+      this.cameras.main.centerOn(dimensions.width * 0.5, dimensions.height * 0.5);
+    }
+
+    this.arena?.resize?.(screenDimensions);
     this.fogOfWar?.resize?.();
-    this.hud?.refreshLayout?.(dimensions);
-    this.radar?.refreshLayout?.(dimensions);
+    this.hud?.refreshLayout?.(screenDimensions);
+    this.radar?.refreshLayout?.(screenDimensions);
     this.spawnDirector?.refreshBounds?.();
 
     if (this.player) {
@@ -169,7 +187,9 @@ export default class MainScene extends Phaser.Scene {
     this.obstacles = this.physics.add.staticGroup();
     this.spawnObstacles(6);
 
-    this.player = new Player(this, width * 0.5, height * 0.56, {
+    // Spawn player at the center of the WORLD (tilemap), not the screen
+    const worldDims = this.getWorldDimensions();
+    this.player = new Player(this, worldDims.width * 0.5, worldDims.height * 0.5, {
       getRunStats: () => this.gameStore.playerCombatStats,
       getHealth: () => this.gameStore.health,
       getMaxHealth: () => this.gameStore.maxPlayerHealth,
@@ -319,6 +339,17 @@ export default class MainScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor("#020617");
     this.input.mouse?.disableContextMenu();
     this.applyViewportLayout();
+
+    // Camera follows the player through the world
+    this._cameraFollowing = true;
+    this.cameras.main.startFollow(
+      this.player,
+      true,          // round pixels for crisp tiles
+      0.12,          // lerp X — smooth follow
+      0.12,          // lerp Y — smooth follow
+    );
+    // slightly zoom out to give player more peripheral tactical vision
+    this.cameras.main.setZoom(0.82);
 
     this.turretDirector = createTurretDirector(this, {
       zombies: this.zombies,

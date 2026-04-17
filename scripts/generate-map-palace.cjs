@@ -1,75 +1,123 @@
 const fs = require('fs');
 
-const w = 40;
-const h = 30;
-// Base: Concrete (Tile 3)
-const groundData = Array(w * h).fill(3);
+// ROYAL PALACE MAP — Fortified maze of corridors, throne room, armouries, and fountains.
+const w = 50;
+const h = 38;
+
+const groundData = Array(w * h).fill(3); // base: stone/concrete
 const wallData = Array(w * h).fill(0);
 
-function setWall(x, y, type = 4) {
-  if (x >= 0 && x < w && y >= 0 && y < h) wallData[y * w + x] = type;
+function setWall(x, y) {
+  if (x >= 0 && x < w && y >= 0 && y < h) wallData[y * w + x] = 4;
 }
-
 function setGround(x, y, type) {
   if (x >= 0 && x < w && y >= 0 && y < h) groundData[y * w + x] = type;
 }
-
-// Royal Palace Design: A fortified maze. Long straight brick corridors, separated by walled rooms.
-// Emphasizes extreme line-of-sight blocking.
-
-// 1. Red carpet middle hall (simulated with Grass tile 1 because we lack red carpet)
-for (let y = 0; y < h; y++) {
-  setGround(w/2 - 1, y, 1);
-  setGround(w/2, y, 1);
+function fillGround(x1, y1, x2, y2, type) {
+  for (let x = x1; x <= x2; x++)
+    for (let y = y1; y <= y2; y++)
+      setGround(x, y, type);
 }
-
-// 2. The Great Walls (Vertical and Horizontal labyrinths)
-// Outer ring
-for (let x = 2; x < w - 2; x++) {
-  for (let y = 2; y < h - 2; y++) {
-    const isEdge = x === 2 || x === w - 3 || y === 2 || y === h - 3;
-    // huge gaps for entry
-    const isGap = Math.abs(x - w/2) < 4 || Math.abs(y - h/2) < 3;
-    if (isEdge && !isGap) setWall(x, y, 4);
+function wallH(x1, x2, y, gapStart = -1, gapSize = 0) {
+  for (let x = x1; x <= x2; x++) {
+    if (x >= gapStart && x < gapStart + gapSize) continue;
+    setWall(x, y);
+  }
+}
+function wallV(y1, y2, x, gapStart = -1, gapSize = 0) {
+  for (let y = y1; y <= y2; y++) {
+    if (y >= gapStart && y < gapStart + gapSize) continue;
+    setWall(x, y);
   }
 }
 
-// Chamber walls
-for(let y = 6; y < h - 6; y += 6) {
-  for(let x = 6; x < w - 6; x++) {
-    // Leave the red carpet hall open completely
-    if (Math.abs(x - w/2) <= 3) continue;
-    
-    // Create 2-tile wide doors in the middle of horizontal segments
-    if (x % 8 === 3 || x % 8 === 4) continue;
+const cx = Math.floor(w / 2);
+const cy = Math.floor(h / 2);
 
-    setWall(x, y, 4);
+// ─── OUTER PALACE WALL (brick perimeter) ─────────────────────────────────────
+// Border of solid walls — gameplay is entirely inside
+wallH(0, w - 1, 0);
+wallH(0, w - 1, h - 1);
+wallV(0, h - 1, 0);
+wallV(0, h - 1, w - 1);
+
+// ─── THRONE ROOM — Dead center, grand hall with carpet and throne ──────────────
+fillGround(cx - 5, cy - 4, cx + 5, cy + 4, 1); // grass "red carpet"
+// Throne room walls with entry from N, S, E, W
+wallH(cx - 5, cx + 5, cy - 4, cx - 2, 4);   // top wall, gap in middle
+wallH(cx - 5, cx + 5, cy + 4, cx - 2, 4);   // bottom wall, gap in middle
+wallV(cy - 4, cy + 4, cx - 5, cy - 2, 4);   // left wall, gap in middle
+wallV(cy - 4, cy + 4, cx + 5, cy - 2, 4);   // right wall, gap in middle
+// Throne alcove back wall
+setWall(cx - 1, cy - 4); setWall(cx, cy - 4); setWall(cx + 1, cy - 4);
+
+// ─── ARMOURY ROOMS (4 corners) — walled off with single entries ──────────────
+const armouryConfig = [
+  { x1: 2, y1: 2, x2: 12, y2: 10, gx: 7, gy: 10, gSide: 'bottom' },
+  { x1: w - 13, y1: 2, x2: w - 3, y2: 10, gx: w - 8, gy: 10, gSide: 'bottom' },
+  { x1: 2, y1: h - 11, x2: 12, y2: h - 3, gx: 7, gy: h - 11, gSide: 'top' },
+  { x1: w - 13, y1: h - 11, x2: w - 3, y2: h - 3, gx: w - 8, gy: h - 11, gSide: 'top' },
+];
+armouryConfig.forEach(({ x1, y1, x2, y2, gx, gy, gSide }) => {
+  fillGround(x1, y1, x2, y2, 2); // dirt floor
+  // walls with 2-tile door
+  wallH(x1, x2, y1);
+  wallH(x1, x2, y2);
+  wallV(y1, y2, x1);
+  wallV(y1, y2, x2);
+  // gap on one side
+  if (gSide === 'bottom') { setWall(gx, gy, 0); setWall(gx + 1, gy, 0); wallData[gy * w + gx] = 0; wallData[gy * w + gx + 1] = 0; }
+  if (gSide === 'top')    { wallData[gy * w + gx] = 0; wallData[gy * w + gx + 1] = 0; }
+  // small crate (wall block) inside each armoury
+  setWall(x1 + 3, y1 + 3);
+  setWall(x2 - 3, y2 - 3);
+});
+
+// ─── MAIN CORRIDORS — Cross-shaped grand hallways ─────────────────────────────
+// N-S hall carpet
+fillGround(cx - 1, 0, cx + 1, h - 1, 1);
+// E-W hall carpet
+fillGround(0, cy - 1, w - 1, cy + 1, 1);
+
+// ─── SIDE ROOMS — 6 small rooms along the main corridors ─────────────────────
+// Left side rooms (along E-W corridor, on top row)
+[[2, 13, 12, 22], [15, 13, 22, 22], [w - 23, 13, w - 16, 22]].forEach(([x1, y1, x2, y2]) => {
+  fillGround(x1, y1, x2, y2, 3);
+  wallH(x1, x2, y1); wallH(x1, x2, y2);
+  wallV(y1, y2, x1); wallV(y1, y2, x2);
+  // 2-tile opening on bottom
+  wallData[y2 * w + Math.floor((x1 + x2) / 2)] = 0;
+  wallData[y2 * w + Math.floor((x1 + x2) / 2) + 1] = 0;
+  // water pool inside
+  const mx = Math.floor((x1 + x2) / 2), my = Math.floor((y1 + y2) / 2);
+  setGround(mx, my, 5); setGround(mx + 1, my, 5);
+  setGround(mx, my + 1, 5); setGround(mx + 1, my + 1, 5);
+});
+
+// Right side rooms (below corridor)
+[[2, h - 23, 12, h - 14], [15, h - 23, 22, h - 14], [w - 23, h - 23, w - 16, h - 14]].forEach(([x1, y1, x2, y2]) => {
+  fillGround(x1, y1, x2, y2, 3);
+  wallH(x1, x2, y1); wallH(x1, x2, y2);
+  wallV(y1, y2, x1); wallV(y1, y2, x2);
+  wallData[(y1) * w + Math.floor((x1 + x2) / 2)] = 0;
+  wallData[(y1) * w + Math.floor((x1 + x2) / 2) + 1] = 0;
+  const mx = Math.floor((x1 + x2) / 2), my = Math.floor((y1 + y2) / 2);
+  setGround(mx, my, 5); setGround(mx + 1, my, 5);
+  setGround(mx, my + 1, 5); setGround(mx + 1, my + 1, 5);
+});
+
+// ─── PILLAR ROWS along the corridors ─────────────────────────────────────────
+for (let x = 5; x < w - 5; x += 5) {
+  if (Math.abs(x - cx) > 2) {
+    setWall(x, cy - 3);
+    setWall(x, cy + 3);
   }
 }
-
-for(let x = 8; x < w - 8; x += 8) {
-  for(let y = 6; y < h - 6; y++) {
-    // Leave the central vertical area clear
-    if (Math.abs(y - h/2) <= 3) continue;
-
-    // Create 2-tile wide doors in the middle of vertical segments
-    if (y % 6 === 2 || y % 6 === 3) continue;
-    
-    setWall(x, y, 4);
+for (let y = 5; y < h - 5; y += 5) {
+  if (Math.abs(y - cy) > 2) {
+    setWall(cx - 3, y);
+    setWall(cx + 3, y);
   }
-}
-
-// 3. Mini Water Fountains in chambers
-const centers = [
-  {x: 12, y: 9}, {x: w - 12, y: 9},
-  {x: 12, y: h - 9}, {x: w - 12, y: h - 9}
-]
-for (let c of centers) {
-  setGround(c.x, c.y, 5); setGround(c.x+1, c.y, 5);
-  setGround(c.x, c.y+1, 5); setGround(c.x+1, c.y+1, 5);
-  // surround with walls to make them look like solid fountains
-  setWall(c.x-1, c.y-1, 4); setWall(c.x+2, c.y-1, 4);
-  setWall(c.x-1, c.y+2, 4); setWall(c.x+2, c.y+2, 4);
 }
 
 const map = {
@@ -77,15 +125,15 @@ const map = {
   height: h, width: w,
   infinite: false,
   layers: [
-    { data: groundData, height: h, width: w, id: 1, name: "Ground", opacity: 1, type: "tilelayer", visible: true, x: 0, y: 0 },
-    { data: wallData, height: h, width: w, id: 2, name: "Walls", opacity: 1, type: "tilelayer", visible: true, x: 0, y: 0 }
+    { data: groundData, height: h, width: w, id: 1, name: 'Ground', opacity: 1, type: 'tilelayer', visible: true, x: 0, y: 0 },
+    { data: wallData,   height: h, width: w, id: 2, name: 'Walls',  opacity: 1, type: 'tilelayer', visible: true, x: 0, y: 0 }
   ],
   nextlayerid: 3, nextobjectid: 1,
-  orientation: "orthogonal", renderorder: "right-down",
-  tiledversion: "1.10.2", tileheight: 64, tilewidth: 64,
-  tilesets: [{ firstgid: 1, name: "terrain", image: "terrain-tiles.png", imageheight: 256, imagewidth: 256, margin: 0, spacing: 0, tilecount: 16, tileheight: 64, tilewidth: 64 }],
-  type: "map", version: "1.10"
+  orientation: 'orthogonal', renderorder: 'right-down',
+  tiledversion: "1.10.2", tileheight: 128, tilewidth: 128,
+  tilesets: [{ firstgid: 1, name: "terrain", image: "terrain-tiles.png", imageheight: 512, imagewidth: 512, margin: 0, spacing: 0, tilecount: 16, tileheight: 128, tilewidth: 128 }],
+  type: 'map', version: '1.10'
 };
 
 fs.writeFileSync('public/assets/maps/palace.json', JSON.stringify(map, null, 2));
-console.log('Palace map completely redesigned!');
+console.log(`Palace map: ${w}x${h} — grand throne room, 4 armouries, 6 side rooms with water pools`);

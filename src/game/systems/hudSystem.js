@@ -20,14 +20,14 @@ export function createCombatHud(scene, _gameStore) {
     stroke: '#111111',
     strokeThickness: 3,
   })
-  bossLabel.setOrigin(0.5).setDepth(101).setVisible(false)
+  bossLabel.setOrigin(0.5).setDepth(101).setVisible(false).setScrollFactor(0)
 
   
   const bossBarFrame = scene.add.rectangle(initialCenterX, bossBarY, 432, 22, 0x120b0c, 0.92)
-  bossBarFrame.setStrokeStyle(2, 0x7c2d12, 0.95).setDepth(100).setVisible(false)
+  bossBarFrame.setStrokeStyle(2, 0x7c2d12, 0.95).setDepth(100).setVisible(false).setScrollFactor(0)
 
   const bossBarFill = scene.add.rectangle(initialCenterX - 210, bossBarY, 420, 12, 0xf97316, 1)
-  bossBarFill.setOrigin(0, 0.5).setDepth(101).setVisible(false)
+  bossBarFill.setOrigin(0, 0.5).setDepth(101).setVisible(false).setScrollFactor(0)
 
   const bossHpText = scene.add.text(initialCenterX, bossBarY, '', {
     color: '#fff7ed',
@@ -37,7 +37,7 @@ export function createCombatHud(scene, _gameStore) {
     stroke: '#111111',
     strokeThickness: 3,
   })
-  bossHpText.setOrigin(0.5).setDepth(102).setVisible(false)
+  bossHpText.setOrigin(0.5).setDepth(102).setVisible(false).setScrollFactor(0)
 
   const bannerShadow = scene.add.text(initialCenterX, bannerShadowY, '', {
     color: '#290f09',
@@ -45,7 +45,7 @@ export function createCombatHud(scene, _gameStore) {
     fontSize: '34px',
     fontStyle: 'bold',
   })
-  bannerShadow.setOrigin(0.5).setDepth(101).setVisible(false)
+  bannerShadow.setOrigin(0.5).setDepth(101).setVisible(false).setScrollFactor(0)
 
   const banner = scene.add.text(initialCenterX, bannerBaseY, '', {
     color: '#f8fafc',
@@ -55,7 +55,7 @@ export function createCombatHud(scene, _gameStore) {
     stroke: '#111111',
     strokeThickness: 4,
   })
-  banner.setOrigin(0.5).setDepth(102).setVisible(false)
+  banner.setOrigin(0.5).setDepth(102).setVisible(false).setScrollFactor(0)
 
   function refreshLayout(dimensions = getSceneGameDimensions(scene)) {
     const centerX = dimensions.width * 0.5

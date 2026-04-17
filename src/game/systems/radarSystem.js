@@ -7,13 +7,14 @@ export function createRadarSystem(scene, config) {
   
   const bg = scene.add.circle(0, 0, radarRadius, 0x0f172a, 0.6)
   bg.setStrokeStyle(2, 0x334155, 0.8)
-  bg.setDepth(110)
+  bg.setDepth(110).setScrollFactor(0)
   
   const playerDot = scene.add.circle(0, 0, 3, 0xffffff, 1)
-  playerDot.setDepth(111)
+  playerDot.setDepth(111).setScrollFactor(0)
 
   const graphics = scene.add.graphics()
-  graphics.setDepth(111)
+  graphics.setDepth(111).setScrollFactor(0)
+
 
   function refreshLayout(dim) {
     const margin = 24

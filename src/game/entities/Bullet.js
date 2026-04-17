@@ -115,13 +115,14 @@ export default class Bullet extends Phaser.Physics.Arcade.Image {
       return
     }
 
+    const cam = this.scene.cameras.main.worldView
     if (
       !this.active ||
       time > this.spawnedAt + this.lifetime ||
-      this.x < -60 ||
-      this.x > this.scene.scale.width + 60 ||
-      this.y < -60 ||
-      this.y > this.scene.scale.height + 60
+      this.x < cam.left - 60 ||
+      this.x > cam.right + 60 ||
+      this.y < cam.top - 60 ||
+      this.y > cam.bottom + 60
     ) {
       this.disableBody(true, true)
     }

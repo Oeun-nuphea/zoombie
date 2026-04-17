@@ -37,11 +37,14 @@ function projectSpawnPoint(basePoint, dimensions) {
 
 export function createSpawnDirector(scene, config) {
   const { zombies } = config
-  let activeSpawnPoints = [getSpawnPointDefinitions(getSceneGameDimensions(scene))[0]]
 
   function getCurrentDimensions() {
-    return getSceneGameDimensions(scene)
+    // Always use the physics world bounds (= tilemap size when a map is loaded)
+    const wb = scene.physics.world.bounds
+    return { width: wb.width, height: wb.height }
   }
+
+  let activeSpawnPoints = [getSpawnPointDefinitions(getCurrentDimensions())[0]]
 
   function getAvailableSpawnPoints() {
     return getSpawnPointDefinitions(getCurrentDimensions())

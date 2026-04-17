@@ -14,27 +14,27 @@ export {
 
 export const PLAYER_CONFIG = {
   maxHealth: 5,
-  maxSpeed: 250,
-  moveAcceleration: 0.22,
-  moveDeceleration: 0.34,
+  maxSpeed: 420,
+  moveAcceleration: 0.38,
+  moveDeceleration: 0.55,
   contactCooldown: 650,
-  knockbackForce: 250,
+  knockbackForce: 450,
   knockbackDecay: 0.82,
   muzzleLocalX: 53,
   muzzleLocalY: -45,
 }
 
 export const WEAPON_POOL_CONFIG = {
-  bulletLifetime: 520,
+  bulletLifetime: 800,
   bulletDamage: 1,
-  bulletSpeed: 880,
+  bulletSpeed: 1200,
   spread: 0.02,
 }
 
 export const ZOMBIE_CONFIG = {
-  baseSpeed: 100,
-  speedPerWave: 7,
-  maxSpeed: 200,
+  baseSpeed: 170,
+  speedPerWave: 12,
+  maxSpeed: 340,
   baseHealth: 2,
   healthStepEvery: 2,
 }

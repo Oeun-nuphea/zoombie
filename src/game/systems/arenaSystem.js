@@ -125,14 +125,18 @@ export function createArenaBackground(scene) {
     scene.textures.exists("terrain-tiles")
   ) {
     const map = scene.make.tilemap({ key: scheduledMapKey });
-    const tileset = map.addTilesetImage("terrain", "terrain-tiles", 64, 64);
+    const tileset = map.addTilesetImage("terrain", "terrain-tiles", 128, 128);
 
     const groundLayer = map.createLayer("Ground", tileset, 0, 0);
     const wallLayer = map.createLayer("Walls", tileset, 0, 0);
 
     groundLayer.setDepth(0);
+
     if (wallLayer) {
-      wallLayer.setDepth(15); // Below player but above ground
+      wallLayer.setDepth(15); // Above ground, below player (depth 20)
+      // Dark olive-grey tint makes wall blocks read clearly as stone obstacles
+      wallLayer.setTint(0x4a5a4a);
+      wallLayer.setAlpha(0.95);
     }
 
     // Set world bounds based on map dimensions
