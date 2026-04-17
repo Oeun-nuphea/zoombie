@@ -206,7 +206,7 @@ export default class MainScene extends Phaser.Scene {
     // Fog of War — created AFTER the player so it renders on top of everything
     this.fogOfWar = createFogOfWarSystem(this, {
       player: this.player,
-      visibilityFraction: 0.84, // ~84% of shorter axis — 3× the original vision radius
+      radius: 700, // Light circle radius in pixels (you can increase this to make it even larger!)
     });
 
     this.physics.add.collider(this.player, this.obstacles);

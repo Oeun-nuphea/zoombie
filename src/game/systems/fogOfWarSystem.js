@@ -7,10 +7,10 @@
  */
 export function createFogOfWarSystem(
   scene,
-  { player, visibilityFraction = 0.84 } = {},
+  { player, radius = 700 } = {},
 ) {
   // ── Build the gradient brush texture (done ONCE) ────────────────────────
-  const BRUSH_SIZE = 512; // texture resolution — higher = smoother at large sizes
+  const BRUSH_SIZE = radius * 2; // Exact diameter for the requested radius (no dynamic scaling needed)
   const BRUSH_KEY  = '__fog_erase_brush__';
 
   // Remove any old texture from a previous run (hot-reload safety)
@@ -33,16 +33,19 @@ export function createFogOfWarSystem(
   ctx.fillRect(0, 0, BRUSH_SIZE, BRUSH_SIZE);
   brushTex.refresh(); // push canvas pixels into the Phaser texture
 
-  // Hidden image we position + scale each frame then pass to fog.erase()
+  // Hidden image we position each frame then pass to fog.erase()
+  // By using an Image object, Phaser respects the default (0.5, 0.5) origin, centering it perfectly.
   const brushImage = scene.add.image(0, 0, BRUSH_KEY);
   brushImage.setVisible(false).setDepth(-999);
 
   // ── RenderTexture fog ───────────────────────────────────────────────────
-  const worldBounds = scene.physics.world.bounds;
-  let fogW = worldBounds.width;
-  let fogH = worldBounds.height;
+  // We use a fixed-dimension texture large enough to cover any zoomed camera view (3200x2400).
+  // Instead of dealing with camera offsets which cause physics tearing and UI scaling bugs,
+  // the player simply drags this massive black square with them, and the mask hole is permanently in the center!
+  const FOG_W = 3200;
+  const FOG_H = 2400;
 
-  let fog = scene.add.renderTexture(0, 0, fogW, fogH);
+  let fog = scene.add.renderTexture(0, 0, FOG_W, FOG_H);
   fog.setOrigin(0, 0).setDepth(50);
 
   // Intro fade
@@ -63,29 +66,20 @@ export function createFogOfWarSystem(
       if (introAlpha >= 1) introComplete = true;
     }
 
-    const radius = Math.min(fogW, fogH) * visibilityFraction;
-    const scale  = (radius * 2) / BRUSH_SIZE;
+    // The fog is physically carried by the player, ensuring it never offsets or tears due to camera lag
+    // Offset by 40 upwards to align the center of the sheet with the torso, not the feet.
+    fog.setPosition(player.x - FOG_W / 2, player.y - 40 - FOG_H / 2);
 
-    // Position and scale the gradient image to match the vision radius
-    brushImage.setPosition(player.x, player.y);
-    brushImage.setScale(scale);
-
-    // 1. Fill with pure black
+    // 1. Fill the massive sheet with pure black
     fog.fill(0x000000, 1.0);
 
-    // 2. Erase using the smooth radial gradient — no position override, uses image's own transform
-    fog.erase(brushImage);
+    // 2. Erase the gradient by stamping it exactly dead-center in the sheet!
+    fog.erase(BRUSH_KEY, FOG_W / 2 - half, FOG_H / 2 - half);
   }
 
   // ── resize ─────────────────────────────────────────────────────────────
   function resize() {
-    const wb = scene.physics.world.bounds;
-    fogW = wb.width;
-    fogH = wb.height;
-    fog.destroy();
-    fog = scene.add.renderTexture(0, 0, fogW, fogH);
-    fog.setOrigin(0, 0).setDepth(50);
-    fog.setAlpha(introComplete ? 1 : introAlpha);
+    // handled dynamically in update() due to possible camera zooms
   }
 
   // ── destroy ─────────────────────────────────────────────────────────────
