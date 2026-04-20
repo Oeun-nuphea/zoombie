@@ -1,5 +1,6 @@
 import { getGameRuntimeProfile } from '../../utils/device'
 import { getSceneGameDimensions } from '../../utils/gameViewport'
+import { ZOMBIE_TYPES } from '../config/gameplayConfig'
 
 export function createCombatHud(scene, _gameStore) {
   const runtimeProfile = getGameRuntimeProfile()
@@ -324,6 +325,201 @@ export function createCombatHud(scene, _gameStore) {
     })
   }
 
+  // ── Wave cinematic splash ─────────────────────────────────────────────────
+  /**
+   * showWaveSplash(waveConfig)
+   * Plays a full-screen cinematic wave announcement:
+   *   - semi-transparent tinted overlay pulse
+   *   - two horizontal bars that sweep in from the sides
+   *   - giant wave number / boss name that bounces in
+   *   - subtitle line (enemy types or boss warning)
+   *   - camera shake
+   * All elements are created fresh each call and auto-destroyed.
+   */
+  function showWaveSplash(waveConfig) {
+    const { width, height } = getSceneGameDimensions(scene)
+    const cx = width  * 0.5
+    const cy = height * 0.5
+    const isBoss     = Boolean(waveConfig?.isBossWave)
+    const isFinal    = Boolean(waveConfig?.endsCampaign)
+    const waveNum    = waveConfig?.number ?? 1
+
+    // ── Colours ──
+    const accentHex  = isBoss ? 0xef4444 : 0xfbbf24
+    const accentCss  = isBoss ? '#ef4444' : '#fbbf24'
+    const labelCss   = isBoss ? '#fca5a5' : '#fef9c3'
+    const overlayHex = isBoss ? 0x450a0a  : 0x1c1400
+
+    // ── 1. Full-screen tinted overlay (flash then fade) ──
+    const overlay = scene.add.rectangle(cx, cy, width, height, overlayHex, 0)
+    overlay.setDepth(110).setScrollFactor(0)
+    scene.tweens.add({
+      targets: overlay,
+      alpha: isBoss ? 0.52 : 0.38,
+      duration: 180,
+      ease: 'Quad.easeOut',
+      yoyo: true,
+      hold: 800,
+      onComplete: () => overlay.destroy(),
+    })
+
+    // ── 2. Screen shake ──
+    scene.cameras.main.shake(
+      isBoss ? 320 : 200,
+      isBoss ? 0.006 : 0.003,
+    )
+
+    // ── 3. Horizontal bars sweep in from sides ──
+    const BAR_H        = isMobileHud ? 3 : 4
+    const BAR_OFFSET_Y = isMobileHud ? 28 : 34  // distance above/below centre text
+    const barColor     = accentHex
+
+    // Top bar — enters from left
+    const barTop = scene.add.rectangle(-width * 0.5, cy - BAR_OFFSET_Y, width, BAR_H, barColor, 0.85)
+    barTop.setDepth(112).setScrollFactor(0)
+    scene.tweens.add({
+      targets: barTop,
+      x: cx,
+      duration: 340,
+      ease: 'Expo.easeOut',
+    })
+    scene.tweens.add({
+      targets: barTop,
+      alpha: 0,
+      delay: 900,
+      duration: 420,
+      ease: 'Quad.easeIn',
+      onComplete: () => barTop.destroy(),
+    })
+
+    // Bottom bar — enters from right
+    const barBot = scene.add.rectangle(width * 1.5, cy + BAR_OFFSET_Y, width, BAR_H, barColor, 0.85)
+    barBot.setDepth(112).setScrollFactor(0)
+    scene.tweens.add({
+      targets: barBot,
+      x: cx,
+      duration: 340,
+      ease: 'Expo.easeOut',
+    })
+    scene.tweens.add({
+      targets: barBot,
+      alpha: 0,
+      delay: 900,
+      duration: 420,
+      ease: 'Quad.easeIn',
+      onComplete: () => barBot.destroy(),
+    })
+
+    // ── 4. Main label ("WAVE" or boss name) ──
+    const topLineText = isBoss
+      ? (isFinal ? '☠  FINAL BOSS' : '⚡  BOSS WAVE')
+      : `— WAVE —`
+    const topLine = scene.add.text(cx, cy - (isMobileHud ? 46 : 56), topLineText, {
+      color: labelCss,
+      fontFamily: 'Trebuchet MS, Arial, sans-serif',
+      fontSize: isMobileHud ? '18px' : '22px',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 4,
+      shadow: { offsetX: 0, offsetY: 3, color: '#000', blur: 6, fill: true },
+    })
+    topLine.setOrigin(0.5).setDepth(113).setScrollFactor(0).setAlpha(0).setScale(0.6)
+    scene.tweens.add({
+      targets: topLine,
+      alpha: 1,
+      scale: 1,
+      duration: 280,
+      ease: 'Back.easeOut',
+    })
+    scene.tweens.add({
+      targets: topLine,
+      alpha: 0,
+      y: topLine.y - (isMobileHud ? 12 : 16),
+      delay: 900,
+      duration: 460,
+      ease: 'Quad.easeIn',
+      onComplete: () => topLine.destroy(),
+    })
+
+    // ── 5. Giant wave number / boss name ──
+    const bigText = isBoss
+      ? (waveConfig?.boss?.bannerText ?? 'BOSS').toUpperCase()
+      : String(waveNum).padStart(2, '0')
+    const bigFontSize = isBoss
+      ? (isMobileHud ? '48px' : '72px')
+      : (isMobileHud ? '72px' : '110px')
+
+    const bigLabel = scene.add.text(cx, cy, bigText, {
+      color: accentCss,
+      fontFamily: 'Trebuchet MS, Arial, sans-serif',
+      fontSize: bigFontSize,
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: isBoss ? 6 : 8,
+      shadow: { offsetX: 0, offsetY: 4, color: '#000', blur: 10, fill: true },
+    })
+    bigLabel.setOrigin(0.5).setDepth(113).setScrollFactor(0).setAlpha(0).setScale(0.4)
+    scene.tweens.add({
+      targets: bigLabel,
+      alpha: 1,
+      scale: 1,
+      duration: 360,
+      ease: 'Back.easeOut',
+      delay: 60,
+    })
+    scene.tweens.add({
+      targets: bigLabel,
+      alpha: 0,
+      scale: 1.08,
+      delay: 920,
+      duration: 480,
+      ease: 'Quad.easeIn',
+      onComplete: () => bigLabel.destroy(),
+    })
+
+    // ── 6. Subtitle (enemy type list or boss warning) ──
+    // Derive human-readable names from zombieTypeWeights, sorted by weight
+    // (most common type first), capped at 4 entries for readability.
+    let subtitleText = ''
+    if (isBoss) {
+      subtitleText = isFinal ? 'SURVIVE TO WIN' : 'MINIBOSS INCOMING'
+    } else if (waveConfig?.zombieTypeWeights?.length) {
+      subtitleText = [...waveConfig.zombieTypeWeights]
+        .sort((a, b) => b.weight - a.weight)
+        .slice(0, 4)
+        .map((t) => (ZOMBIE_TYPES[t.id]?.name ?? t.id).toUpperCase())
+        .join('  ·  ')
+    }
+
+    if (subtitleText) {
+      const subLine = scene.add.text(cx, cy + (isMobileHud ? 54 : 74), subtitleText, {
+        color: '#94a3b8',
+        fontFamily: 'Trebuchet MS, Arial, sans-serif',
+        fontSize: isMobileHud ? '13px' : '16px',
+        fontStyle: 'bold',
+        stroke: '#000000',
+        strokeThickness: 3,
+        letterSpacing: 2,
+      })
+      subLine.setOrigin(0.5).setDepth(113).setScrollFactor(0).setAlpha(0)
+      scene.tweens.add({
+        targets: subLine,
+        alpha: 0.9,
+        duration: 300,
+        delay: 120,
+        ease: 'Quad.easeOut',
+      })
+      scene.tweens.add({
+        targets: subLine,
+        alpha: 0,
+        delay: 880,
+        duration: 440,
+        ease: 'Quad.easeIn',
+        onComplete: () => subLine.destroy(),
+      })
+    }
+  }
+
   refreshLayout()
 
   return {
@@ -332,5 +528,6 @@ export function createCombatHud(scene, _gameStore) {
     refreshLayout,
     setBossTarget,
     clearBossTarget,
+    showWaveSplash,
   }
 }

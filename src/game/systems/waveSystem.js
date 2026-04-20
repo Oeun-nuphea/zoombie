@@ -485,10 +485,7 @@ export function createWaveDirector(scene, config) {
         Math.round(currentWave.spawnInterval * 0.6),
       )
     }
-    hud.flashBanner(
-      currentWave.isBossWave ? currentWave.boss?.bannerText ?? 'BOSS INCOMING' : `WAVE ${currentWave.number}`,
-      currentWave.isBossWave ? currentWave.boss?.bannerColor ?? '#fb923c' : '#ffd166',
-    )
+    hud.showWaveSplash(currentWave)
 
     startEvent = scene.time.delayedCall(WAVE_CONFIG.startDelay, () => {
       gameStore.setPhase('running')
