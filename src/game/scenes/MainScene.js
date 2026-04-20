@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 import Bullet from "../entities/Bullet";
-import CompanionBot from "../entities/CompanionBot";
+import CompanionDog from "../entities/CompanionDog";
 import Barrel from "../entities/Barrel";
 import Player from "../entities/Player";
 import { createArenaBackground } from "../systems/arenaSystem";
@@ -372,9 +372,9 @@ export default class MainScene extends Phaser.Scene {
       this.weaponDirector.update(time, delta);
     }
 
-    // Spawn companion bot at wave 8
-    if (this.gameStore.wave >= 8 && !this.companionBot) {
-      this.companionBot = new CompanionBot(
+    // Spawn companion dog at wave 5
+    if (this.gameStore.wave >= 5 && !this.companionBot) {
+      this.companionBot = new CompanionDog(
         this,
         this.player.x,
         this.player.y,

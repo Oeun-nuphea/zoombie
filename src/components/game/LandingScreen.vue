@@ -302,8 +302,8 @@ function isStandaloneDisplayMode() {
   )
 }
 
-async function enterMobileAppMode() {
-  if (!runtimeProfile.isMobile || isStandaloneDisplayMode()) return
+async function enterFullscreenMode() {
+  if (isStandaloneDisplayMode()) return
   try { await requestDocumentFullscreen() } catch { /* ignore */ }
 }
 
@@ -313,11 +313,11 @@ function initiateStartGame(mode = 'normal') {
 }
 
 async function confirmMapAndStart() {
+  await enterFullscreenMode()
   gameStore.selectMap(previewMap.value)
   const mode = pendingRunMode.value
   closePanels()
   gameStore.startRun(mode, selectedChallenge.value)
-  await enterMobileAppMode()
   await router.push('/game')
 }
 </script>
