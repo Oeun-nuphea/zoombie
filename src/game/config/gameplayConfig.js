@@ -233,7 +233,7 @@ export const RUN_MODE_CONFIG = {
   normal: {
     id: 'normal',
     label: 'Normal Mode',
-    maxWaves: 12,
+    maxWaves: 10,
   },
   endless: {
     id: 'endless',
@@ -244,7 +244,7 @@ export const RUN_MODE_CONFIG = {
 
 export const FINAL_BOSS_CONFIG = {
   typeId: 'giantBoss',
-  wave: 12,
+  wave: 10,
   bannerText: 'FINAL BOSS INCOMING',
   deathBannerText: 'FINAL BOSS DOWN',
   activeLabel: 'GIANT ZOMBIE',

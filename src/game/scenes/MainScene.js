@@ -23,6 +23,7 @@ import { createWeatherSystem } from "../systems/weatherSystem";
 import { pinia } from "../../stores";
 import { useGameStore } from "../../stores/gameStore";
 import { getSceneGameDimensions } from "../../utils/gameViewport";
+import { getWaveDefinition } from "../config/gameplayConfig";
 
 export default class MainScene extends Phaser.Scene {
   constructor() {
@@ -320,7 +321,7 @@ export default class MainScene extends Phaser.Scene {
       spawnDirector: this.spawnDirector,
       upgradeDirector: this.upgradeDirector,
       soundManager: this.soundManager,
-      onCampaignVictory: () => this.scheduleVictory(),
+      onCampaignVictory: () => this.startExtractionPhase(),
       pauseGameplay: () => this.pauseGameplay(),
       resumeGameplay: () => this.resumeGameplay(),
     });
@@ -472,5 +473,111 @@ export default class MainScene extends Phaser.Scene {
     this.dropDirector.clear();
     this.companionBot?.destroy();
     this.pauseGameplay();
+  }
+
+  startExtractionPhase() {
+    if (this.isEnding || this.gameStore.phase === "extraction") {
+      return;
+    }
+
+    this.gameStore.setPhase("extraction");
+    this.hud.flashBanner("EVAC ZONE INBOUND", "#3b82f6");
+    
+    // Pick random location for extracting
+    const { width, height } = this.getWorldDimensions();
+    const x = Phaser.Math.Between(200, width - 200);
+    const y = Phaser.Math.Between(200, height - 200);
+
+    // Create EVAC ZONE graphic
+    this.evacZone = this.add.circle(x, y, 160, 0x10b981, 0.2);
+    this.evacZone.setStrokeStyle(4, 0x10b981, 0.8);
+    this.evacZone.setDepth(1);
+    
+    // Animate evac zone
+    this.tweens.add({
+      targets: this.evacZone,
+      alpha: 0.5,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+    });
+
+    this.extractionTimeLeft = 45; // 45s to reach
+    this.inZoneTimeElapsed = 0;
+    this.extractionRequiredTime = 30; // 30s to hold
+    
+    // Start infinite zombie spawning (much faster spawn rate)
+    this.extractionSpawnTimer = this.time.addEvent({
+      delay: 350,
+      loop: true,
+      callback: () => {
+        // Cap zombies
+        if (this.zombies.countActive() > 25) return;
+        const waveConfig = getWaveDefinition(10, { mode: this.gameStore.runMode });
+        this.spawnDirector.spawnZombie(waveConfig);
+      }
+    });
+
+    const screenDims = getSceneGameDimensions(this);
+    this.evacText = this.add.text(screenDims.width / 2, 80, "REACH EVAC ZONE: 45s", {
+      fontSize: "32px",
+      fontFamily: "Trebuchet MS",
+      fontStyle: "bold",
+      color: "#fca5a5"
+    }).setOrigin(0.5).setDepth(100).setScrollFactor(0);
+
+    // Update loop text
+    this.evacUpdateTimer = this.time.addEvent({
+      delay: 1000,
+      loop: true,
+      callback: () => {
+        const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.evacZone.x, this.evacZone.y);
+        
+        if (dist <= 160) {
+          this.inZoneTimeElapsed++;
+          
+          this.evacText.setText(`HOLD ZONE: ${this.extractionRequiredTime - this.inZoneTimeElapsed}s`);
+          this.evacText.setColor("#86efac");
+          
+          if (this.inZoneTimeElapsed >= this.extractionRequiredTime) {
+            this.successExtraction();
+          }
+        } else {
+          this.extractionTimeLeft--;
+          this.evacText.setText(`REACH EVAC ZONE: ${this.extractionTimeLeft}s`);
+          this.evacText.setColor("#fca5a5");
+          
+          if (this.extractionTimeLeft <= 0) {
+            this.failedExtraction();
+          }
+        }
+      }
+    });
+
+    // Optional: guide marker pointing to evac zone if outside camera
+  }
+
+  successExtraction() {
+    this.evacUpdateTimer?.remove();
+    this.extractionSpawnTimer?.remove();
+    this.evacText?.destroy();
+    this.evacZone?.destroy();
+    
+    this.hud.flashBanner("EXTRACTION SUCCESS", "#3b82f6");
+    
+    this.time.delayedCall(2000, () => {
+       this.gameStore.finishVictory();
+       this.scheduleVictory();
+    });
+  }
+
+  failedExtraction() {
+    this.evacUpdateTimer?.remove();
+    this.extractionSpawnTimer?.remove();
+    this.evacText?.destroy();
+    this.evacZone?.destroy();
+    
+    // Player failed to extract in time
+    this.player.takeDamage(9999);
   }
 }
