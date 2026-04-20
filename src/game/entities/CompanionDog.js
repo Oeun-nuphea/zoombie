@@ -210,8 +210,8 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
     // Flip direction
     if (this.body.velocity.x !== 0) {
       this.dogGroup.scaleX = this.body.velocity.x < 0 ? -0.85 : 0.85;
-    } else if (this.lastScannedTarget) {
-      this.dogGroup.scaleX = this.lastScannedTarget.x < this.x ? -0.85 : 0.85;
+    } else if (this.lastScannedTarget?.entity) {
+      this.dogGroup.scaleX = this.lastScannedTarget.entity.x < this.x ? -0.85 : 0.85;
     } else {
       this.dogGroup.scaleX = this.player.x < this.x ? -0.85 : 0.85;
     }
