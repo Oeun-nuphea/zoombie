@@ -769,26 +769,39 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
   }
 
   drawHealthBar() {
-    this.healthBar.clear()
+    const width = this.isBoss ? 56 : 36
+    const height = this.isBoss ? 5 : 4
+    const targetX = this.x - width / 2
+    const targetY = this.y - this.displayHeight * this.headHitOffsetYScale - 24
+
+    this.healthBar.setPosition(targetX, targetY)
 
     if (this.health <= 0 || this.isDead) {
+      if (!this._healthBarCleared) {
+        this.healthBar.clear()
+        this._healthBarCleared = true
+      }
       return
     }
 
-    const width = this.isBoss ? 56 : 36
-    const height = this.isBoss ? 5 : 4
-    const x = this.x - width / 2
-    const y = this.y - this.displayHeight * this.headHitOffsetYScale - 24
+    if (this._lastHealth === this.health && this._lastMaxHealth === this.maxHealth) {
+      return
+    }
 
+    this._lastHealth = this.health
+    this._lastMaxHealth = this.maxHealth
+    this._healthBarCleared = false
+
+    this.healthBar.clear()
     this.healthBar.fillStyle(0x000000, 0.7)
-    this.healthBar.fillRect(x, y, width, height)
+    this.healthBar.fillRect(0, 0, width, height)
 
     const healthWidth = Math.max(0, (this.health / this.maxHealth) * width)
     this.healthBar.fillStyle(0xef4444, 1) // red
-    this.healthBar.fillRect(x, y, healthWidth, height)
+    this.healthBar.fillRect(0, 0, healthWidth, height)
 
     this.healthBar.lineStyle(1, 0x000000, 0.9)
-    this.healthBar.strokeRect(x, y, width, height)
+    this.healthBar.strokeRect(0, 0, width, height)
   }
 
   applyHitFlash(color = this.hitFlashColor) {

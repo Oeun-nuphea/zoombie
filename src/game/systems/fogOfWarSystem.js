@@ -38,6 +38,16 @@ export function createFogOfWarSystem(
   const brushImage = scene.add.image(0, 0, BRUSH_KEY);
   brushImage.setVisible(false).setDepth(-999);
 
+  // ── Build the patch brush texture (done ONCE) ───────────────────────────
+  // Used to overwrite the previous frame's hole with pure black
+  const PATCH_KEY = '__fog_patch_brush__';
+  if (scene.textures.exists(PATCH_KEY)) scene.textures.remove(PATCH_KEY);
+  const patchTex = scene.textures.createCanvas(PATCH_KEY, BRUSH_SIZE, BRUSH_SIZE);
+  const patchCtx = patchTex.getContext('2d');
+  patchCtx.fillStyle = '#000000';
+  patchCtx.fillRect(0, 0, BRUSH_SIZE, BRUSH_SIZE);
+  patchTex.refresh();
+
   // ── RenderTexture fog ───────────────────────────────────────────────────
   // The fog sheet is centered on the CAMERA midpoint (not the player).
   // This prevents the gap that appears when the player is near a world edge:
@@ -65,6 +75,8 @@ export function createFogOfWarSystem(
   let introComplete = false;
 
   let isRevealed = false;
+  let lastEraseX = null;
+  let lastEraseY = null;
 
   // ── update ─────────────────────────────────────────────────────────────
   function update(delta) {
@@ -93,14 +105,21 @@ export function createFogOfWarSystem(
     const fogY  = camCY - FOG_H / 2;
     fog.setPosition(fogX, fogY);
 
-    // 1. Fill the sheet with pure black
-    fog.fill(0x000000, 1.0);
+    // 1. Fill the previous hole with pure black
+    if (lastEraseX !== null && lastEraseY !== null) {
+      fog.draw(PATCH_KEY, lastEraseX, lastEraseY);
+    } else {
+      fog.fill(0x000000, 1.0); // Full fill only on very first frame
+    }
 
     // 2. Erase the gradient at the PLAYER'S position within the fog texture.
     //    Offset Y by -40 to centre the light on the torso rather than the feet.
     const eraseX = (player.x       - fogX) - half;
     const eraseY = (player.y - 40  - fogY) - half;
     fog.erase(BRUSH_KEY, eraseX, eraseY);
+    
+    lastEraseX = eraseX;
+    lastEraseY = eraseY;
   }
 
   function setReveal(reveal) {
@@ -117,6 +136,7 @@ export function createFogOfWarSystem(
     fog?.destroy();
     brushImage?.destroy();
     if (scene.textures.exists(BRUSH_KEY)) scene.textures.remove(BRUSH_KEY);
+    if (scene.textures.exists(PATCH_KEY)) scene.textures.remove(PATCH_KEY);
   }
 
   return { update, resize, destroy, setReveal };

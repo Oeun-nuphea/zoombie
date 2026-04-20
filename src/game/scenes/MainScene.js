@@ -349,7 +349,7 @@ export default class MainScene extends Phaser.Scene {
     this._cameraFollowing = true;
     this.cameras.main.startFollow(
       this.player,
-      true,          // round pixels for crisp tiles
+      false,         // round pixels for crisp tiles -> must be false to avoid micro-jitter with lerp!
       0.12,          // lerp X — smooth follow
       0.12,          // lerp Y — smooth follow
     );

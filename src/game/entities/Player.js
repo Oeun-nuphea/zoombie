@@ -407,30 +407,44 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   drawHealthBar() {
-    this.healthBar.clear()
-
     const maxHealth = this.maxHealthProvider?.() ?? this.getCombatStats().maxHP
     const currentHealth = this.healthProvider?.() ?? maxHealth
 
+    const width = 42
+    const height = 5
+    const targetX = this.x - width / 2
+    const targetY = this.y - this.displayHeight * 0.95
+    
+    // Always reposition so its location updates, but we only redraw graphics if health changes!
+    this.healthBar.setPosition(targetX, targetY)
+
     if (!maxHealth || this.isDead) {
+      if (!this._healthBarCleared) {
+        this.healthBar.clear()
+        this._healthBarCleared = true
+      }
       return
     }
 
-    const width = 42
-    const height = 5
-    const x = this.x - width / 2
-    const y = this.y - this.displayHeight * 0.95
+    if (this._lastHealth === currentHealth && this._lastMaxHealth === maxHealth) {
+      return
+    }
 
+    this._lastHealth = currentHealth
+    this._lastMaxHealth = maxHealth
+    this._healthBarCleared = false
+
+    this.healthBar.clear()
     this.healthBar.fillStyle(0x000000, 0.7)
-    this.healthBar.fillRect(x, y, width, height)
+    this.healthBar.fillRect(0, 0, width, height)
 
     const healthRatio = Math.min(1, Math.max(0, currentHealth / (maxHealth || 1)))
     const healthWidth = healthRatio * width
     this.healthBar.fillStyle(0x22c55e, 1)
-    this.healthBar.fillRect(x, y, healthWidth, height)
+    this.healthBar.fillRect(0, 0, healthWidth, height)
 
     this.healthBar.lineStyle(1, 0x000000, 0.9)
-    this.healthBar.strokeRect(x, y, width, height)
+    this.healthBar.strokeRect(0, 0, width, height)
   }
 
   destroy(fromScene) {
