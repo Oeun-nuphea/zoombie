@@ -307,6 +307,9 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     this.setScale(this.scaleX * scaleMultiplier, this.scaleY * scaleMultiplier)
     this.shadow?.setScale(this.scaleX, this.scaleY)
     this.aura?.setFillStyle(this.isFinalBoss ? 0xef4444 : 0xf97316, this.isFinalBoss ? 0.28 : 0.24)
+
+    // Persistent enrage tint — pulses in preUpdate while isEnraged is true
+    this.enrageTintSeed = this.scene.time.now
     this.applyHitFlash(0xfca5a5)
 
     return true
@@ -323,6 +326,14 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
       const pulse = pulseBase + Math.sin((time + this.movementSeed) * (this.isEnraged ? 0.01 : 0.007)) * pulseRange
       this.aura.setScale(pulse)
       this.aura.setAlpha(this.isDead ? 0.05 : (this.isEnraged ? 0.16 : 0.12) + Math.sin((time + this.movementSeed) * 0.012) * 0.04)
+    }
+
+    // Persistent enrage tint — dark red pulse, only when not mid hit-flash
+    if (this.isEnraged && !this.isDead && !this.hitFlashEvent) {
+      const t = (time - (this.enrageTintSeed ?? time)) * 0.004
+      // Oscillate red channel: 0x7f1d1d (dark) ↔ 0xb91c1c (bright)
+      const r = Math.round(0x7f + (0xb9 - 0x7f) * (0.5 + 0.5 * Math.sin(t)))
+      this.setTint(Phaser.Display.Color.GetColor(r, 0x1c, 0x1c))
     }
 
     if (this.isDead) {
@@ -465,6 +476,7 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     this.lockedUntil = 0
     this.chargeUntil = 0
     this.activeAbility = null
+    this.clearTint()  // remove enrage tint so death animation looks correct
 
     this.scene.zombies?.remove(this, false, false)
     this.body.stop()
