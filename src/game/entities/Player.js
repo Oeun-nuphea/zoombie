@@ -78,8 +78,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   localToWorld(localX, localY) {
+    let effectiveX = localX;
+    if (this.flipX) {
+      effectiveX = PLAYER_TEXTURE_SIZE - localX;
+    }
+    
     return {
-      x: this.x + (localX - (PLAYER_TEXTURE_SIZE * this.originX)) * this.scaleX,
+      x: this.x + (effectiveX - (PLAYER_TEXTURE_SIZE * this.originX)) * Math.abs(this.scaleX),
       y: this.y + (localY - (PLAYER_TEXTURE_SIZE * this.originY)) * this.scaleY,
     }
   }
@@ -123,11 +128,16 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     const angle = this.lastAimAngle
     const transform = this.getCarriedWeaponTransform(angle)
+    
+    // Auto-correct gun inversion when aiming backwards
+    const isAimingLeft = Math.abs(angle) > Math.PI / 2
+    const weaponScaleX = Math.abs(this.scaleX)
+    const weaponScaleY = isAimingLeft ? -Math.abs(this.scaleY) : Math.abs(this.scaleY)
 
     this.carriedWeapon
       .setPosition(transform.x, transform.y)
       .setRotation(angle)
-      .setScale(this.scaleX, this.scaleY)
+      .setScale(weaponScaleX, weaponScaleY)
       .setDepth(Math.sin(angle) < -0.15 ? this.depth - 1 : this.depth + 1)
   }
 
@@ -194,6 +204,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.lastAimAngle = angle
+    
+    // Automatically turn around the player body model!
+    this.setFlipX(Math.abs(angle) > Math.PI / 2)
+    
     this.updateCarriedWeapon()
   }
 

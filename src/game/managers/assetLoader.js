@@ -1349,39 +1349,87 @@ function drawPlayerCarriedWeapon(scene) {
   const context = texture.context
   const shoulderX = PLAYER_CARRIED_WEAPON_TEXTURE.originX
   const shoulderY = PLAYER_CARRIED_WEAPON_TEXTURE.originY
-  const gripX = shoulderX + 15
-  const gripY = shoulderY + 19
+  const gripX = shoulderX + 22 // Moves hand forward onto the handguard
+  const gripY = shoulderY + 5  // Moves hand UP onto the handguard
+  
+  const rearShoulderX = shoulderX - 20
+  const rearShoulderY = shoulderY - 1
+  const triggerX = shoulderX - 2
+  const triggerY = shoulderY + 4
 
   context.clearRect(0, 0, PLAYER_CARRIED_WEAPON_TEXTURE.width, PLAYER_CARRIED_WEAPON_TEXTURE.height)
   context.lineJoin = 'round'
   context.lineCap = 'round'
-
-  context.strokeStyle = survivorOutline
-  context.lineWidth = 15
+  
+  // --- Back Arm Connection (Holding Trigger) ---
+  context.strokeStyle = survivorSkinShadow
+  context.lineWidth = 10
   context.beginPath()
-  context.moveTo(shoulderX, shoulderY)
-  context.lineTo(gripX, gripY)
+  context.moveTo(rearShoulderX, rearShoulderY)
+  context.lineTo(triggerX, triggerY)
   context.stroke()
 
+  context.strokeStyle = '#d6a073' // Short sleeve
+  context.lineWidth = 12
+  context.beginPath()
+  context.moveTo(rearShoulderX, rearShoulderY)
+  context.lineTo(rearShoulderX + (triggerX - rearShoulderX) * 0.4, rearShoulderY + (triggerY - rearShoulderY) * 0.4)
+  context.stroke()
+
+  // Rear glove
+  context.fillStyle = survivorOutline
+  context.beginPath()
+  context.arc(triggerX, triggerY, 6, 0, Math.PI * 2)
+  context.fill()
+  context.fillStyle = '#22252b'
+  context.beginPath()
+  context.arc(triggerX, triggerY, 4.6, 0, Math.PI * 2)
+  context.fill()
+
+  // --- M4 / AR-15 Gun Base ---
+  // Stock sticking out back
+  context.fillStyle = '#111216' // black stock
+  context.fillRect(shoulderX - 16, shoulderY - 2, 12, 8)
+  
+  // Buffer tube (connects stock to receiver)
+  context.fillStyle = survivorGunAccent
+  context.fillRect(shoulderX - 6, shoulderY, 6, 4)
+
+  // Receiver/Magwell (middle body)
+  context.fillStyle = '#2a2e38' // dark grey receiver
+  context.fillRect(shoulderX, shoulderY - 4, 16, 12)
+  
+  // Magazine hanging down
+  context.fillStyle = '#111216' 
+  context.fillRect(shoulderX + 6, shoulderY + 8, 8, 14)
+  
+  // Handguard / Barrel shroud
+  context.fillStyle = '#1f2128' // dark ribbed handguard
+  context.fillRect(shoulderX + 16, shoulderY - 2, 22, 8)
+  
+  // Barrel sticking out
+  context.fillStyle = survivorGunAccent // lighter grey barrel
+  context.fillRect(shoulderX + 38, shoulderY, 18, 4)
+  
+  // Front Sight (Triangle)
+  context.fillStyle = '#111216'
+  context.beginPath()
+  context.moveTo(shoulderX + 46, shoulderY)
+  context.lineTo(shoulderX + 50, shoulderY)
+  context.lineTo(shoulderX + 48, shoulderY - 6)
+  context.fill()
+
+  // Carrying Handle / Optics mount on top of receiver
+  context.fillStyle = '#111216'
+  context.fillRect(shoulderX + 2, shoulderY - 8, 12, 4)
+  
+  // --- Back arm connection ---
+  // Draws the right arm (front arm visually) holding the handguard
   context.strokeStyle = survivorSkin
   context.lineWidth = 10
   context.beginPath()
-  context.moveTo(shoulderX, shoulderY)
-  context.lineTo(gripX, gripY)
-  context.stroke()
-
-  context.fillStyle = survivorGunDark
-  roundedRect(context, shoulderX + 6, shoulderY + 8, 35, 7, 3)
-  fillStroke(context, survivorGunDark, survivorOutline, 3)
-  roundedRect(context, shoulderX + 38, shoulderY + 9, 15, 4, 2)
-  fillStroke(context, survivorGunAccent, survivorOutline, 2)
-  roundedRect(context, shoulderX + 10, shoulderY + 14, 10, 10, 3)
-  fillStroke(context, survivorGunAccent, survivorOutline, 2)
-  context.strokeStyle = survivorSkin
-  context.lineWidth = 10
-  context.beginPath()
-  context.moveTo(shoulderX, shoulderY)
-  context.lineTo(gripX, gripY)
+  context.moveTo(shoulderX, shoulderY) // Connects from pivot
+  context.lineTo(gripX, gripY) // Stretches to handguard
   context.stroke()
 
   context.strokeStyle = '#edb483' // Short sleeve (tan shirt)
@@ -1391,7 +1439,7 @@ function drawPlayerCarriedWeapon(scene) {
   context.lineTo(shoulderX + (gripX - shoulderX) * 0.4, shoulderY + (gripY - shoulderY) * 0.4)
   context.stroke()
 
-  // Front tactical glove (fingerless)
+  // Front tactical glove (fingerless) resting on Handguard
   context.fillStyle = survivorOutline
   context.beginPath()
   context.arc(gripX, gripY, 6, 0, Math.PI * 2)
@@ -1448,28 +1496,6 @@ function drawPlayerFrame(scene, key, pose) {
   context.save()
   context.translate(bodyX, bodyY)
   context.rotate(pose.torsoLean)
-
-  // Rear arm
-  drawSoldierLimb(context, {
-    x: -18,
-    y: -11,
-    angle: pose.armRear,
-    length: 28,
-    thickness: 10,
-    color: survivorSkinShadow,
-    end: 'glove',
-  })
-  
-  // Rear arm short sleeve (tan T-shirt)
-  drawSoldierLimb(context, {
-    x: -18,
-    y: -11,
-    angle: pose.armRear,
-    length: 12,
-    thickness: 12,
-    color: '#d6a073', 
-    end: 'none',
-  })
 
   // Body Base (Tan shirt showing at shoulders and side)
   roundedRect(context, -24, -10, 48, 46, 15)
