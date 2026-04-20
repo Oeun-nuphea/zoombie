@@ -379,7 +379,7 @@ export default class MainScene extends Phaser.Scene {
       this.weaponDirector.update(time, delta);
     }
 
-    // Spawn companion dog at wave 5
+    // Spawn companion dog at wave 3
     if (this.gameStore.wave >= 3 && !this.companionBot) {
       this.companionBot = new CompanionDog(
         this,
