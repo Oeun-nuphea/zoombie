@@ -1,6 +1,7 @@
 import { WEAPON_DEFINITIONS, getWeaponDropTextureKey } from '../config/weapons'
 import { HEALTH_DROP_DEFINITIONS, getHealthDropTextureKey } from '../config/dropItems'
-import { PLAYER_CARRIED_WEAPON_TEXTURE, PLAYER_FRAME_POSES } from '../config/playerVisualConfig'
+import { PLAYER_CARRIED_WEAPON_TEXTURE, PLAYER_FRAME_POSES, PLAYER_SKINS } from '../config/playerVisualConfig'
+import { readStorage } from '../../services/storageService'
 
 const zombieOutline = '#311a4d'
 const zombieSkin = '#3fa06f'
@@ -13,22 +14,24 @@ const blood = '#9e4d4a'
 const pants = '#3a3a3d'
 const shoeBlue = '#4a67c5'
 const eyeWhite = '#f5efb1'
-const survivorOutline = '#151924'
-const survivorSkin = '#ff9249' // Vibrant orange skin from the image
-const survivorSkinShadow = '#d47b40'
-const survivorHair = '#3b4559' // Balaclava color
-const survivorHairShadow = '#282d3b'
-const survivorShirt = '#343841' // Vest color
-const survivorShirtShadow = '#1f2128' 
-const survivorShirtDark = '#1f2128'
-const survivorRibbonRed = '#1a1f2e' // Darkened to blend in
-const survivorRibbonBlue = '#485172'
-const survivorRibbonGold = '#1a1f2e'
-const survivorPants = '#4f5b7d' // Slate blue pants
-const survivorBoot = '#111216'
-const survivorBootTop = '#242831'
-const survivorGunDark = '#1a1e24'
-const survivorGunAccent = '#677182'
+let survivorOutline = '#151924'
+let survivorSkin = '#ff9249' // Vibrant orange skin from the image
+let survivorSkinShadow = '#d47b40'
+let survivorHair = '#3b4559' // Balaclava color
+let survivorHairShadow = '#282d3b'
+let survivorShirt = '#343841' // Vest color
+let survivorShirtShadow = '#1f2128' 
+let survivorShirtDark = '#1f2128'
+let survivorRibbonRed = '#1a1f2e' // Darkened to blend in
+let survivorRibbonBlue = '#485172'
+let survivorRibbonGold = '#1a1f2e'
+let survivorPants = '#4f5b7d' // Slate blue pants
+let survivorBoot = '#111216'
+let survivorBootTop = '#242831'
+let survivorGunDark = '#1a1e24'
+let survivorGunAccent = '#677182'
+let survivorSleeve = '#d6a073'
+let survivorUnderShirt = '#edb483'
 
 const zombieSheetConfig = {
   rawKey: 'zombie-topdown',
@@ -1369,7 +1372,7 @@ function drawPlayerCarriedWeapon(scene) {
   context.lineTo(triggerX, triggerY)
   context.stroke()
 
-  context.strokeStyle = '#d6a073' // Short sleeve
+  context.strokeStyle = survivorSleeve // Short sleeve
   context.lineWidth = 12
   context.beginPath()
   context.moveTo(rearShoulderX, rearShoulderY)
@@ -1432,7 +1435,7 @@ function drawPlayerCarriedWeapon(scene) {
   context.lineTo(gripX, gripY) // Stretches to handguard
   context.stroke()
 
-  context.strokeStyle = '#edb483' // Short sleeve (tan shirt)
+  context.strokeStyle = survivorSleeve // Short sleeve (tan shirt)
   context.lineWidth = 12
   context.beginPath()
   context.moveTo(shoulderX, shoulderY)
@@ -1499,7 +1502,7 @@ function drawPlayerFrame(scene, key, pose) {
 
   // Body Base (Tan shirt showing at shoulders and side)
   roundedRect(context, -24, -10, 48, 46, 15)
-  fillStroke(context, '#edb483', survivorOutline, 4)
+  fillStroke(context, survivorUnderShirt, survivorOutline, 4)
 
   // Tactical Vest (Black rig over the torso)
   roundedRect(context, -20, -5, 40, 40, 10)
@@ -1797,6 +1800,35 @@ function registerHealthDropTextures(scene) {
 }
 
 export function registerPlaceholderTextures(scene) {
+  const store = window.__VUE_PINIA__ ? Array.from(window.__VUE_PINIA__.state.value.values())[0] : null;
+  const skinId = readStorage('selectedSkin', 'swat');
+  const skinConfig = PLAYER_SKINS[skinId] || PLAYER_SKINS['swat'];
+
+  // Apply colors dynamically
+  survivorSkin = skinConfig.skin || '#ff9249';
+  survivorSkinShadow = skinConfig.skinShadow || '#d47b40';
+  survivorHair = skinConfig.hair || '#3b4559';
+  survivorShirt = skinConfig.shirt || '#343841';
+  survivorPants = skinConfig.pants || '#4f5b7d';
+  survivorSleeve = skinConfig.sleeve || '#d6a073';
+  survivorUnderShirt = skinConfig.underShirt || '#edb483';
+  
+  if (scene.textures.exists('player-idle-0')) {
+    const playerFrames = [
+      'player-idle-0', 'player-idle-1',
+      'player-walk-0', 'player-walk-1',
+      'player-aim-0', 'player-aim-1',
+      'player-shoot-0', 'player-shoot-1',
+      'player-hit', 'player-death-0', 'player-death-1',
+      PLAYER_CARRIED_WEAPON_TEXTURE.key
+    ];
+    playerFrames.forEach(f => {
+      if (scene.textures.exists(f)) {
+        scene.textures.remove(f);
+      }
+    });
+  }
+
   registerPlayerTextures(scene)
   registerPlayerAnimations(scene)
 

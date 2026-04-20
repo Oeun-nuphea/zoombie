@@ -99,6 +99,9 @@
 
         <!-- Panel actions -->
         <div class="panel-actions">
+          <button class="panel-action-btn" type="button" @click="showSkinSelector = true">
+            👕 Operatives
+          </button>
           <button class="panel-action-btn" type="button" @click="showShop = true">
             💀 Upgrades Shop
           </button>
@@ -117,7 +120,7 @@
 
     <!-- ── Modals ── -->
     <div
-      v-if="showHowToPlay || showShop || showMapSelector"
+      v-if="showHowToPlay || showShop || showMapSelector || showSkinSelector"
       class="landing-screen__modal-backdrop responsive-overlay"
       @click.self="closePanels"
     >
@@ -166,6 +169,34 @@
                 @click="confirmMapAndStart"
               >
                 ▶ Start
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <!-- Skin Selector -->
+        <template v-else-if="showSkinSelector">
+          <p class="landing-screen__modal-label">Barracks</p>
+          <h2 class="landing-screen__modal-title">Select Operative</h2>
+          <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
+            <div class="challenge-picker__grid">
+              <button
+                v-for="(skinConfig, key) in PLAYER_SKINS"
+                :key="key"
+                type="button"
+                class="challenge-picker__card"
+                :class="{ 'challenge-picker__card--active': gameStore.selectedSkin === key }"
+                @click="gameStore.setSelectedSkin(key)"
+              >
+                <div class="challenge-picker__card-header">
+                  <span class="challenge-picker__card-icon">
+                    <span v-if="key === 'swat'">🥷</span>
+                    <span v-else-if="key === 'ranger'">🤠</span>
+                    <span v-else>🧢</span>
+                  </span>
+                  <span class="challenge-picker__card-name">{{ skinConfig.name }}</span>
+                </div>
+                <span class="challenge-picker__card-desc">Select Operator</span>
               </button>
             </div>
           </div>
@@ -237,6 +268,7 @@ import { requestDocumentFullscreen } from '../../composables/useFullscreenMode'
 import { readStorage, writeStorage } from '../../services/storageService'
 import { useGameStore } from '../../stores/gameStore'
 import { APP_NAME, STORAGE_KEYS, CHALLENGES, MAP_CONFIG } from '../../utils/constants'
+import { PLAYER_SKINS } from '../../game/config/playerVisualConfig'
 import { getGameRuntimeProfile } from '../../utils/device'
 import { formatScore } from '../../utils/helpers'
 
@@ -261,11 +293,19 @@ const gameStore = useGameStore()
 const showHowToPlay = ref(false)
 const showShop = ref(false)
 const showMapSelector = ref(false)
+const showSkinSelector = ref(false)
 const pendingRunMode = ref('normal')
 const selectedChallenge = ref('none')
 const previewMap = ref(gameStore.selectedMap || 'arena1')
 const soundMuted = ref(readStorage(STORAGE_KEYS.soundMuted, false))
 const runtimeProfile = getGameRuntimeProfile()
+
+const closePanels = () => {
+  showHowToPlay.value = false
+  showShop.value = false
+  showMapSelector.value = false
+  showSkinSelector.value = false
+}
 
 const healthCost = computed(() => 50 * ((gameStore.metaUpgrades?.health || 0) + 1))
 const speedCost = computed(() => 40 * ((gameStore.metaUpgrades?.speed || 0) + 1))
@@ -281,12 +321,6 @@ function buyMap() {
   const mapItem = MAP_CONFIG[previewMap.value];
   if (!mapItem) return;
   gameStore.buyMap(previewMap.value, mapItem.cost);
-}
-
-function closePanels() {
-  showHowToPlay.value = false
-  showShop.value = false
-  showMapSelector.value = false
 }
 
 function toggleSound() {

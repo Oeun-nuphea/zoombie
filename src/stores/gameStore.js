@@ -24,6 +24,7 @@ export const useGameStore = defineStore('game', {
     metaUpgrades: readStorage(STORAGE_KEYS.metaUpgrades, { health: 0, speed: 0 }),
     unlockedMaps: readStorage(STORAGE_KEYS.unlockedMaps, ['arena1']),
     selectedMap: readStorage(STORAGE_KEYS.selectedMap, 'arena1'),
+    selectedSkin: readStorage('selectedSkin', 'swat'),
     currentRunMap: null,
     score: 0,
     bestScore: readStorage(STORAGE_KEYS.bestScore, 0),
@@ -98,6 +99,16 @@ export const useGameStore = defineStore('game', {
     },
     setChallengeMode(challenge = 'none') {
       this.challengeMode = challenge
+    },
+    setSelectedMap(mapId) {
+      if (this.unlockedMaps.includes(mapId)) {
+        this.selectedMap = mapId
+        writeStorage(STORAGE_KEYS.selectedMap, mapId)
+      }
+    },
+    setSelectedSkin(skinId) {
+      this.selectedSkin = skinId
+      writeStorage('selectedSkin', skinId)
     },
     addScore(amount = 1) {
       const multiplier = this.challengeMode === 'overtime' ? 1.75 : 1

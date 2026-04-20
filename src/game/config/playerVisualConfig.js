@@ -33,3 +33,36 @@ export const PLAYER_FRAME_POSES = Object.freeze({
   'player-death-0': Object.freeze({ bob: 8, torsoLean: 0.22, headTilt: 0.24, armRear: 0.42, armFront: 0.72, legRear: 0.48, legFront: -0.22, gunKick: -8, gunLift: 4, dead: true }),
   'player-death-1': Object.freeze({ bob: 18, torsoLean: 0.48, headTilt: 0.4, armRear: 1.12, armFront: 1.3, legRear: 0.88, legFront: -0.58, gunKick: -12, gunLift: 9, dead: true }),
 })
+
+export const PLAYER_SKINS = {
+  swat: {
+    id: 'swat',
+    name: 'SWAT Operative',
+    skin: '#ff9249',
+    hair: '#3b4559',
+    shirt: '#343841',
+    pants: '#4f5b7d',
+    sleeve: '#d6a073',
+    underShirt: '#edb483'
+  },
+  ranger: {
+    id: 'ranger',
+    name: 'Desert Ranger',
+    skin: '#e0ac7b',
+    hair: '#8b7d6b',
+    shirt: '#a8947b',
+    pants: '#d4c4b2',
+    sleeve: '#e0ac7b',
+    underShirt: '#e0ac7b'
+  },
+  rebel: {
+    id: 'rebel',
+    name: 'Street Rebel',
+    skin: '#ebd2b7',
+    hair: '#c93a3a',
+    shirt: '#2b2a2e',
+    pants: '#374254',
+    sleeve: '#2b2a2e',
+    underShirt: '#2b2a2e'
+  }
+}
