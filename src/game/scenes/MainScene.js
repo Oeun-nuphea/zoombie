@@ -19,6 +19,7 @@ import { createWeaponDirector } from "../systems/weaponSystem";
 // import { createRadarSystem } from "../systems/radarSystem"; // disabled — radar removed for challenge
 import { createPathfindingSystem } from "../systems/pathfindingSystem";
 import { createFogOfWarSystem } from "../systems/fogOfWarSystem";
+import { createWeatherSystem } from "../systems/weatherSystem";
 import { pinia } from "../../stores";
 import { useGameStore } from "../../stores/gameStore";
 import { getSceneGameDimensions } from "../../utils/gameViewport";
@@ -288,6 +289,10 @@ export default class MainScene extends Phaser.Scene {
       soundManager: this.soundManager,
       onHostilesChanged: () => this.waveDirector?.refreshRemaining?.(),
     });
+    this.weather = createWeatherSystem(this, {
+      fogOfWar: this.fogOfWar,
+      soundManager: this.soundManager,
+    });
     this.playerController = createPlayerController(this, {
       player: this.player,
       weaponDirector: this.weaponDirector,
@@ -440,6 +445,7 @@ export default class MainScene extends Phaser.Scene {
     this.hud.update();
     this.radar.update();
     this.dropDirector.update(time);
+    this.weather?.update();
     this.fogOfWar?.update(delta);
   }
 

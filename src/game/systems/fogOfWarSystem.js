@@ -64,17 +64,26 @@ export function createFogOfWarSystem(
   const INTRO_MS   = 1200;
   let introComplete = false;
 
+  let isRevealed = false;
+
   // ── update ─────────────────────────────────────────────────────────────
   function update(delta) {
     if (!player?.active) return;
+
+    if (isRevealed) {
+      fog.setAlpha(0);
+      return;
+    }
 
     if (!introComplete) {
       introElapsed += delta;
       introAlpha = Math.min(1, introElapsed / INTRO_MS);
       fog.setAlpha(introAlpha);
       if (introAlpha >= 1) introComplete = true;
+    } else {
+      fog.setAlpha(1);
     }
-
+    
     // Center the fog sheet on the CAMERA midpoint so it always covers the
     // full viewport, even when the camera is bounded at a world edge.
     const cam   = scene.cameras.main;
@@ -94,6 +103,10 @@ export function createFogOfWarSystem(
     fog.erase(BRUSH_KEY, eraseX, eraseY);
   }
 
+  function setReveal(reveal) {
+    isRevealed = reveal;
+  }
+
   // ── resize ─────────────────────────────────────────────────────────────
   function resize() {
     // handled dynamically in update() due to possible camera zooms
@@ -106,5 +119,5 @@ export function createFogOfWarSystem(
     if (scene.textures.exists(BRUSH_KEY)) scene.textures.remove(BRUSH_KEY);
   }
 
-  return { update, resize, destroy };
+  return { update, resize, destroy, setReveal };
 }
