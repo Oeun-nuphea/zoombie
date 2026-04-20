@@ -14,21 +14,21 @@ const pants = '#3a3a3d'
 const shoeBlue = '#4a67c5'
 const eyeWhite = '#f5efb1'
 const survivorOutline = '#151924'
-const survivorSkin = '#efbfab'
-const survivorSkinShadow = '#d39182'
-const survivorHair = '#d7d8dc'
-const survivorHairShadow = '#aaafb7'
-const survivorShirt = '#8b8550'
-const survivorShirtShadow = '#66613c'
-const survivorShirtDark = '#504c2d'
-const survivorRibbonRed = '#d73e36'
-const survivorRibbonBlue = '#274ac7'
-const survivorRibbonGold = '#dfb74a'
-const survivorPants = '#303845'
-const survivorBoot = '#262830'
-const survivorBootTop = '#515766'
+const survivorSkin = '#ff9249' // Vibrant orange skin from the image
+const survivorSkinShadow = '#d47b40'
+const survivorHair = '#3b4559' // Balaclava color
+const survivorHairShadow = '#282d3b'
+const survivorShirt = '#343841' // Vest color
+const survivorShirtShadow = '#1f2128' 
+const survivorShirtDark = '#1f2128'
+const survivorRibbonRed = '#1a1f2e' // Darkened to blend in
+const survivorRibbonBlue = '#485172'
+const survivorRibbonGold = '#1a1f2e'
+const survivorPants = '#4f5b7d' // Slate blue pants
+const survivorBoot = '#111216'
+const survivorBootTop = '#242831'
 const survivorGunDark = '#1a1e24'
-const survivorGunAccent = '#444f5f'
+const survivorGunAccent = '#677182'
 
 const zombieSheetConfig = {
   rawKey: 'zombie-topdown',
@@ -1252,7 +1252,7 @@ function registerZombieSheetAnimations(scene) {
 }
 
 function drawSoldierLimb(context, config) {
-  const { x, y, angle, length, thickness, color, end = 'hand' } = config
+  const { x, y, angle, length, thickness, color, end = 'hand', kneePad, holster } = config
 
   context.save()
   context.translate(x, y)
@@ -1273,6 +1273,23 @@ function drawSoldierLimb(context, config) {
   context.moveTo(0, 0)
   context.lineTo(0, length)
   context.stroke()
+
+  if (kneePad) {
+    context.fillStyle = survivorOutline
+    context.fillRect(-thickness / 2 - 2, length / 2 - 2, thickness + 4, 10)
+    context.fillStyle = '#111216' // Knee pad black
+    context.fillRect(-thickness / 2, length / 2, thickness, 6)
+  }
+
+  if (holster) {
+    context.fillStyle = survivorOutline
+    context.fillRect(-thickness / 2 - 3, length / 4 - 4, thickness + 6, 16)
+    context.fillStyle = '#1f2128' // Holster material
+    context.fillRect(-thickness / 2 - 1, length / 4 - 2, thickness + 2, 12)
+    // Wood gun handle sticking back
+    context.fillStyle = '#6b4c3a' 
+    context.fillRect(-thickness / 2 - 6, length / 4 - 6, 6, 6)
+  }
 
   if (end === 'boot') {
     context.save()
@@ -1298,6 +1315,21 @@ function drawSoldierLimb(context, config) {
     context.fillStyle = survivorSkin
     context.beginPath()
     context.arc(0, length, 4.6, 0, Math.PI * 2)
+    context.fill()
+  } else if (end === 'glove') {
+    // Fingerless glove
+    context.fillStyle = survivorOutline
+    context.beginPath()
+    context.arc(0, length, 6, 0, Math.PI * 2)
+    context.fill()
+    context.fillStyle = '#22252b' // Glove material
+    context.beginPath()
+    context.arc(0, length, 4.6, 0, Math.PI * 2)
+    context.fill()
+    // Skin fingers
+    context.fillStyle = survivorSkin
+    context.beginPath()
+    context.arc(0, length + 3, 2.5, 0, Math.PI * 2)
     context.fill()
   }
 
@@ -1345,17 +1377,32 @@ function drawPlayerCarriedWeapon(scene) {
   fillStroke(context, survivorGunAccent, survivorOutline, 2)
   roundedRect(context, shoulderX + 10, shoulderY + 14, 10, 10, 3)
   fillStroke(context, survivorGunAccent, survivorOutline, 2)
-  context.fillStyle = survivorGunAccent
-  context.fillRect(shoulderX + 0, shoulderY + 10, 8, 4)
+  context.strokeStyle = survivorSkin
+  context.lineWidth = 10
+  context.beginPath()
+  context.moveTo(shoulderX, shoulderY)
+  context.lineTo(gripX, gripY)
+  context.stroke()
 
+  context.strokeStyle = '#edb483' // Short sleeve (tan shirt)
+  context.lineWidth = 12
+  context.beginPath()
+  context.moveTo(shoulderX, shoulderY)
+  context.lineTo(shoulderX + (gripX - shoulderX) * 0.4, shoulderY + (gripY - shoulderY) * 0.4)
+  context.stroke()
+
+  // Front tactical glove (fingerless)
   context.fillStyle = survivorOutline
   context.beginPath()
   context.arc(gripX, gripY, 6, 0, Math.PI * 2)
   context.fill()
-
-  context.fillStyle = survivorSkin
+  context.fillStyle = '#22252b'
   context.beginPath()
   context.arc(gripX, gripY, 4.6, 0, Math.PI * 2)
+  context.fill()
+  context.fillStyle = survivorSkin // Fingers
+  context.beginPath()
+  context.arc(gripX + 3, gripY, 2.5, 0, Math.PI * 2)
   context.fill()
 
   texture.refresh()
@@ -1384,6 +1431,7 @@ function drawPlayerFrame(scene, key, pose) {
     thickness: 14,
     color: survivorPants,
     end: 'boot',
+    kneePad: true,
   })
   drawSoldierLimb(context, {
     x: bodyX + 10,
@@ -1393,12 +1441,15 @@ function drawPlayerFrame(scene, key, pose) {
     thickness: 15,
     color: survivorPants,
     end: 'boot',
+    kneePad: true,
+    holster: true,
   })
 
   context.save()
   context.translate(bodyX, bodyY)
   context.rotate(pose.torsoLean)
 
+  // Rear arm
   drawSoldierLimb(context, {
     x: -18,
     y: -11,
@@ -1406,48 +1457,41 @@ function drawPlayerFrame(scene, key, pose) {
     length: 28,
     thickness: 10,
     color: survivorSkinShadow,
+    end: 'glove',
+  })
+  
+  // Rear arm short sleeve (tan T-shirt)
+  drawSoldierLimb(context, {
+    x: -18,
+    y: -11,
+    angle: pose.armRear,
+    length: 12,
+    thickness: 12,
+    color: '#d6a073', 
+    end: 'none',
   })
 
+  // Body Base (Tan shirt showing at shoulders and side)
   roundedRect(context, -24, -10, 48, 46, 15)
-  fillStroke(context, pose.hit ? '#9f765f' : survivorShirt, survivorOutline, 4)
+  fillStroke(context, '#edb483', survivorOutline, 4)
 
-  context.fillStyle = survivorShirtShadow
+  // Tactical Vest (Black rig over the torso)
+  roundedRect(context, -20, -5, 40, 40, 10)
+  fillStroke(context, survivorShirt, survivorOutline, 3)
+
+  // Horizontal ribbed vest details
+  context.strokeStyle = survivorOutline
+  context.lineWidth = 2
   context.beginPath()
-  context.ellipse(-16, 12, 8, 14, 0.4, 0, Math.PI * 2)
-  context.fill()
-  context.beginPath()
-  context.ellipse(17, 13, 9, 15, -0.35, 0, Math.PI * 2)
-  context.fill()
-
-  context.fillStyle = survivorShirtDark
-  context.beginPath()
-  context.moveTo(-8, -10)
-  context.lineTo(0, -20)
-  context.lineTo(8, -10)
-  context.closePath()
-  context.fill()
-
-  roundedRect(context, -20, 8, 14, 12, 3)
-  fillStroke(context, survivorShirtDark, survivorOutline, 2)
-  roundedRect(context, 5, 8, 14, 12, 3)
-  fillStroke(context, survivorShirtDark, survivorOutline, 2)
-
-  context.fillStyle = survivorRibbonRed
-  context.fillRect(7, 4, 5, 8)
-  context.fillStyle = '#ffffff'
-  context.fillRect(12, 4, 4, 8)
-  context.fillStyle = survivorRibbonBlue
-  context.fillRect(16, 4, 4, 8)
-  context.fillStyle = survivorRibbonGold
-  context.fillRect(20, 4, 7, 8)
-
-  context.fillStyle = survivorSkinShadow
-  context.beginPath()
-  context.moveTo(-4, -10)
-  context.lineTo(2, -26)
-  context.lineTo(9, -10)
-  context.closePath()
-  context.fill()
+  context.moveTo(-18, 4)
+  context.lineTo(18, 4)
+  context.moveTo(-18, 12)
+  context.lineTo(18, 12)
+  context.moveTo(-18, 20)
+  context.lineTo(18, 20)
+  context.moveTo(-18, 28)
+  context.lineTo(18, 28)
+  context.stroke()
 
   context.restore()
 
@@ -1455,74 +1499,40 @@ function drawPlayerFrame(scene, key, pose) {
   context.translate(58, 31 + pose.bob * 0.4)
   context.rotate(pose.headTilt)
 
+  // Balaclava head shape
+  context.beginPath()
+  context.ellipse(0, 0, 17, 20, -0.12, 0, Math.PI * 2)
+  fillStroke(context, survivorHair, survivorOutline, 3.5)
+
+  // Face hole (showing orange skin and eye)
   context.fillStyle = survivorOutline
   context.beginPath()
-  context.arc(16, 1, 5.5, 0, Math.PI * 2)
+  context.ellipse(12, -2, 8, 6, 0.2, 0, Math.PI * 2)
   context.fill()
-  context.fillStyle = pose.hit ? '#e3aa95' : survivorSkin
+  context.fillStyle = survivorSkin
   context.beginPath()
-  context.arc(16, 1, 4.2, 0, Math.PI * 2)
-  context.fill()
-
-  context.beginPath()
-  context.ellipse(0, 0, 18, 22, -0.12, 0, Math.PI * 2)
-  fillStroke(context, pose.hit ? '#f0a798' : survivorSkin, survivorOutline, 3.5)
-
-  context.fillStyle = survivorHair
-  context.beginPath()
-  context.moveTo(-13, -6)
-  context.quadraticCurveTo(-7, -22, 9, -20)
-  context.quadraticCurveTo(20, -16, 20, -3)
-  context.lineTo(12, -10)
-  context.lineTo(2, -17)
-  context.lineTo(-6, -15)
-  context.closePath()
+  context.ellipse(12, -2, 6, 4, 0.2, 0, Math.PI * 2)
   context.fill()
 
-  context.fillStyle = survivorHairShadow
+  // Angry eye
+  context.fillStyle = '#ffffff'
   context.beginPath()
-  context.moveTo(-3, -18)
-  context.lineTo(7, -17)
-  context.lineTo(10, -8)
-  context.lineTo(1, -11)
-  context.closePath()
+  context.ellipse(13, -3, 2, 2, 0.2, 0, Math.PI * 2)
   context.fill()
-
-  context.strokeStyle = survivorOutline
-  context.lineWidth = 3.4
+  context.fillStyle = '#000000'
   context.beginPath()
-  context.moveTo(-8, -5)
-  context.lineTo(2, -7)
-  context.stroke()
-  context.beginPath()
-  context.moveTo(4, -5)
-  context.lineTo(12, -4)
-  context.stroke()
-
-  context.strokeStyle = survivorOutline
-  context.lineWidth = 2
-  context.beginPath()
-  context.moveTo(5, 0)
-  context.lineTo(11, 1)
-  context.stroke()
-
+  context.ellipse(14, -3, 1, 1, 0, 0, Math.PI * 2)
+  context.fill()
+  
+  // Ear hole (optional detail)
   context.fillStyle = survivorOutline
   context.beginPath()
-  context.arc(-1, -1, 1.8, 0, Math.PI * 2)
-  context.arc(8, 0, 1.7, 0, Math.PI * 2)
+  context.ellipse(0, 2, 3, 4, 0, 0, Math.PI * 2)
   context.fill()
-
-  context.strokeStyle = survivorOutline
-  context.lineWidth = 2
+  context.fillStyle = survivorSkinShadow
   context.beginPath()
-  context.moveTo(4, 3)
-  context.lineTo(7, 8)
-  context.lineTo(4, 12)
-  context.stroke()
-  context.beginPath()
-  context.moveTo(-2, 13)
-  context.quadraticCurveTo(3, 15, 9, 13)
-  context.stroke()
+  context.ellipse(0, 2, 2, 3, 0, 0, Math.PI * 2)
+  context.fill()
 
   context.restore()
   texture.refresh()
