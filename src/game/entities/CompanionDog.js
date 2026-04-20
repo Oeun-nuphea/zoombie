@@ -78,44 +78,66 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
   }
 
   createDogVisuals(scene, x, y) {
-    const tan = 0xd2a679;
-    const dark = 0x2e2e2e;
-    const black = 0x111111;
+    const white = 0xe5e7eb;
+    const gray = 0x9ca3af;
+    const dark = 0x111827;
 
     this.dogGroup = scene.add.container(x, y);
     this.dogGroup.setDepth(20);
     this.dogGroup.setScale(0.85);
 
-    // --- Back Legs --- (longer)
-    const legBL = scene.add.ellipse(-14, 10, 8, 30, tan).setOrigin(0.5, 0.1);
-    const legFL = scene.add.ellipse(14, 10, 8, 30, tan).setOrigin(0.5, 0.1);
-    
-    // --- Tail --- (bushy and angled down)
-    const tail = scene.add.ellipse(-24, -4, 10, 36, dark).setOrigin(0.5, 0.1).setAngle(-45);
-    
-    // --- Neck ---
-    const neck = scene.add.ellipse(18, -10, 14, 24, tan).setAngle(40);
+    // --- Back Legs (Left, shaded gray) ---
+    const legBL = scene.add.ellipse(-10, 8, 8, 28, gray).setOrigin(0.5, 0.1);
+    const legFL = scene.add.ellipse(14, 8, 7, 28, gray).setOrigin(0.5, 0.1);
 
-    // --- Body --- (slimmer torso, less round)
-    const bodyTan = scene.add.ellipse(0, 2, 48, 16, tan);
-    const bodyDark = scene.add.ellipse(-4, -6, 46, 18, dark); // Saddle 
+    // --- Body Container ---
+    this.bodyContainer = scene.add.container(0, 0);
+
+    const tail = scene.add.ellipse(-24, -4, 6, 28, white).setOrigin(0.5, 0.1).setAngle(-60);
+    const neck = scene.add.ellipse(16, -10, 12, 26, white).setAngle(45);
+    const hind = scene.add.ellipse(-14, -2, 22, 20, white);
+    const waist = scene.add.ellipse(-2, -2, 18, 14, white);
+    const chest = scene.add.ellipse(8, 0, 26, 22, white);
     
-    // --- Head --- (protruding and pointed)
-    const head = scene.add.ellipse(28, -22, 16, 16, tan);
-    const snout = scene.add.ellipse(38, -20, 14, 8, black); 
-    const earL = scene.add.triangle(25, -34, 0, 14, 4, 0, 8, 14, dark);
-    const earR = scene.add.triangle(31, -34, 0, 14, 4, 0, 8, 14, dark);
+    // Spots
+    const spots = [];
+    spots.push(scene.add.ellipse(10, -2, 5, 7, dark).setAngle(20));
+    spots.push(scene.add.ellipse(12, 6, 3, 4, dark));
+    spots.push(scene.add.ellipse(2, -6, 6, 4, dark).setAngle(-15));
+    spots.push(scene.add.ellipse(-6, 2, 4, 5, dark));
+    spots.push(scene.add.ellipse(-14, -6, 5, 8, dark).setAngle(40));
+    spots.push(scene.add.ellipse(-18, 0, 4, 4, dark));
+    spots.push(scene.add.ellipse(14, -16, 4, 5, dark));
 
-    // --- Front Legs ---
-    const legBR = scene.add.ellipse(-14, 10, 9, 30, tan).setOrigin(0.5, 0.1);
-    const legFR = scene.add.ellipse(14, 10, 9, 30, tan).setOrigin(0.5, 0.1);
+    // --- Head Container ---
+    this.headContainer = scene.add.container(0, 0);
+    const head = scene.add.ellipse(26, -22, 14, 14, white);
+    const snout = scene.add.ellipse(34, -20, 12, 8, white); 
+    const nose = scene.add.ellipse(40, -20, 4, 4, dark);
+    const earL = scene.add.ellipse(24, -20, 7, 14, dark).setAngle(-15);
+    
+    this.headContainer.add([head, snout, nose, earL]);
+    this.bodyContainer.add([tail, neck, hind, waist, chest, ...spots, this.headContainer]);
 
+    // --- Front Legs (Right, bright white) ---
+    const legBR = scene.add.ellipse(-10, 8, 9, 30, white).setOrigin(0.5, 0.1);
+    const spotBR = scene.add.ellipse(-10, 16, 4, 5, dark);
+    const legFR = scene.add.ellipse(14, 8, 8, 30, white).setOrigin(0.5, 0.1);
+    const spotFR = scene.add.ellipse(14, 18, 4, 4, dark);
+    const earR = scene.add.ellipse(24, -20, 7, 14, dark).setAngle(-15); // front ear drawn on top
+
+    this.headContainer.add(earR);
+
+    // Add containers and legs in correct Z-order
     this.dogGroup.add([
-      legBL, legFL, tail, neck, bodyTan, bodyDark, head, snout, earL, earR, legBR, legFR
+      legBL, legFL, this.bodyContainer, legBR, spotBR, legFR, spotFR
     ]);
 
     this.parts = {
-      legBL, legFL, tail, neck, bodyTan, bodyDark, head, snout, earL, earR, legBR, legFR
+      legBL, legFL, legBR, legFR, tail, 
+      bodyContainer: this.bodyContainer,
+      headContainer: this.headContainer,
+      head, snout, spotBR, spotFR
     };
   }
 
@@ -195,59 +217,67 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (isMoving) {
-      // Gallop animation
+      // ── True Gallop Animation ──
+      // Based on real dog kinematics (1 bound per stride)
       const speed = this.moveSpeed * 0.055; 
       const stride = time * speed * 0.001;
-      const bounce = Math.abs(Math.sin(stride * 1.5)) * 6;
 
-      this.parts.bodyDark.y = -6 + bounce;
-      this.parts.bodyTan.y = 2 + bounce;
-      this.parts.neck.y = -10 + bounce * 0.9;
-      this.parts.head.y = -22 + bounce * 0.7;
-      this.parts.snout.y = -20 + bounce * 0.7;
-      this.parts.earL.y = -34 + bounce * 0.7;
-      this.parts.earR.y = -34 + bounce * 0.7;
-      this.parts.tail.y = -4 + bounce;
+      // Gallop bound 
+      const gallopBound = Math.sin(stride) * 6; 
+
+      // Bounce the whole body container (spots included)
+      this.parts.bodyContainer.y = gallopBound;
+      
+      // Head dips relative to the body
+      this.parts.headContainer.y = gallopBound * 0.6;
+      
+      // Tail rises when extending, drops when gathering
+      this.parts.tail.angle = -60 + Math.sin(stride) * 25;
+
+      // Body Pitch
+      this.dogGroup.angle = Math.sin(stride) * 6;
 
       // Leg swings
-      this.parts.legFR.angle = Math.sin(stride) * 55;
-      this.parts.legBL.angle = Math.sin(stride) * 55;
+      const frontPhase = stride; 
+      this.parts.legFR.angle = Math.sin(frontPhase) * 55;
+      this.parts.legFL.angle = Math.sin(frontPhase - 0.6) * 55; 
+
+      const backPhase = stride + Math.PI; 
+      this.parts.legBR.angle = 15 + Math.sin(backPhase) * 60;
+      this.parts.legBL.angle = 15 + Math.sin(backPhase - 0.6) * 60; 
       
-      this.parts.legFL.angle = Math.sin(stride + Math.PI) * 55;
-      this.parts.legBR.angle = Math.sin(stride + Math.PI) * 55;
-      
-      // Wag tail while running
-      this.parts.tail.angle = -45 + Math.sin(stride * 3) * 20;
+      // Leg spots follow legs precisely
+      this.parts.spotBR.angle = this.parts.legBR.angle;
+      this.parts.spotFR.angle = this.parts.legFR.angle;
+
     } else {
       // Idle breathing animation
       const breathe = Math.sin(time * 0.003) * 2;
       
-      this.parts.bodyDark.y = -6 + breathe;
-      this.parts.bodyTan.y = 2 + breathe;
-      this.parts.neck.y = -10 + breathe * 0.5;
-      this.parts.head.y = -22 + breathe * 0.3;
-      this.parts.snout.y = -20 + breathe * 0.3;
-      this.parts.earL.y = -34 + breathe * 0.3;
-      this.parts.earR.y = -34 + breathe * 0.3;
-      this.parts.tail.y = -4 + breathe;
+      this.dogGroup.angle = 0;
+      
+      this.parts.bodyContainer.y = breathe;
+      this.parts.headContainer.y = breathe * 0.4;
 
       this.parts.legFR.angle = 0;
       this.parts.legBL.angle = 0;
       this.parts.legFL.angle = 0;
       this.parts.legBR.angle = 0;
+      
+      this.parts.spotBR.angle = 0;
+      this.parts.spotFR.angle = 0;
 
       // Happy idle tail wag
-      this.parts.tail.angle = -45 + Math.sin(time * 0.01) * 12;
+      this.parts.tail.angle = -60 + Math.sin(time * 0.01) * 12;
     }
 
     // Bite animation override
     if (time < this.lastBiteAt + 200) {
-      this.parts.head.angle = 15;
-      this.parts.snout.angle = 15;
-      this.parts.snout.y += 2;
+      this.parts.headContainer.angle = 15;
+      this.parts.snout.y = -18;
     } else {
-      this.parts.head.angle = 0;
-      this.parts.snout.angle = 0;
+      this.parts.headContainer.angle = 0;
+      this.parts.snout.y = -20;
     }
   }
 
