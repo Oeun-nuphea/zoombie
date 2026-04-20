@@ -186,7 +186,7 @@ export function createCombatDirector(scene, config) {
     if (isBossTarget(zombie)) {
       const isFinalBoss = Boolean(zombie?.isFinalBoss)
 
-      createBloodSplatter(scene, zombie.x, zombie.y, isFinalBoss ? 7 : 5)
+      createBloodSplatter(scene, zombie.x, zombie.y, isFinalBoss ? 100 : 5)
       createImpactBurst(scene, zombie.x, zombie.y - 10, {
         color: zombie.auraColor ?? (isFinalBoss ? 0xef4444 : 0xf97316),
         radius: isFinalBoss ? 28 : 20,

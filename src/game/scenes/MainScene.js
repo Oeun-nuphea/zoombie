@@ -321,7 +321,10 @@ export default class MainScene extends Phaser.Scene {
       spawnDirector: this.spawnDirector,
       upgradeDirector: this.upgradeDirector,
       soundManager: this.soundManager,
-      onCampaignVictory: () => this.startExtractionPhase(),
+      onCampaignVictory: () => {
+        this.gameStore.finishVictory();
+        this.scheduleVictory();
+      },
       pauseGameplay: () => this.pauseGameplay(),
       resumeGameplay: () => this.resumeGameplay(),
     });
