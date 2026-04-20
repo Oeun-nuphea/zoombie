@@ -18,8 +18,8 @@ export const PLAYER_CONFIG = {
   moveAcceleration: 0.38,
   moveDeceleration: 0.55,
   contactCooldown: 650,
-  knockbackForce: 450,
-  knockbackDecay: 0.82,
+  knockbackForce: 1000,
+  knockbackDecay: 0.88,
   muzzleLocalX: 53,
   muzzleLocalY: -45,
 }

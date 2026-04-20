@@ -169,7 +169,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   refreshDynamicCaps() {
-    this.setMaxVelocity(this.getMoveSpeed() + PLAYER_CONFIG.knockbackForce)
+    this.setMaxVelocity(this.getMoveSpeed())
   }
 
   move(moveVector, delta) {
@@ -321,12 +321,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   applyKnockback(fromX, fromY, forceScale = 1) {
-    const angle = Phaser.Math.Angle.Between(fromX, fromY, this.x, this.y)
-
-    this.impactVelocity.set(
-      Math.cos(angle) * PLAYER_CONFIG.knockbackForce * forceScale,
-      Math.sin(angle) * PLAYER_CONFIG.knockbackForce * forceScale,
-    )
+    // Zeroed out: zombies now grapple the player in place instead of knocking them back!
+    this.impactVelocity.set(0, 0);
   }
 
   applyImpulse(forceX, forceY, options = {}) {
