@@ -16,8 +16,8 @@ export const PLAYER_CARRIED_WEAPON_TEXTURE = Object.freeze({
   height: 48,
   originX: 18,
   originY: 18,
-  muzzleOffsetX: 69,
-  muzzleOffsetY: 11,
+  muzzleOffsetX: 56, // Distance from pivot (18) to the end of the M4 barrel (74)
+  muzzleOffsetY: 2,  // Distance from pivot (18) to center of the 4px thick barrel (20)
 })
 
 export const PLAYER_FRAME_POSES = Object.freeze({
