@@ -32,11 +32,11 @@ export const WEAPON_POOL_CONFIG = {
 }
 
 export const ZOMBIE_CONFIG = {
-  baseSpeed: 170,
-  speedPerWave: 12,
-  maxSpeed: 340,
-  baseHealth: 2,
-  healthStepEvery: 2,
+  baseSpeed: 220,       // was 170 — faster from wave 1
+  speedPerWave: 18,     // was 12  — ramps up quicker
+  maxSpeed: 420,        // was 340  — higher ceiling
+  baseHealth: 4,        // was 2   — takes more firepower to kill
+  healthStepEvery: 1,   // was 2   — HP goes up every wave
 }
 
 export const ELITE_MUTATIONS = {
@@ -80,7 +80,7 @@ export const HEADSHOT_CONFIG = {
 
 export const MINI_BOSS_CONFIG = {
   typeId: 'miniBoss',
-  waveInterval: 5,
+  waveInterval: 4,
   supportCountBase: 6,
   supportCountPerTier: 2,
   supportCountMax: 10,
@@ -233,7 +233,7 @@ export const RUN_MODE_CONFIG = {
   normal: {
     id: 'normal',
     label: 'Normal Mode',
-    maxWaves: 15,
+    maxWaves: 12,
   },
   endless: {
     id: 'endless',
@@ -244,7 +244,7 @@ export const RUN_MODE_CONFIG = {
 
 export const FINAL_BOSS_CONFIG = {
   typeId: 'giantBoss',
-  wave: 15,
+  wave: 12,
   bannerText: 'FINAL BOSS INCOMING',
   deathBannerText: 'FINAL BOSS DOWN',
   activeLabel: 'GIANT ZOMBIE',
@@ -727,14 +727,14 @@ export function getSpawnPointDefinitions(dimensions = GAME_DIMENSIONS) {
 export const SPAWN_POINT_DEFINITIONS = getSpawnPointDefinitions()
 
 export const WAVE_CONFIG = {
-  startCount: 7,
-  countIncreasePerWave: 3,
-  spawnBatchSize: 2,
-  baseSpawnInterval: 330,
-  spawnIntervalDecay: 30,
-  minSpawnInterval: 120,
-  baseAliveCap: 6,
-  aliveCapIncreaseEvery: 2,
+  startCount: 10,           // was 7  — more zombies from wave 1
+  countIncreasePerWave: 5,  // was 3  — grows faster each wave
+  spawnBatchSize: 3,        // was 2  — spawns more at once
+  baseSpawnInterval: 240,   // was 330 — spawns faster
+  spawnIntervalDecay: 40,   // was 30  — interval shrinks faster
+  minSpawnInterval: 80,     // was 120 — can spawn much faster at high waves
+  baseAliveCap: 9,          // was 6  — more on screen at once
+  aliveCapIncreaseEvery: 1, // was 2  — cap grows every wave
   interWaveDelay: 320,
   upgradeDelay: 700,
   startDelay: 220,
