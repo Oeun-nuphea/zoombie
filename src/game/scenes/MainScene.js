@@ -380,6 +380,7 @@ export default class MainScene extends Phaser.Scene {
         this.player.y,
         this.player,
       );
+      this.physics.add.collider(this.companionBot, this.obstacles);
     }
 
     // Replenish barrels every 2 waves

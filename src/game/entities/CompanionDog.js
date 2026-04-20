@@ -269,6 +269,71 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
     return closestZombie;
   }
 
+  steerTowards(targetX, targetY) {
+    let steerX = targetX;
+    let steerY = targetY;
+
+    if (this.scene.obstacles) {
+      let avoidX = 0;
+      let avoidY = 0;
+
+      const toTargetX = steerX - this.x;
+      const toTargetY = steerY - this.y;
+      const toTargetLen = Math.sqrt(toTargetX * toTargetX + toTargetY * toTargetY) || 1;
+      const dirX = toTargetX / toTargetLen;
+      const dirY = toTargetY / toTargetLen;
+
+      this.scene.obstacles.children.iterate((obs) => {
+        if (!obs || !obs.active) return;
+
+        const obsBodyW = obs.body?.width ?? 60;
+        const obsBodyH = obs.body?.height ?? 60;
+        const obsRadius = Math.max(obsBodyW, obsBodyH) * 0.5;
+        const avoidanceRadius = obsRadius + 45; // dog is smaller than zombie
+        const avoidanceRadiusSq = avoidanceRadius * avoidanceRadius;
+
+        const dx = this.x - obs.x;
+        const dy = this.y - obs.y;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq >= avoidanceRadiusSq || distSq <= 0) return;
+
+        const dist = Math.sqrt(distSq);
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        const proximityForce = ((avoidanceRadius - dist) / avoidanceRadius);
+        const pushStrength = proximityForce * proximityForce * 200;
+
+        avoidX += nx * pushStrength;
+        avoidY += ny * pushStrength;
+
+        const cross = dx * (targetY - this.y) - dy * (targetX - this.x);
+        const slideDir = cross > 0 ? 1 : -1;
+        const tangentX = -ny * slideDir;
+        const tangentY = nx * slideDir;
+        const slideStrength = proximityForce * 180;
+
+        avoidX += tangentX * slideStrength;
+        avoidY += tangentY * slideStrength;
+      });
+
+      const velSq = (this.body.velocity.x || 0) ** 2 + (this.body.velocity.y || 0) ** 2;
+      const distance = Phaser.Math.Distance.Between(this.x, this.y, targetX, targetY);
+      
+      // Stuck detection - apply strong lateral force if speed is unexpectedly low
+      if (velSq < 100 && distance > 50) {
+        avoidX += -dirY * 180;
+        avoidY += dirX * 180;
+      }
+
+      steerX += avoidX;
+      steerY += avoidY;
+    }
+
+    this.scene.physics.moveTo(this, steerX, steerY, this.moveSpeed);
+  }
+
   updateMovement(time) {
     if (time >= this.lastScanAt + this.scanInterval) {
       this.lastScannedTarget = this.getClosestZombie();
@@ -285,16 +350,14 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
         this.body.setVelocity(0, 0);
         this.biteTarget(target, time);
       } else {
-        const angle = Phaser.Math.Angle.Between(this.x, this.y, target.x, target.y);
-        this.body.setVelocity(Math.cos(angle) * this.moveSpeed, Math.sin(angle) * this.moveSpeed);
+        this.steerTowards(target.x, target.y);
       }
     } else {
       // Follow Player
       const distanceToPlayer = Phaser.Math.Distance.Between(this.x, this.y, this.player.x, this.player.y);
       
       if (distanceToPlayer > 100) {
-        const angleToPlayer = Phaser.Math.Angle.Between(this.x, this.y, this.player.x, this.player.y);
-        this.body.setVelocity(Math.cos(angleToPlayer) * this.moveSpeed, Math.sin(angleToPlayer) * this.moveSpeed);
+        this.steerTowards(this.player.x, this.player.y);
       } else {
         this.body.setVelocity(0, 0);
       }
