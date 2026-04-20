@@ -369,6 +369,8 @@ export function createDropDirector(scene, config) {
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, clear)
 
   return {
+    drops,
+    pickupDrop,
     clear,
     update,
     handleZombieDefeat,

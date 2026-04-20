@@ -281,22 +281,61 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  getClosestZombie() {
+  getPriorityTarget() {
     const maxRange = this.scanRange ?? 400;
+    const store = this.getGameStore();
+    if (!store) return null;
+
+    // 1. High Priority: Fetch health drops if player is bleeding out (< 30% HP)
+    if (store.health / (store.maxPlayerHealth || Number.POSITIVE_INFINITY) <= 0.3) {
+      let closestHealth = null;
+      let closestDist = maxRange * 2; 
+      
+      this.scene.dropDirector?.drops?.children?.iterate((drop) => {
+        if (!drop || !drop.active || drop.getData('itemType') !== 'health') return;
+        const dist = Phaser.Math.Distance.Between(this.x, this.y, drop.x, drop.y);
+        
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestHealth = drop;
+        }
+      });
+      
+      if (closestHealth) {
+        // We found a health kit to fetch!
+        return { type: 'health', entity: closestHealth };
+      }
+    }
+
+    // 2. Normal Priority: Intercept zombies + aggressive flank protection
     let closestZombie = null;
-    let closestDistance = maxRange;
+    let closestDist = maxRange;
+    let foundPriority = false;
 
     this.scene.zombies?.children?.iterate((zombie) => {
       if (!zombie.active || zombie.isDead) return;
       
-      const distance = Phaser.Math.Distance.Between(this.x, this.y, zombie.x, zombie.y);
-      if (distance < closestDistance) {
-        closestDistance = distance;
+      const dist = Phaser.Math.Distance.Between(this.x, this.y, zombie.x, zombie.y);
+      const isPriority = zombie.isLeaping || zombie.leaps;
+      
+      if (foundPriority && !isPriority) return;
+
+      if (isPriority && !foundPriority) {
+        foundPriority = true;
+        closestDist = maxRange; // Immediately lock onto leaping zombies from afar
+      }
+
+      if (dist < closestDist) {
+        closestDist = dist;
         closestZombie = zombie;
       }
     });
 
-    return closestZombie;
+    if (closestZombie) {
+      return { type: 'zombie', entity: closestZombie };
+    }
+
+    return null;
   }
 
   steerTowards(targetX, targetY) {
@@ -366,21 +405,37 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
 
   updateMovement(time) {
     if (time >= this.lastScanAt + this.scanInterval) {
-      this.lastScannedTarget = this.getClosestZombie();
+      this.lastScannedTarget = this.getPriorityTarget();
       this.lastScanAt = time;
     }
 
     const target = this.lastScannedTarget;
 
-    if (target && target.active && !target.isDead) {
-      // Chase Zombie
-      const distanceToTarget = Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y);
+    if (target && target.entity && target.entity.active) {
+      const entity = target.entity;
+      
+      // Avoid dead zombies
+      if (target.type === 'zombie' && entity.isDead) return;
 
-      if (distanceToTarget <= 40) {
-        this.body.setVelocity(0, 0);
-        this.biteTarget(target, time);
-      } else {
-        this.steerTowards(target.x, target.y);
+      const distanceToTarget = Phaser.Math.Distance.Between(this.x, this.y, entity.x, entity.y);
+
+      if (target.type === 'health') {
+        // Fetch behavior
+        if (distanceToTarget <= 30) {
+          this.body.setVelocity(0, 0);
+          this.scene.dropDirector?.pickupDrop(entity);
+          this.lastScannedTarget = null; // Resume normal tasks after fetching
+        } else {
+          this.steerTowards(entity.x, entity.y);
+        }
+      } else if (target.type === 'zombie') {
+        // Combat behavior
+        if (distanceToTarget <= 40) {
+          this.body.setVelocity(0, 0);
+          this.biteTarget(entity, time);
+        } else {
+          this.steerTowards(entity.x, entity.y);
+        }
       }
     } else {
       // Follow Player
