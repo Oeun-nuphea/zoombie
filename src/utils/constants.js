@@ -25,7 +25,7 @@ export const STORAGE_KEYS = {
 
 export const MAP_CONFIG = {
   arena1: { id: 'arena1', label: 'Training Field', desc: 'Open battlefield with 4 ruined buildings, mud bogs, and scattered cover walls.', cost: 0, default: true },
-  angkor: { id: 'angkor', label: 'Angkor Temple', desc: 'Layered courtyards with double moats. Narrow causeways create deadly choke points.', cost: 500, default: false },
+  angkor: { id: 'angkor', label: 'Sunken Courtyard', desc: 'Layered courtyards with double moats. Narrow causeways create deadly choke points.', cost: 500, default: false },
   pagoda: { id: 'pagoda', label: 'Serene Pagoda', desc: 'Five islands on a vast lake. Bridges funnel enemies — hold the crossing or drown.', cost: 750, default: false },
   palace: { id: 'palace', label: 'Royal Palace', desc: 'Throne room at the heart of a labyrinth. Armoury chambers and grand corridors.', cost: 1000, default: false },
 }
