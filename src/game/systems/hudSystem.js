@@ -363,7 +363,9 @@ export function createCombatHud(scene, _gameStore) {
       onComplete: () => overlay.destroy(),
     })
 
-    // ── 2. Screen shake ──
+    // ── 2. Screen shake + wave sound ──
+    scene.sound.play('wave-sound', { volume: 1.0 })
+
     scene.cameras.main.shake(
       isBoss ? 320 : 200,
       isBoss ? 0.006 : 0.003,

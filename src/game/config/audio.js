@@ -6,6 +6,7 @@ import playerDieUrl from '../../assets/sounds/player--die.mp3'
 import playerHitUrl from '../../assets/sounds/player-hit.wav'
 import shootUrl from '../../assets/sounds/gun-sound.wav'
 import shotgunShootUrl from '../../assets/sounds/snop-sound.wav'
+import waveSoundUrl from '../../assets/sounds/wave_sound.mp3'
 import zombieDeathUrl from '../../assets/sounds/zombie-death.wav'
 import zombieDieUrl from '../../assets/sounds/zombie-die.mp3'
 import zombieHitUrl from '../../assets/sounds/zombie-hit.wav'
@@ -109,5 +110,12 @@ export const SOUND_DEFINITIONS = {
     cooldownMs: 0,
     loop: true,
     allowRestart: false,
+  },
+  'wave-sound': {
+    key: 'wave-sound',
+    src: waveSoundUrl,
+    volume: 1.0,
+    poolSize: 1,
+    cooldownMs: 0,
   },
 }

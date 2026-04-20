@@ -16,7 +16,7 @@ import { createTurretDirector } from "../systems/turretSystem";
 import { createUpgradeDirector } from "../systems/upgradeSystem";
 import { createWaveDirector } from "../systems/waveSystem";
 import { createWeaponDirector } from "../systems/weaponSystem";
-import { createRadarSystem } from "../systems/radarSystem";
+// import { createRadarSystem } from "../systems/radarSystem"; // disabled — radar removed for challenge
 import { createPathfindingSystem } from "../systems/pathfindingSystem";
 import { createFogOfWarSystem } from "../systems/fogOfWarSystem";
 import { pinia } from "../../stores";
@@ -263,12 +263,8 @@ export default class MainScene extends Phaser.Scene {
       hud: this.hud,
       soundManager: this.soundManager,
     });
-    this.radar = createRadarSystem(this, {
-      player: this.player,
-      zombies: this.zombies,
-      obstacles: this.obstacles,
-      dimensions: { width, height },
-    });
+    // Radar disabled — removed for challenge (re-enable by restoring createRadarSystem import + this block)
+    this.radar = { update: () => {}, refreshLayout: () => {} };
     this.upgradeDirector = createUpgradeDirector(this, {
       player: this.player,
       zombies: this.zombies,
