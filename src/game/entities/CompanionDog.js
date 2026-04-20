@@ -7,8 +7,8 @@ const DOG_TIERS = [
     label: 'DOG ONLINE',
     biteCooldown: 500,
     biteDamage: 2,
-    scanRange: 400,
-    moveSpeed: 280,
+    scanRange: 600,
+    moveSpeed: 450,
     auraColor: 0x4ade80,
     auraAlpha: 0.38,
   },
@@ -17,8 +17,8 @@ const DOG_TIERS = [
     label: 'DOG UPGRADED',
     biteCooldown: 400,
     biteDamage: 3,
-    scanRange: 500,
-    moveSpeed: 320,
+    scanRange: 700,
+    moveSpeed: 550,
     auraColor: 0x38bdf8,
     auraAlpha: 0.5,
   },
@@ -27,8 +27,8 @@ const DOG_TIERS = [
     label: 'DOG OVERCLOCKED',
     biteCooldown: 300,
     biteDamage: 5,
-    scanRange: 600,
-    moveSpeed: 380,
+    scanRange: 800,
+    moveSpeed: 650,
     auraColor: 0xa78bfa,
     auraAlpha: 0.65,
   },
@@ -86,29 +86,29 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
     this.dogGroup.setDepth(20);
     this.dogGroup.setScale(0.85);
 
-    // --- Back Legs ---
-    const legBL = scene.add.ellipse(-10, 12, 8, 22, tan).setOrigin(0.5, 0.1);
-    const legFL = scene.add.ellipse(12, 12, 8, 22, tan).setOrigin(0.5, 0.1);
+    // --- Back Legs --- (longer)
+    const legBL = scene.add.ellipse(-14, 10, 8, 30, tan).setOrigin(0.5, 0.1);
+    const legFL = scene.add.ellipse(14, 10, 8, 30, tan).setOrigin(0.5, 0.1);
     
-    // --- Tail ---
-    const tail = scene.add.ellipse(-20, -2, 12, 32, dark).setOrigin(0.5, 0.1).setAngle(-35);
+    // --- Tail --- (bushy and angled down)
+    const tail = scene.add.ellipse(-24, -4, 10, 36, dark).setOrigin(0.5, 0.1).setAngle(-45);
     
     // --- Neck ---
-    const neck = scene.add.ellipse(18, -6, 16, 24, tan).setAngle(30);
+    const neck = scene.add.ellipse(18, -10, 14, 24, tan).setAngle(40);
 
-    // --- Body ---
-    const bodyTan = scene.add.ellipse(0, 4, 44, 20, tan);
-    const bodyDark = scene.add.ellipse(-3, -3, 40, 20, dark); // Saddle
+    // --- Body --- (slimmer torso, less round)
+    const bodyTan = scene.add.ellipse(0, 2, 48, 16, tan);
+    const bodyDark = scene.add.ellipse(-4, -6, 46, 18, dark); // Saddle 
     
-    // --- Head ---
-    const head = scene.add.ellipse(26, -18, 18, 18, tan);
-    const snout = scene.add.ellipse(35, -16, 16, 10, black); 
-    const earL = scene.add.triangle(23, -28, 0, 12, 5, 0, 10, 12, dark);
-    const earR = scene.add.triangle(28, -28, 0, 12, 5, 0, 10, 12, dark);
+    // --- Head --- (protruding and pointed)
+    const head = scene.add.ellipse(28, -22, 16, 16, tan);
+    const snout = scene.add.ellipse(38, -20, 14, 8, black); 
+    const earL = scene.add.triangle(25, -34, 0, 14, 4, 0, 8, 14, dark);
+    const earR = scene.add.triangle(31, -34, 0, 14, 4, 0, 8, 14, dark);
 
     // --- Front Legs ---
-    const legBR = scene.add.ellipse(-10, 12, 9, 22, tan).setOrigin(0.5, 0.1);
-    const legFR = scene.add.ellipse(12, 12, 9, 22, tan).setOrigin(0.5, 0.1);
+    const legBR = scene.add.ellipse(-14, 10, 9, 30, tan).setOrigin(0.5, 0.1);
+    const legFR = scene.add.ellipse(14, 10, 9, 30, tan).setOrigin(0.5, 0.1);
 
     this.dogGroup.add([
       legBL, legFL, tail, neck, bodyTan, bodyDark, head, snout, earL, earR, legBR, legFR
@@ -198,16 +198,16 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
       // Gallop animation
       const speed = this.moveSpeed * 0.055; 
       const stride = time * speed * 0.001;
-      const bounce = Math.abs(Math.sin(stride * 1.5)) * 5;
+      const bounce = Math.abs(Math.sin(stride * 1.5)) * 6;
 
-      this.parts.bodyDark.y = -3 + bounce;
-      this.parts.bodyTan.y = 4 + bounce;
-      this.parts.neck.y = -6 + bounce * 0.9;
-      this.parts.head.y = -18 + bounce * 0.7;
-      this.parts.snout.y = -16 + bounce * 0.7;
-      this.parts.earL.y = -28 + bounce * 0.7;
-      this.parts.earR.y = -28 + bounce * 0.7;
-      this.parts.tail.y = -2 + bounce;
+      this.parts.bodyDark.y = -6 + bounce;
+      this.parts.bodyTan.y = 2 + bounce;
+      this.parts.neck.y = -10 + bounce * 0.9;
+      this.parts.head.y = -22 + bounce * 0.7;
+      this.parts.snout.y = -20 + bounce * 0.7;
+      this.parts.earL.y = -34 + bounce * 0.7;
+      this.parts.earR.y = -34 + bounce * 0.7;
+      this.parts.tail.y = -4 + bounce;
 
       // Leg swings
       this.parts.legFR.angle = Math.sin(stride) * 55;
@@ -217,19 +217,19 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
       this.parts.legBR.angle = Math.sin(stride + Math.PI) * 55;
       
       // Wag tail while running
-      this.parts.tail.angle = -35 + Math.sin(stride * 2.5) * 20;
+      this.parts.tail.angle = -45 + Math.sin(stride * 3) * 20;
     } else {
       // Idle breathing animation
       const breathe = Math.sin(time * 0.003) * 2;
       
-      this.parts.bodyDark.y = -3 + breathe;
-      this.parts.bodyTan.y = 4 + breathe;
-      this.parts.neck.y = -6 + breathe * 0.5;
-      this.parts.head.y = -18 + breathe * 0.3;
-      this.parts.snout.y = -16 + breathe * 0.3;
-      this.parts.earL.y = -28 + breathe * 0.3;
-      this.parts.earR.y = -28 + breathe * 0.3;
-      this.parts.tail.y = -2 + breathe;
+      this.parts.bodyDark.y = -6 + breathe;
+      this.parts.bodyTan.y = 2 + breathe;
+      this.parts.neck.y = -10 + breathe * 0.5;
+      this.parts.head.y = -22 + breathe * 0.3;
+      this.parts.snout.y = -20 + breathe * 0.3;
+      this.parts.earL.y = -34 + breathe * 0.3;
+      this.parts.earR.y = -34 + breathe * 0.3;
+      this.parts.tail.y = -4 + breathe;
 
       this.parts.legFR.angle = 0;
       this.parts.legBL.angle = 0;
@@ -237,14 +237,14 @@ export default class CompanionDog extends Phaser.Physics.Arcade.Sprite {
       this.parts.legBR.angle = 0;
 
       // Happy idle tail wag
-      this.parts.tail.angle = -35 + Math.sin(time * 0.01) * 8;
+      this.parts.tail.angle = -45 + Math.sin(time * 0.01) * 12;
     }
 
     // Bite animation override
     if (time < this.lastBiteAt + 200) {
-      this.parts.head.angle = 20;
-      this.parts.snout.angle = 20;
-      this.parts.snout.y += 3;
+      this.parts.head.angle = 15;
+      this.parts.snout.angle = 15;
+      this.parts.snout.y += 2;
     } else {
       this.parts.head.angle = 0;
       this.parts.snout.angle = 0;
