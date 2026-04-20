@@ -22,6 +22,26 @@ export function createRadarSystem(scene, config) {
   const graphics = scene.add.graphics();
   graphics.setDepth(111).setScrollFactor(0);
   
+  const staticGraphics = scene.add.graphics();
+  staticGraphics.setDepth(110).setScrollFactor(0); // Right above the background, below dynamic entities
+  
+  function drawStaticElements() {
+    staticGraphics.clear();
+    if (!obstacles) return;
+    
+    // Top-left of the minimap rendering area
+    const startX = bg.x - mapW / 2;
+    const startY = bg.y - mapH / 2;
+
+    staticGraphics.fillStyle(0x64748b, 0.7);
+    obstacles.children?.iterate(obs => {
+      if (!obs || !obs.active) return;
+      const drawX = startX + (obs.x * scale);
+      const drawY = startY + (obs.y * scale);
+      staticGraphics.fillCircle(drawX, drawY, 2);
+    });
+  }
+
   function refreshLayout(dim) {
     const margin = 24;
     const hpOffsetY = 80; // Leave space for the HP element
@@ -31,6 +51,7 @@ export function createRadarSystem(scene, config) {
     const cy = mapH / 2 + margin + hpOffsetY;
     
     bg.setPosition(cx, cy);
+    drawStaticElements(); // Redraw static layer on resize/layout shift
   }
 
   function update() {
@@ -40,17 +61,6 @@ export function createRadarSystem(scene, config) {
     // Top-left of the minimap rendering area
     const startX = bg.x - mapW / 2;
     const startY = bg.y - mapH / 2;
-
-    // Draw Obstacles (Gray rects)
-    if (obstacles) {
-      graphics.fillStyle(0x64748b, 0.7);
-      obstacles.children?.iterate(obs => {
-        if (!obs || !obs.active) return;
-        const drawX = startX + (obs.x * scale);
-        const drawY = startY + (obs.y * scale);
-        graphics.fillCircle(drawX, drawY, 2);
-      });
-    }
     
     // Draw Zombies (Red dots)
     graphics.fillStyle(0xef4444, 0.8);
