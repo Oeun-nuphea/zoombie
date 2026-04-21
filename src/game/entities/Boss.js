@@ -7,7 +7,7 @@ const ATTACK_HOLD_MS = 220
 export default class Boss extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, config) {
     const animationType = config.animationType ?? config.typeId ?? 'miniBoss'
-    const baseFrameKey = `zombie-${animationType}-idle-0`
+    const baseFrameKey = config.spriteKey ? config.spriteKey : `zombie-${animationType}-idle-0`
     super(scene, x, y, scene.textures.exists(baseFrameKey) ? baseFrameKey : 'zombie-idle-0')
 
     scene.add.existing(this)
@@ -15,7 +15,8 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
 
     this.typeId = config.typeId
     this.typeName = config.typeName
-    this.animationPrefix = `zombie-${animationType}`
+    this.animationPrefix = config.spriteKey ? config.spriteKey : `zombie-${animationType}`
+    this.facesLeftNatively = config.facesLeft ?? false
     this.health = config.health
     this.maxHealth = config.maxHealth ?? config.health
     this.baseSpeed = config.speed
@@ -95,6 +96,14 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     this.setDepth(18)
     this.setCollideWorldBounds(true)
     this.shadow.setScale(this.scaleX, this.scaleY)
+    
+    // Custom spritesheet sizing normalization (like standard Zombies)
+    if (config.spriteKey) {
+       const displayH = Math.round(130 * this.scaleY)
+       const displayW = Math.round(displayH * (316 / 256))
+       this.setDisplaySize(displayW, displayH)
+    }
+
     this.play(this.getAnimationKey('idle'))
     this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, this.handleAnimationComplete, this)
   }
@@ -385,7 +394,7 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     const steerX = target.x - toTarget.x * spacing - toTarget.y * orbitMagnitude
     const steerY = target.y - toTarget.y * spacing + toTarget.x * orbitMagnitude
 
-    this.setFlipX(target.x < this.x)
+    this.setFlipX(this.facesLeftNatively ? (target.x > this.x) : (target.x < this.x))
 
     if (this.isAiSuspended(time) || this.isLocked(time)) {
       this.setVelocity(this.body.velocity.x * 0.74, this.body.velocity.y * 0.74)
