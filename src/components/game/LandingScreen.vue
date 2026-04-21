@@ -21,6 +21,9 @@
         <button class="header-action-btn" type="button" @click="showShop = true">
           💀 Upgrades
         </button>
+        <button class="header-action-btn" type="button" @click="showBestiary = true">
+          🧟 Bestiary
+        </button>
         <button class="header-action-btn header-action-btn--icon" type="button"
           :title="soundMuted ? 'Unmute sound' : 'Mute sound'" @click="toggleSound">
           {{ soundMuted ? '🔇' : '🔊' }}
@@ -75,7 +78,7 @@
     </div>
 
     <!-- ── Modals ── -->
-    <div v-if="showShop || showMapSelector || showSkinSelector"
+    <div v-if="showShop || showMapSelector || showSkinSelector || showBestiary"
       class="landing-screen__modal-backdrop responsive-overlay" @click.self="closePanels">
       <div class="landing-screen__modal responsive-overlay__panel">
 
@@ -177,6 +180,22 @@
 
 
 
+        <!-- Bestiary -->
+        <template v-else-if="showBestiary">
+          <p class="landing-screen__modal-label">The Horde</p>
+          <h2 class="landing-screen__modal-title">Subject Files</h2>
+          <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
+            <div class="challenge-picker__grid" style="grid-template-columns: repeat(5, 1fr); gap: 0.5rem;">
+              <div v-for="i in 5" :key="i" class="challenge-picker__card" style="padding: 0.5rem; text-align: center;">
+                <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 8px; margin-bottom: 0.5rem; background: rgba(0,0,0,0.5);">
+                  <img :src="`/assets/zombiles/z${i}.jpg`" alt="Zombie" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+                <span class="challenge-picker__card-name" style="font-size: 0.75rem;">Subject 0{{ i }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <button class="landing-screen__modal-close" type="button" @click="closePanels">
           Close
         </button>
@@ -219,6 +238,7 @@ const gameStore = useGameStore()
 const showShop = ref(false)
 const showMapSelector = ref(false)
 const showSkinSelector = ref(false)
+const showBestiary = ref(false)
 const pendingRunMode = ref('normal')
 const selectedChallenge = ref('none')
 const dropdownOpen = ref(false)
@@ -227,10 +247,10 @@ const soundMuted = ref(readStorage(STORAGE_KEYS.soundMuted, false))
 const runtimeProfile = getGameRuntimeProfile()
 
 const closePanels = () => {
-
   showShop.value = false
   showMapSelector.value = false
   showSkinSelector.value = false
+  showBestiary.value = false
 }
 
 const healthCost = computed(() => 50 * ((gameStore.metaUpgrades?.health || 0) + 1))

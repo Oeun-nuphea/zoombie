@@ -6,15 +6,15 @@ const ATTACK_HOLD_MS = 180
 
 export default class Zombie extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, config) {
-    const animationType = config.animationType ?? config.typeId ?? 'walker'
-    const baseFrameKey = `zombie-${animationType}-idle-0`
-    super(scene, x, y, scene.textures.exists(baseFrameKey) ? baseFrameKey : 'zombie-idle-0')
+    const animationType = config.animationType ?? config.typeId ?? 'z1'
+    const baseFrameKey = config.spriteKey ? config.spriteKey : `zombie-${animationType}-idle-0`
+    super(scene, x, y, scene.textures.exists(baseFrameKey) ? baseFrameKey : 'zombie-walker-idle-0')
 
     scene.add.existing(this)
     scene.physics.add.existing(this)
 
     this.typeId = config.typeId
-    this.animationPrefix = `zombie-${animationType}`
+    this.animationPrefix = config.spriteKey ? config.spriteKey : `zombie-${animationType}`
     
     // Elite processing Setup
     this.eliteMutationId = config.eliteMutation ?? null
@@ -34,6 +34,7 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     // Elites are worth 2.5x score
     this.scoreValue = Math.floor(config.scoreValue * (this.isElite ? 2.5 : 1))
     this.typeName = this.isElite ? `${this.eliteConfig.name} ${config.typeName}` : config.typeName
+    this.facesLeftNatively = config.facesLeft ?? false
     this.attackRange = config.attackRange
     this.damageCooldownMs = config.damageCooldownMs ?? 500
     this.hitStunMs = config.hitStunMs
@@ -140,6 +141,14 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     const eliteScaleMult = this.eliteConfig?.sizeMultiplier ?? 1
     const baseScale = config.scale ?? 0.82
     this.setScale(baseScale * eliteScaleMult)
+
+    // Custom spritesheet frames are 316×256 but procedural were ~128×128.
+    // Force display size to correct proportions so they don't render as huge cards.
+    if (config.spriteKey) {
+      const displayH = Math.round(130 * baseScale * eliteScaleMult)
+      const displayW = Math.round(displayH * (316 / 256))
+      this.setDisplaySize(displayW, displayH)
+    }
     
     // Keep hitbox roughly aligned with potentially scaled up elites
     this.body.setSize(config.bodyWidth ?? 36, config.bodyHeight ?? 44)
@@ -355,7 +364,9 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     const steerY = baseTargetY + Math.cos(wobblePhase * 0.8) * this.wobbleAmount * 0.35
     const distance = Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y)
 
-    this.setFlipX(steerX < this.x)
+    // A zombie natively facing LEFT needs to flip when moving RIGHT (steerX > this.x)
+    // A zombie natively facing RIGHT needs to flip when moving LEFT (steerX < this.x)
+    this.setFlipX(this.facesLeftNatively ? (steerX > this.x) : (steerX < this.x))
 
     // Trigger zombie coming sound exactly once as it gets close to player
     if (distance < 280 && !this.playedComingSound) {
@@ -769,12 +780,30 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.state = state
+
+    // Fail-safe: Avoid missing frame green boxes if custom spritesheet parsing fails
+    if (!this.scene.anims.exists(animationKey)) {
+      if (this.texture.key !== 'zombie-walker-idle-0') {
+        const defaultWidth = this.body.width
+        const defaultHeight = this.body.height
+        this.setTexture('zombie-walker-idle-0')
+        this.setDisplaySize(defaultWidth * 1.5, defaultHeight * 1.5)
+      }
+      return
+    }
+
     this.play(animationKey, true)
   }
 
   playOnce(state) {
     this.state = state
-    this.play(this.getAnimationKey(state), true)
+    const animationKey = this.getAnimationKey(state)
+
+    if (!this.scene.anims.exists(animationKey)) {
+      return // Same fallback protection, don't play missing animations
+    }
+
+    this.play(animationKey, true)
   }
 
   drawHealthBar() {

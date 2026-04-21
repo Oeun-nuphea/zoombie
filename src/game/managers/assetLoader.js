@@ -1941,3 +1941,72 @@ export function registerPlaceholderTextures(scene) {
   }
 }
 
+export function registerCustomZombieAnimations(scene) {
+  for (let i = 1; i <= 5; i++) {
+    const key = `z${i}`
+    
+    // Safety check - ensures textures are actually loaded before setting animations
+    if (!scene.textures.exists(key)) continue;
+
+    const tex = scene.textures.get(key)
+    // Force manual slice if the Phaser Spritesheet Parser failed to slice it during load
+    if (tex.frameTotal <= 2) {
+      let index = 0;
+      for (let y = 0; y < 4; y++) {
+        for (let x = 0; x < 3; x++) {
+          tex.add(index++, 0, x * 316, y * 256, 316, 256)
+        }
+      }
+    }
+
+    try {
+      if (!scene.anims.exists(`${key}-idle`)) {
+        scene.anims.create({
+          key: `${key}-idle`,
+          frames: scene.anims.generateFrameNumbers(key, { start: 0, end: 2 }),
+          frameRate: 6,
+          repeat: -1
+        })
+      }
+
+      if (!scene.anims.exists(`${key}-walk`)) {
+        scene.anims.create({
+          key: `${key}-walk`,
+          frames: scene.anims.generateFrameNumbers(key, { start: 3, end: 6 }),
+          frameRate: 10,
+          repeat: -1
+        })
+      }
+
+      if (!scene.anims.exists(`${key}-attack`)) {
+        scene.anims.create({
+          key: `${key}-attack`,
+          frames: scene.anims.generateFrameNumbers(key, { start: 7, end: 10 }),
+          frameRate: 12,
+          repeat: 0
+        })
+      }
+
+      if (!scene.anims.exists(`${key}-death`)) {
+        scene.anims.create({
+          key: `${key}-death`,
+          frames: scene.anims.generateFrameNumbers(key, { start: 10, end: 11 }),
+          frameRate: 8,
+          repeat: 0
+        })
+      }
+      
+      if (!scene.anims.exists(`${key}-hit`)) {
+        scene.anims.create({
+          key: `${key}-hit`,
+          frames: [{ key: key, frame: 6 }],
+          frameRate: 10,
+          repeat: 0
+        })
+      }
+    } catch (e) {
+      console.warn('Failed to parse frame animation for', key, e)
+    }
+  }
+}
+

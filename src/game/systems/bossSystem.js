@@ -324,7 +324,7 @@ export function createBossDirector(scene, config) {
         y: activeBoss.y + Math.sin(angle) * (ability.radius ?? 110) * 0.35,
         radius: (ability.radius ?? 110) * 0.34,
       }
-      const typeId = Phaser.Utils.Array.GetRandom(ability.spawnTypes ?? ['walker', 'runner'])
+      const typeId = Phaser.Utils.Array.GetRandom(ability.spawnTypes ?? ['goreWalker', 'hoodieRunner'])
       const minion = spawnDirector.spawnZombie(activeWave, {
         basePoint,
         typeId,

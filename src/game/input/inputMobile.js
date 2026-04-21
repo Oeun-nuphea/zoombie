@@ -105,7 +105,7 @@ export function createMobileInput(scene, config = {}) {
       return distanceSq * 0.72
     }
 
-    if (target.typeId === 'runner') {
+    if (target.typeId === 'z1') {
       return distanceSq * 0.84
     }
 

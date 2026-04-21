@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-import { registerPlaceholderTextures } from "../managers/assetLoader";
+import { registerPlaceholderTextures, registerCustomZombieAnimations } from "../managers/assetLoader";
 import { getSoundManager, preloadGameAudio } from "../systems/soundManager";
 import { ARENA_MAP_ASSETS } from "../../utils/constants";
 
@@ -29,6 +29,16 @@ export default class BootScene extends Phaser.Scene {
     // Load our new highly detailed photorealistic terrain tiles
     this.load.image("terrain-tiles", "/assets/images/terrain-tiles.png");
 
+    // Load custom zombie sprites as 316x256 (3 cols, 4 rows grid from 948x1024)
+    // ?v=${Date.now()} forcefully bypasses all browser caching strategies
+    const cacheBuster = Date.now();
+    for (let i = 1; i <= 5; i++) {
+        this.load.spritesheet(`z${i}`, `/assets/zombiles/z${i}_frame.png?v=${cacheBuster}`, { 
+            frameWidth: 316, 
+            frameHeight: 256 
+        });
+    }
+
     this.load.tilemapTiledJSON("arena1", "/assets/maps/arena1.json");
     this.load.tilemapTiledJSON("angkor", "/assets/maps/angkor.json");
     this.load.tilemapTiledJSON("pagoda", "/assets/maps/pagoda.json");
@@ -37,6 +47,7 @@ export default class BootScene extends Phaser.Scene {
 
   create() {
     registerPlaceholderTextures(this);
+    registerCustomZombieAnimations(this);
 
     const missingMaps = ARENA_MAP_ASSETS.filter(
       (a) => !this.textures.exists(a.key),

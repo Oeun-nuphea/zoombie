@@ -17,7 +17,7 @@ function pickWeightedZombieType(weightTable) {
     }
   }
 
-  return weightTable[0]?.id ?? 'walker'
+  return weightTable[0]?.id ?? 'z1'
 }
 
 function projectSpawnPoint(basePoint, dimensions) {
