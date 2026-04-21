@@ -38,6 +38,16 @@ export default class BootScene extends Phaser.Scene {
             frameHeight: 256 
         });
     }
+    
+    // Load custom bosses
+    this.load.spritesheet(`giantBoss`, `/assets/zombiles/giantBoss_frame.png?v=${cacheBuster}`, { 
+        frameWidth: 316, 
+        frameHeight: 256 
+    });
+    this.load.spritesheet(`miniBoss`, `/assets/zombiles/miniBoss_frame.png?v=${cacheBuster}`, { 
+        frameWidth: 316, 
+        frameHeight: 256 
+    });
 
     this.load.tilemapTiledJSON("arena1", "/assets/maps/arena1.json");
     this.load.tilemapTiledJSON("angkor", "/assets/maps/angkor.json");

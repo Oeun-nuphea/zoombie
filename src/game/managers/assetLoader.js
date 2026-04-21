@@ -1942,8 +1942,8 @@ export function registerPlaceholderTextures(scene) {
 }
 
 export function registerCustomZombieAnimations(scene) {
-  for (let i = 1; i <= 5; i++) {
-    const key = `z${i}`
+  const customKeys = ['z1', 'z2', 'z3', 'z4', 'z5', 'giantBoss', 'miniBoss'];
+  for (const key of customKeys) {
     
     // Safety check - ensures textures are actually loaded before setting animations
     if (!scene.textures.exists(key)) continue;
