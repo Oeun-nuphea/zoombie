@@ -112,6 +112,7 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.lastDamageAt = -Infinity
     this.hitFlashEvent = null
     this.damageHitboxCache = null
+    this.playedComingSound = false
     this.shadow = scene.add.ellipse(
       x + this.shadowOffsetX,
       y + this.shadowOffsetY,
@@ -355,6 +356,14 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     const distance = Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y)
 
     this.setFlipX(steerX < this.x)
+
+    // Trigger zombie coming sound exactly once as it gets close to player
+    if (distance < 280 && !this.playedComingSound) {
+      this.playedComingSound = true;
+      this.scene.soundManager?.play('zombie-coming', {
+        rate: Phaser.Math.FloatBetween(0.85, 1.15)
+      });
+    }
 
     if (this.isAiSuspended(time)) {
       this.setVelocity(this.body.velocity.x * 0.78, this.body.velocity.y * 0.78)

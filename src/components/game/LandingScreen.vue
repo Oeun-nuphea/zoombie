@@ -2,128 +2,81 @@
   <section class="landing-screen">
     <div class="landing-screen__backdrop"></div>
     <div class="landing-screen__grain"></div>
+    <header class="landing-header">
+      <div class="landing-header__stats">
+        <div class="header-stat">
+          <span class="header-stat__label">Best Score</span>
+          <span class="header-stat__value">{{ formatScore(gameStore.bestScore) }}</span>
+        </div>
+        <div class="header-stat">
+          <span class="header-stat__label">Souls</span>
+          <span class="header-stat__value header-stat__value--souls">{{ gameStore.souls }} 💀</span>
+        </div>
+      </div>
+
+      <div class="landing-header__actions">
+        <button class="header-action-btn" type="button" @click="showSkinSelector = true">
+          👕 Operatives
+        </button>
+        <button class="header-action-btn" type="button" @click="showShop = true">
+          💀 Upgrades
+        </button>
+        <button class="header-action-btn header-action-btn--icon" type="button"
+          :title="soundMuted ? 'Unmute sound' : 'Mute sound'" @click="toggleSound">
+          {{ soundMuted ? '🔇' : '🔊' }}
+        </button>
+      </div>
+    </header>
+
     <div class="landing-screen__content">
 
       <!-- ── Hero ── -->
       <div class="landing-screen__hero">
-        <p class="landing-screen__eyebrow">Top-Down Survival Shooter</p>
-        <h1 class="landing-screen__title">{{ APP_NAME }}</h1>
-        <p class="landing-screen__tagline">
-          Hold the line. Cut through the swarm. Build a run that actually changes how you survive.
-        </p>
-        <p class="landing-screen__description">
-          You are the last survivor in a dark, overrun arena. Waves of relentless undead pour in
-          from every direction — Walkers, Runners, armored Tanks, and poison-spewing Toxics.
-        </p>
-
-        <!-- Run Modifier -->
-        <div class="challenge-picker">
-          <p class="challenge-picker__label">Run Modifier</p>
-          <div class="challenge-picker__grid">
-            <button
-              v-for="(challenge, key) in CHALLENGES"
-              :key="key"
-              type="button"
-              class="challenge-picker__card"
-              :class="{ 'challenge-picker__card--active': selectedChallenge === key }"
-              @click="selectedChallenge = key"
-            >
-              <span class="challenge-picker__card-icon">{{ CHALLENGE_ICONS[key] }}</span>
-              <span class="challenge-picker__card-name">{{ challenge.label }}</span>
-            </button>
-          </div>
-          <p class="challenge-picker__desc">{{ CHALLENGES[selectedChallenge].desc }}</p>
-        </div>
+        <img src="/logo.png" alt="Logo" class="landing-screen__logo" />
 
         <!-- Primary Actions -->
         <div class="landing-screen__actions">
           <button class="landing-screen__play-button" type="button" @click="initiateStartGame('normal')">
             ▶ Start Game
           </button>
-          <button
-            v-if="gameStore.endlessUnlocked"
-            class="landing-screen__secondary-button"
-            type="button"
-            @click="initiateStartGame('endless')"
-          >
+          <button v-if="gameStore.endlessUnlocked" class="landing-screen__secondary-button" type="button"
+            @click="initiateStartGame('endless')">
             ∞ Endless
-          </button>
-          <button class="landing-screen__secondary-button" type="button" @click="showHowToPlay = true">
-            ? How to Play
           </button>
         </div>
       </div>
 
-      <!-- ── Side Panel ── -->
-      <aside class="landing-screen__panel">
-
-        <!-- Stats row -->
-        <div class="panel-stats">
-          <div class="panel-stat">
-            <p class="panel-stat__label">Best Score</p>
-            <p class="panel-stat__value">{{ formatScore(gameStore.bestScore) }}</p>
+      <!-- ── Corner Modifier ── -->
+      <div class="landing-corner-modifiers">
+        <div class="challenge-picker" @mouseleave="dropdownOpen = false">
+          <p class="challenge-picker__label">Run Modifier</p>
+          <div class="custom-dropdown" :class="{ 'is-open': dropdownOpen }">
+            <div class="custom-dropdown__selected" @click="dropdownOpen = !dropdownOpen">
+              <span class="custom-dropdown__value">
+                {{ CHALLENGE_ICONS[selectedChallenge] }} <span style="margin-left: 0.5rem">{{ CHALLENGES[selectedChallenge].label }}</span>
+              </span>
+              <span class="custom-dropdown__arrow">▼</span>
+            </div>
+            
+            <ul class="custom-dropdown__options" v-if="dropdownOpen">
+              <li 
+                v-for="(challenge, key) in CHALLENGES" 
+                :key="key" 
+                @click="selectedChallenge = key; dropdownOpen = false"
+                :class="{'is-active': selectedChallenge === key}"
+              >
+                {{ CHALLENGE_ICONS[key] }} <span style="margin-left: 0.5rem">{{ challenge.label }}</span>
+              </li>
+            </ul>
           </div>
-          <div class="panel-stat">
-            <p class="panel-stat__label">Souls</p>
-            <p class="panel-stat__value panel-stat__value--souls">{{ gameStore.souls }}</p>
-          </div>
+          <p class="challenge-picker__desc" v-if="selectedChallenge !== 'none'">{{ CHALLENGES[selectedChallenge].desc }}</p>
         </div>
-
-        <!-- What awaits -->
-        <div class="landing-screen__panel-block">
-          <p class="landing-screen__panel-label">What Awaits</p>
-          <ul class="landing-screen__awaits">
-            <li>15 escalating waves of undead chaos</li>
-            <li>4 zombie types with unique behaviours</li>
-            <li>Epic boss every 5 waves</li>
-            <li>Draft upgrades between waves</li>
-            <li v-if="gameStore.endlessUnlocked">♾ Endless Mode unlocked</li>
-          </ul>
-        </div>
-
-        <!-- Controls -->
-        <div class="landing-screen__panel-block">
-          <p class="landing-screen__panel-label">Controls</p>
-          <p class="landing-screen__controls-mode">Desktop</p>
-          <ul class="landing-screen__controls">
-            <li><span>WASD</span><strong>Move</strong></li>
-            <li><span>Mouse</span><strong>Aim</strong></li>
-            <li><span>Click</span><strong>Shoot</strong></li>
-          </ul>
-          <p class="landing-screen__controls-mode" style="margin-top: 0.75rem">Mobile</p>
-          <ul class="landing-screen__controls">
-            <li><span>Joystick</span><strong>Move</strong></li>
-            <li><span>Auto</span><strong>Aim &amp; Fire</strong></li>
-          </ul>
-        </div>
-
-        <!-- Panel actions -->
-        <div class="panel-actions">
-          <button class="panel-action-btn" type="button" @click="showSkinSelector = true">
-            👕 Operatives
-          </button>
-          <button class="panel-action-btn" type="button" @click="showShop = true">
-            💀 Upgrades Shop
-          </button>
-          <button
-            class="panel-action-btn panel-action-btn--icon"
-            type="button"
-            :title="soundMuted ? 'Unmute sound' : 'Mute sound'"
-            @click="toggleSound"
-          >
-            {{ soundMuted ? '🔇' : '🔊' }}
-          </button>
-        </div>
-
-      </aside>
+      </div>
     </div>
 
     <!-- ── Modals ── -->
-    <div
-      v-if="showHowToPlay || showShop || showMapSelector || showSkinSelector"
-      class="landing-screen__modal-backdrop responsive-overlay"
-      @click.self="closePanels"
-    >
+    <div v-if="showShop || showMapSelector || showSkinSelector"
+      class="landing-screen__modal-backdrop responsive-overlay" @click.self="closePanels">
       <div class="landing-screen__modal responsive-overlay__panel">
 
         <!-- Map Selector Mode -->
@@ -132,19 +85,13 @@
           <h2 class="landing-screen__modal-title">Where to Deploy?</h2>
           <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
             <div class="challenge-picker__grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
-              <button
-                v-for="(mapConfig, key) in MAP_CONFIG"
-                :key="key"
-                type="button"
-                class="challenge-picker__card"
-                :class="{ 
+              <button v-for="(mapConfig, key) in MAP_CONFIG" :key="key" type="button" class="challenge-picker__card"
+                :class="{
                   'challenge-picker__card--active': previewMap === key,
                   'shop-item__btn--disabled': !mapConfig.default && !gameStore.unlockedMaps.includes(key)
-                }"
-                @click="previewMap = key"
-                style="padding: 1rem; border-radius: 12px; min-height: 5.5rem;"
-              >
-                <span class="challenge-picker__card-icon" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;">{{ MAP_ICONS[key] }}</span>
+                }" @click="previewMap = key" style="padding: 1rem; border-radius: 12px; min-height: 5.5rem;">
+                <span class="challenge-picker__card-icon"
+                  style="font-size: 2rem; margin-bottom: 0.5rem; display: block;">{{ MAP_ICONS[key] }}</span>
                 <span class="challenge-picker__card-name" style="font-size: 0.85rem;">{{ mapConfig.label }}</span>
               </button>
             </div>
@@ -154,20 +101,13 @@
                 <h4 class="shop-item__name">{{ MAP_CONFIG[previewMap]?.label }}</h4>
                 <p class="shop-item__sub">{{ MAP_CONFIG[previewMap]?.desc }}</p>
               </div>
-              <button
-                v-if="!MAP_CONFIG[previewMap]?.default && !gameStore.unlockedMaps.includes(previewMap)"
+              <button v-if="!MAP_CONFIG[previewMap]?.default && !gameStore.unlockedMaps.includes(previewMap)"
                 class="landing-screen__play-button shop-item__btn"
                 :disabled="gameStore.souls < MAP_CONFIG[previewMap].cost"
-                :class="{ 'shop-item__btn--disabled': gameStore.souls < MAP_CONFIG[previewMap].cost }"
-                @click="buyMap"
-              >
+                :class="{ 'shop-item__btn--disabled': gameStore.souls < MAP_CONFIG[previewMap].cost }" @click="buyMap">
                 Unlock ({{ MAP_CONFIG[previewMap].cost }} 💀)
               </button>
-              <button
-                v-else
-                class="landing-screen__play-button shop-item__btn"
-                @click="confirmMapAndStart"
-              >
+              <button v-else class="landing-screen__play-button shop-item__btn" @click="confirmMapAndStart">
                 ▶ Start
               </button>
             </div>
@@ -180,14 +120,9 @@
           <h2 class="landing-screen__modal-title">Select Operative</h2>
           <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
             <div class="challenge-picker__grid">
-              <button
-                v-for="(skinConfig, key) in PLAYER_SKINS"
-                :key="key"
-                type="button"
-                class="challenge-picker__card"
+              <button v-for="(skinConfig, key) in PLAYER_SKINS" :key="key" type="button" class="challenge-picker__card"
                 :class="{ 'challenge-picker__card--active': gameStore.selectedSkin === key }"
-                @click="gameStore.setSelectedSkin(key)"
-              >
+                @click="gameStore.setSelectedSkin(key)">
                 <div class="challenge-picker__card-header">
                   <span class="challenge-picker__card-icon">
                     <span v-if="key === 'swat'">🥷</span>
@@ -207,50 +142,40 @@
           <p class="landing-screen__modal-label">Meta Shop</p>
           <h2 class="landing-screen__modal-title">Spend Souls</h2>
           <div class="landing-screen__modal-copy">
-            <p>You have <strong style="color: #c084fc; font-size: 1.1rem; text-shadow: 0 0 10px rgba(192,132,252,0.4);">{{ gameStore.souls }} Zombie Souls</strong>.</p>
+            <p>You have <strong
+                style="color: #c084fc; font-size: 1.1rem; text-shadow: 0 0 10px rgba(192,132,252,0.4);">{{
+                gameStore.souls }} Zombie Souls</strong>.</p>
             <div class="shop-items">
               <div class="shop-item">
                 <div>
-                  <h4 class="shop-item__name">Base Health +1 <span v-if="(gameStore.metaUpgrades?.health || 0) >= 20" class="shop-item__max">MAX</span></h4>
+                  <h4 class="shop-item__name">Base Health +1 <span v-if="(gameStore.metaUpgrades?.health || 0) >= 20"
+                      class="shop-item__max">MAX</span></h4>
                   <p class="shop-item__sub">{{ gameStore.metaUpgrades?.health || 0 }} / 20 levels</p>
                 </div>
-                <button
-                  class="landing-screen__play-button shop-item__btn"
+                <button class="landing-screen__play-button shop-item__btn"
                   :disabled="gameStore.souls < healthCost || (gameStore.metaUpgrades?.health || 0) >= 20"
                   :class="{ 'shop-item__btn--disabled': gameStore.souls < healthCost || (gameStore.metaUpgrades?.health || 0) >= 20 }"
-                  @click="buyHealth"
-                >{{ (gameStore.metaUpgrades?.health || 0) >= 20 ? 'MAX' : `${healthCost} 💀` }}</button>
+                  @click="buyHealth">{{ (gameStore.metaUpgrades?.health || 0) >= 20 ? 'MAX' : `${healthCost} 💀`
+                  }}</button>
               </div>
               <div class="shop-item">
                 <div>
-                  <h4 class="shop-item__name">Base Speed +5% <span v-if="(gameStore.metaUpgrades?.speed || 0) >= 10" class="shop-item__max">MAX</span></h4>
-                  <p class="shop-item__sub">{{ gameStore.metaUpgrades?.speed || 0 }} / 10 levels (+{{ (Math.min(gameStore.metaUpgrades?.speed || 0, 10)) * 5 }}%)</p>
+                  <h4 class="shop-item__name">Base Speed +5% <span v-if="(gameStore.metaUpgrades?.speed || 0) >= 10"
+                      class="shop-item__max">MAX</span></h4>
+                  <p class="shop-item__sub">{{ gameStore.metaUpgrades?.speed || 0 }} / 10 levels (+{{
+                    (Math.min(gameStore.metaUpgrades?.speed || 0, 10)) * 5 }}%)</p>
                 </div>
-                <button
-                  class="landing-screen__play-button shop-item__btn"
+                <button class="landing-screen__play-button shop-item__btn"
                   :disabled="gameStore.souls < speedCost || (gameStore.metaUpgrades?.speed || 0) >= 10"
                   :class="{ 'shop-item__btn--disabled': gameStore.souls < speedCost || (gameStore.metaUpgrades?.speed || 0) >= 10 }"
-                  @click="buySpeed"
-                >{{ (gameStore.metaUpgrades?.speed || 0) >= 10 ? 'MAX' : `${speedCost} 💀` }}</button>
+                  @click="buySpeed">{{ (gameStore.metaUpgrades?.speed || 0) >= 10 ? 'MAX' : `${speedCost} 💀`
+                  }}</button>
               </div>
             </div>
           </div>
         </template>
 
-        <!-- How To Play -->
-        <template v-else-if="showHowToPlay">
-          <p class="landing-screen__modal-label">How To Play</p>
-          <h2 class="landing-screen__modal-title">Stay moving. Build the run.</h2>
-          <div class="landing-screen__modal-copy">
-            <p>Every few waves you draft an upgrade. Boss waves drop weapon rewards. Strong builds come from synergy, not one stat.</p>
-            <ul class="landing-screen__modal-list">
-              <li>Keep distance from Tanks and Toxic zombies.</li>
-              <li>Headshots hit harder and can trigger ammo recovery upgrades.</li>
-              <li>Dash and shield only appear after picking the related upgrades.</li>
-              <li><strong>On mobile</strong> — the gun auto-aims and auto-fires at the nearest threat. Use the joystick to move.</li>
-            </ul>
-          </div>
-        </template>
+
 
         <button class="landing-screen__modal-close" type="button" @click="closePanels">
           Close
@@ -290,18 +215,19 @@ const MAP_ICONS = {
 
 const router = useRouter()
 const gameStore = useGameStore()
-const showHowToPlay = ref(false)
+
 const showShop = ref(false)
 const showMapSelector = ref(false)
 const showSkinSelector = ref(false)
 const pendingRunMode = ref('normal')
 const selectedChallenge = ref('none')
+const dropdownOpen = ref(false)
 const previewMap = ref(gameStore.selectedMap || 'arena1')
 const soundMuted = ref(readStorage(STORAGE_KEYS.soundMuted, false))
 const runtimeProfile = getGameRuntimeProfile()
 
 const closePanels = () => {
-  showHowToPlay.value = false
+
   showShop.value = false
   showMapSelector.value = false
   showSkinSelector.value = false
@@ -357,57 +283,192 @@ async function confirmMapAndStart() {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap');
+
 /* ── Root ─────────────────────────────────────────────────── */
 .landing-screen {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(248, 113, 113, 0.24), transparent 34%),
-    radial-gradient(circle at 80% 0%, rgba(245, 158, 11, 0.18), transparent 28%),
-    linear-gradient(180deg, #080a0d 0%, #11161c 46%, #060709 100%);
+  background: #030407;
   color: #f8fafc;
+  font-family: 'Outfit', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes bg-pan {
+  0% {
+    transform: scale(1.05) translate(0, 0);
+  }
+
+  50% {
+    transform: scale(1.12) translate(-1%, 2%);
+  }
+
+  100% {
+    transform: scale(1.05) translate(0, 0);
+  }
 }
 
 .landing-screen__backdrop {
   position: absolute;
-  inset: 0;
+  inset: -10%;
   background:
-    linear-gradient(90deg, rgba(7,9,12,0.88) 0%, rgba(7,9,12,0.6) 48%, rgba(7,9,12,0.85) 100%),
-    url('/assets/maps/field-map.png') center / cover no-repeat;
-  filter: saturate(0.72) brightness(0.4);
-  transform: scale(1.06);
+    radial-gradient(circle at 40% 40%, rgba(220, 38, 38, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
+    linear-gradient(135deg, rgba(3, 4, 7, 0.95) 0%, rgba(3, 4, 7, 0.4) 50%, rgba(3, 4, 7, 0.9) 100%);
+  filter: saturate(0.6) brightness(0.6) contrast(1.2);
+  animation: bg-pan 45s ease-in-out infinite alternate;
+  z-index: 0;
 }
 
 .landing-screen__grain {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
-  background-size: 4px 4px;
-  mix-blend-mode: soft-light;
-  opacity: 0.5;
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: 0.8;
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* ── Layout ───────────────────────────────────────────────── */
+.landing-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 3rem;
+  pointer-events: none;
+}
+
+.landing-header>* {
+  pointer-events: auto;
+}
+
+.landing-header__stats {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.header-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.header-stat__label {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.header-stat__value {
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #f8fafc;
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+.header-stat__value--souls {
+  background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(192, 132, 252, 0.4));
+}
+
+.landing-header__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.header-action-btn--icon {
+  padding: 0.6rem;
+  font-size: 1.2rem;
+}
+
 .landing-screen__content {
   position: relative;
-  z-index: 1;
-  display: grid;
-  min-height: 100vh;
-  grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 24rem);
-  gap: 2rem;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  padding: clamp(1.5rem, 3vw, 3rem);
+  width: 100vw;
+  min-height: 100vh;
+  padding: 0 2rem;
 }
 
 .landing-screen__hero {
-  max-width: 42rem;
-  padding-bottom: clamp(1rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  max-width: 50rem;
+  margin: 0 auto;
 }
 
-/* ── Typography ───────────────────────────────────────────── */
+@keyframes float-logo {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 15px 35px rgba(220, 38, 38, 0.5)) brightness(1);
+  }
+
+  50% {
+    transform: translateY(-8px);
+    filter: drop-shadow(0 25px 45px rgba(220, 38, 38, 0.8)) brightness(1.15);
+  }
+}
+
+.landing-screen__logo {
+  display: block;
+  max-width: 100%;
+  width: 36rem;
+  margin: 0 auto 2.5rem;
+  animation: float-logo 6s ease-in-out infinite;
+}
+
+/* ── Typography & Elements ────────────────────────────────── */
 .landing-screen__eyebrow {
   margin: 0 0 1rem;
   color: #fcd34d;
@@ -424,7 +485,7 @@ async function confirmMapAndStart() {
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-shadow: 0 10px 34px rgba(0,0,0,0.45);
+  text-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
 }
 
 .landing-screen__tagline {
@@ -447,79 +508,201 @@ async function confirmMapAndStart() {
 
 /* ── Challenge Picker ─────────────────────────────────────── */
 .challenge-picker {
-  margin-top: 1.75rem;
-  max-width: 26rem;
+  margin: 0 auto;
+  max-width: 24rem;
+  width: 100%;
 }
 
 .challenge-picker__label {
-  margin: 0 0 0.6rem;
+  margin: 0 0 0.75rem;
   color: #fcd34d;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 800;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(252, 211, 77, 0.3);
 }
 
+/* Dropdown specific */
+.landing-corner-modifiers {
+  position: absolute;
+  bottom: 2rem;
+  left: 2.5rem;
+  z-index: 10;
+  width: 22rem;
+}
+
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.custom-dropdown__selected {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #f8fafc;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.custom-dropdown__selected:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(252, 211, 77, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(252, 211, 77, 0.1);
+}
+
+.custom-dropdown.is-open .custom-dropdown__selected {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+}
+
+.custom-dropdown__arrow {
+  font-size: 0.8rem;
+  color: #fcd34d;
+  transition: transform 0.3s ease;
+}
+
+.custom-dropdown.is-open .custom-dropdown__arrow {
+  transform: rotate(180deg);
+}
+
+.custom-dropdown__options {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
+  background: rgba(10, 15, 24, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 20rem;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.custom-dropdown__options li {
+  padding: 0.85rem 1rem;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.custom-dropdown__options li:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+}
+
+.custom-dropdown__options li.is-active {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fcd34d;
+}
+
+/* Modals grid fallback */
 .challenge-picker__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .challenge-picker__card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.65rem 0.5rem;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  background: rgba(15, 23, 42, 0.55);
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
   color: #cbd5e1;
-  font: inherit;
-  font-size: 0.72rem;
+  font-family: inherit;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
   text-align: center;
-  line-height: 1.3;
-  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .challenge-picker__card:hover {
-  border-color: rgba(252, 211, 77, 0.35);
-  background: rgba(252, 211, 77, 0.07);
-  transform: translateY(-1px);
+  background: rgba(252, 211, 77, 0.08);
+  border-color: rgba(252, 211, 77, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(252, 211, 77, 0.15);
 }
 
 .challenge-picker__card--active {
   border-color: #fbbf24;
-  background: rgba(251, 191, 36, 0.12);
+  background: rgba(251, 191, 36, 0.15);
   color: #fcd34d;
-  box-shadow: 0 0 14px rgba(251,191,36,0.22), inset 0 0 0 1px rgba(251,191,36,0.25);
+  box-shadow: 0 10px 25px rgba(251, 191, 36, 0.25), inset 0 0 0 1px rgba(251, 191, 36, 0.4);
+  transform: translateY(-3px);
 }
 
-.challenge-picker__card-icon { font-size: 1.35rem; line-height: 1; }
-.challenge-picker__card-name { font-size: 0.66rem; }
+.challenge-picker__card-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.challenge-picker__card-name {
+  font-size: 0.7rem;
+}
 
 .challenge-picker__desc {
-  margin: 0.65rem 0 0;
+  margin: 1rem 0 0;
   color: #94a3b8;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  min-height: 2.4rem;
-  padding: 0.5rem 0.65rem;
-  border-left: 2px solid rgba(252, 211, 77, 0.3);
-  transition: color 150ms ease;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  min-height: 2.8rem;
+  padding: 0.6rem 1rem;
+  border-left: 3px solid rgba(252, 211, 77, 0.5);
+  background: linear-gradient(90deg, rgba(252, 211, 77, 0.05) 0%, transparent 100%);
+  border-radius: 0 8px 8px 0;
+  text-align: left;
 }
 
 /* ── Action Buttons ───────────────────────────────────────── */
 .landing-screen__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.85rem;
-  margin-top: 1.75rem;
+  justify-content: center;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 15px 35px rgba(220, 38, 38, 0.4), 0 0 20px rgba(220, 38, 38, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 20px 45px rgba(220, 38, 38, 0.6), 0 0 35px rgba(220, 38, 38, 0.4);
+  }
 }
 
 .landing-screen__play-button,
@@ -529,329 +712,246 @@ async function confirmMapAndStart() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 3.2rem;
   border: 0;
   border-radius: 999px;
-  font: inherit;
-  font-weight: 800;
+  font-family: inherit;
   cursor: pointer;
   text-decoration: none;
-  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .landing-screen__play-button {
-  min-width: 13rem;
-  padding: 1.1rem 1.8rem;
-  background: linear-gradient(180deg, #fbbf24 0%, #f97316 100%);
-  color: #130b06;
-  font-size: 1rem;
-  letter-spacing: 0.16em;
+  min-width: 16rem;
+  padding: 1.35rem 2.5rem;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  box-shadow: 0 18px 38px rgba(249,115,22,0.28);
+  animation: pulse-glow 3s infinite;
+  border: 1px solid rgba(255, 163, 163, 0.3);
 }
 
-.landing-screen__play-button:hover,
-.landing-screen__secondary-button:hover,
-.landing-screen__modal-close:hover {
-  transform: translateY(-2px);
+.landing-screen__play-button:hover {
+  transform: translateY(-4px) scale(1.02);
+  background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+  box-shadow: 0 25px 50px rgba(220, 38, 38, 0.6), 0 0 40px rgba(220, 38, 38, 0.5);
+  color: #fff;
 }
 
 .landing-screen__secondary-button,
 .landing-screen__settings-toggle,
 .landing-screen__modal-close {
-  padding: 0.95rem 1.3rem;
-  background: rgba(15, 23, 42, 0.7);
+  padding: 1.1rem 1.75rem;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(10px);
   color: #e2e8f0;
-  font-size: 0.85rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-}
-
-/* ── Side Panel ───────────────────────────────────────────── */
-.landing-screen__panel {
-  position: relative;
-  z-index: 1;
-  align-self: center;
-  padding: 1.35rem;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 1.45rem;
-  background: rgba(10, 13, 17, 0.74);
-  box-shadow: 0 28px 60px rgba(0,0,0,0.32);
-  backdrop-filter: blur(18px);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* Stats row */
-.panel-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin-bottom: 1.15rem;
-  padding-bottom: 1.15rem;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.panel-stat__label {
-  margin: 0 0 0.3rem;
-  color: rgba(252, 211, 77, 0.9);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-
-.panel-stat__value {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-}
-
-.panel-stat__value--souls { color: #c084fc; }
-
-.landing-screen__panel-block {
-  padding-top: 1.15rem;
-  margin-top: 1.15rem;
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-.landing-screen__panel-block:first-child { padding-top: 0; margin-top: 0; border-top: none; }
-
-.landing-screen__panel-label {
-  margin: 0 0 0.45rem;
-  color: rgba(252, 211, 77, 0.9);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-
-/* Awaits list */
-.landing-screen__awaits {
-  display: grid;
-  gap: 0.45rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.landing-screen__awaits li {
-  position: relative;
-  padding-left: 1.05rem;
-  color: rgba(226, 232, 240, 0.82);
-  font-size: 0.85rem;
-  line-height: 1.55;
-}
-
-.landing-screen__awaits li::before {
-  content: '▸';
-  position: absolute;
-  left: 0;
-  color: #fbbf24;
-  font-weight: 800;
-}
-
-/* Controls */
-.landing-screen__controls-mode {
-  margin: 0 0 0.35rem;
-  color: rgba(148, 163, 184, 0.7);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.landing-screen__controls {
-  display: grid;
-  gap: 0.55rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.landing-screen__controls li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  color: rgba(226, 232, 240, 0.92);
-}
-
-.landing-screen__controls span {
-  color: #f8fafc;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.landing-screen__controls strong {
-  color: rgba(226, 232, 240, 0.7);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
-}
-
-/* Panel bottom actions */
-.panel-actions {
-  display: flex;
-  gap: 0.6rem;
-  margin-top: 1.15rem;
-  padding-top: 1.15rem;
-  border-top: 1px solid rgba(255,255,255,0.08);
-}
-
-.panel-action-btn {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.65rem 0.75rem;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  color: #e2e8f0;
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-.panel-action-btn:hover {
-  border-color: rgba(252, 211, 77, 0.3);
-  background: rgba(252, 211, 77, 0.06);
-  transform: translateY(-1px);
+.landing-screen__secondary-button:hover,
+.landing-screen__settings-toggle:hover,
+.landing-screen__modal-close:hover {
+  transform: translateY(-3px);
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
-.panel-action-btn--icon {
-  flex: 0 0 auto;
-  min-width: 3rem;
-  font-size: 1.15rem;
-  letter-spacing: 0;
-}
+/* Side panel removed and moved to header */
 
 /* ── Modal ────────────────────────────────────────────────── */
 .landing-screen__modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 10;
-  background: rgba(4, 6, 8, 0.72);
-  backdrop-filter: blur(8px);
+  z-index: 50;
+  background: rgba(3, 4, 7, 0.85);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
 }
 
 .landing-screen__modal {
-  --overlay-width: 32rem;
-  background: linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(10,13,17,0.98) 100%);
+  width: 100%;
+  max-width: 36rem;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(3, 4, 7, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: modal-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-pop {
+  0% {
+    transform: scale(0.95) translateY(20px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 .landing-screen__modal-label {
   margin: 0;
-  color: #fcd34d;
-  font-size: 0.72rem;
+  color: #ef4444;
+  font-size: 0.8rem;
   font-weight: 800;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
 }
 
 .landing-screen__modal-title {
-  margin: 0.6rem 0 0;
-  font-size: 2rem;
+  margin: 0.5rem 0 0;
+  font-size: 2.5rem;
   font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #f8fafc;
 }
 
 .landing-screen__modal-copy {
-  margin-top: 1rem;
-  color: rgba(226, 232, 240, 0.86);
-  line-height: 1.7;
+  margin-top: 1.5rem;
+  color: #cbd5e1;
+  line-height: 1.8;
+  font-size: 1rem;
 }
 
 .landing-screen__modal-list {
-  margin: 1rem 0 0;
-  padding-left: 1rem;
+  margin: 1.5rem 0 0;
+  padding-left: 1.25rem;
 }
 
-.landing-screen__modal-list li+li { margin-top: 0.55rem; }
+.landing-screen__modal-list li {
+  margin-bottom: 0.75rem;
+}
 
-.landing-screen__modal-close { margin-top: 1.25rem; }
+.landing-screen__modal-list li strong {
+  color: #fff;
+}
+
+.landing-screen__modal-close {
+  margin-top: 2rem;
+  width: 100%;
+}
 
 /* Shop items */
 .shop-items {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
 .shop-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
-  background: rgba(0,0,0,0.2);
+  gap: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  transition: background 0.3s ease;
+}
+
+.shop-item:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .shop-item__name {
   margin: 0;
   color: #f8fafc;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
 .shop-item__max {
-  color: #86efac;
-  font-size: 0.72rem;
-  margin-left: 0.35rem;
+  color: #4ade80;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  background: rgba(74, 222, 128, 0.1);
+  border-radius: 4px;
 }
 
 .shop-item__sub {
-  margin: 0.2rem 0 0;
+  margin: 0.4rem 0 0;
   color: #94a3b8;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
 }
 
 .shop-item__btn {
   min-width: auto;
-  padding: 0.55rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
   white-space: nowrap;
 }
 
 .shop-item__btn--disabled {
-  opacity: 0.45;
-  filter: grayscale(0.8);
+  opacity: 0.5;
+  filter: grayscale(1);
   cursor: not-allowed;
+  box-shadow: none;
+  animation: none;
+  pointer-events: none;
 }
 
 /* ── Responsive ───────────────────────────────────────────── */
-@media (max-width: 980px) {
-  .landing-screen__content {
-    grid-template-columns: 1fr;
-    align-items: start;
-    min-height: auto;
-    padding-bottom: 2rem;
+@media (max-width: 1024px) {
+  .landing-header {
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.5rem;
   }
 
-  .landing-screen__panel {
-    max-width: 34rem;
+  .landing-header__stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .landing-header__actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .landing-screen__content {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    padding-bottom: 4rem;
   }
 }
 
 @media (max-width: 640px) {
   .landing-screen__content {
-    padding: 1.15rem;
+    padding: 1.5rem;
+  }
+
+  .landing-screen__hero {
+    max-width: 100%;
+  }
+
+  .landing-screen__logo {
+    width: 100%;
   }
 
   .landing-screen__actions {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
   }
 
   .landing-screen__play-button,
@@ -861,20 +961,33 @@ async function confirmMapAndStart() {
     text-align: center;
   }
 
-  .challenge-picker {
-    max-width: 100%;
+  .challenge-picker__dropdown {
+    font-size: 1rem;
   }
 
   .challenge-picker__grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .landing-screen__modal-title {
-    font-size: clamp(1.55rem, 8vw, 1.9rem);
+  .landing-screen__modal {
+    padding: 1.5rem;
   }
 
   .landing-screen__modal-copy {
     font-size: 0.95rem;
+  }
+
+  .landing-corner-modifiers {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    margin-top: 1.5rem;
+    z-index: 10;
+  }
+
+  .landing-screen__modal-title {
+    font-size: 2rem;
   }
 }
 </style>

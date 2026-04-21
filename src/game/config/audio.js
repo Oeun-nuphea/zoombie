@@ -7,9 +7,10 @@ import playerHitUrl from '../../assets/sounds/player-hit.wav'
 import shootUrl from '../../assets/sounds/gun-sound.wav'
 import shotgunShootUrl from '../../assets/sounds/snop-sound.wav'
 import waveSoundUrl from '../../assets/sounds/wave_sound.mp3'
-import zombieDeathUrl from '../../assets/sounds/zombie-death.wav'
+import zombieDeathUrl from '../../assets/sounds/zombie-die.mp3'
 import zombieDieUrl from '../../assets/sounds/zombie-die.mp3'
 import zombieHitUrl from '../../assets/sounds/zombie-hit.wav'
+import zombieComingUrl from '../../assets/sounds/zombie_coming.mp3'
 
 export const DEFAULT_SOUND_VOLUME = 0.72
 
@@ -117,5 +118,13 @@ export const SOUND_DEFINITIONS = {
     volume: 1.0,
     poolSize: 1,
     cooldownMs: 0,
+  },
+  'zombie-coming': {
+    key: 'zombie-coming',
+    src: zombieComingUrl,
+    volume: 0.55,
+    poolSize: 2,
+    cooldownMs: 2500,
+    detuneRange: [-20, 20],
   },
 }
