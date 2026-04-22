@@ -302,6 +302,7 @@ export const ZOMBIE_TYPES = {
     hurtRadiusScale: 0.2,
     hurtOffsetYScale: 0.44,
     spriteKey: 'z1',
+    facesLeft: false,
   },
   z2: {
     id: 'z2',
@@ -330,6 +331,7 @@ export const ZOMBIE_TYPES = {
     hurtRadiusScale: 0.23,
     hurtOffsetYScale: 0.42,
     spriteKey: 'z2',
+    facesLeft: true,
   },
   z3: {
     id: 'z3',
@@ -358,6 +360,7 @@ export const ZOMBIE_TYPES = {
     hurtRadiusScale: 0.22,
     hurtOffsetYScale: 0.42,
     spriteKey: 'z3',
+    facesLeft: true,
     leaps: true,
     leapRangeMin: 100,
     leapRangeMax: 260,
@@ -392,6 +395,7 @@ export const ZOMBIE_TYPES = {
     hurtRadiusScale: 0.26,
     hurtOffsetYScale: 0.38,
     spriteKey: 'z4',
+    facesLeft: true,
   },
   z5: {
     id: 'z5',
@@ -420,6 +424,7 @@ export const ZOMBIE_TYPES = {
     hurtRadiusScale: 0.22,
     hurtOffsetYScale: 0.42,
     spriteKey: 'z5',
+    facesLeft: true,
     leaps: true,
     leapRangeMin: 120,
     leapRangeMax: 280,
@@ -459,6 +464,7 @@ export const ZOMBIE_TYPES = {
     hurtRadiusScale: 0.29,
     hurtOffsetYScale: 0.36,
     spriteKey: 'miniBoss',
+    facesLeft: true,
     shadowOffsetX: 8,
     shadowOffsetY: 12,
     hitFlashColor: 0xffb374,
