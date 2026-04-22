@@ -104,13 +104,13 @@
                 <h4 class="shop-item__name">{{ MAP_CONFIG[previewMap]?.label }}</h4>
                 <p class="shop-item__sub">{{ MAP_CONFIG[previewMap]?.desc }}</p>
               </div>
-              <button v-if="!MAP_CONFIG[previewMap]?.default && !gameStore.unlockedMaps.includes(previewMap)"
+              <button v-if="MAP_CONFIG[previewMap] && !MAP_CONFIG[previewMap].default && !gameStore.unlockedMaps.includes(previewMap)"
                 class="landing-screen__play-button shop-item__btn"
                 :disabled="gameStore.souls < MAP_CONFIG[previewMap].cost"
                 :class="{ 'shop-item__btn--disabled': gameStore.souls < MAP_CONFIG[previewMap].cost }" @click="buyMap">
                 Unlock ({{ MAP_CONFIG[previewMap].cost }} 💀)
               </button>
-              <button v-else class="landing-screen__play-button shop-item__btn" @click="confirmMapAndStart">
+              <button v-else class="landing-screen__play-button shop-item__btn" :disabled="!MAP_CONFIG[previewMap]" @click="confirmMapAndStart">
                 ▶ Start
               </button>
             </div>
