@@ -399,8 +399,8 @@ export default class MainScene extends Phaser.Scene {
       0.12,          // lerp X — smooth follow
       0.12,          // lerp Y — smooth follow
     );
-    // Zoom out more on the adventure (big) map for better situational awareness
-    this.cameras.main.setZoom(this._adventureMap ? 0.5 : 0.82);
+    // slightly zoom out to give player more peripheral tactical vision
+    this.cameras.main.setZoom(0.82);
 
     this.turretDirector = createTurretDirector(this, {
       zombies: this.zombies,
