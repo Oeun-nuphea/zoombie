@@ -432,7 +432,7 @@ export function createWaveDirector(scene, config) {
       const elapsed = scene.time.now - allSpawnedAt;
       if (elapsed >= STUCK_ZOMBIE_TIMEOUT_MS) {
         zombies.getChildren().forEach((zombie) => {
-          if (zombie?.active && !zombie.isDead) {
+          if (zombie?.active && !zombie.isDead && !zombie.isBoss) {
             zombie.die?.();
           }
         });
