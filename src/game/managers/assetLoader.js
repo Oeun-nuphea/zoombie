@@ -2004,7 +2004,8 @@ export function registerCustomZombieAnimations(scene) {
       if (!scene.anims.exists(`${key}-attack`)) {
         scene.anims.create({
           key: `${key}-attack`,
-          frames: scene.anims.generateFrameNumbers(key, { start: 7, end: 10 }),
+          // Frames 7-9 only — avoids overlap with death animation which starts at frame 9
+          frames: scene.anims.generateFrameNumbers(key, { start: 7, end: 9 }),
           frameRate: 12,
           repeat: 0
         })
@@ -2013,8 +2014,9 @@ export function registerCustomZombieAnimations(scene) {
       if (!scene.anims.exists(`${key}-death`)) {
         scene.anims.create({
           key: `${key}-death`,
-          frames: scene.anims.generateFrameNumbers(key, { start: 10, end: 11 }),
-          frameRate: 8,
+          // Frames 9-11: red enraged death sequence (no overlap with attack end frame)
+          frames: scene.anims.generateFrameNumbers(key, { start: 9, end: 11 }),
+          frameRate: 6,
           repeat: 0
         })
       }
@@ -2022,7 +2024,7 @@ export function registerCustomZombieAnimations(scene) {
       if (!scene.anims.exists(`${key}-hit`)) {
         scene.anims.create({
           key: `${key}-hit`,
-          frames: [{ key: key, frame: 6 }],
+          frames: [{ key: key, frame: 8 }],
           frameRate: 10,
           repeat: 0
         })
