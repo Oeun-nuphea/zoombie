@@ -268,7 +268,7 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     this.chargeUntil = this.scene.time.now + (config.durationMs ?? 380)
     this.lockedUntil = this.chargeUntil
     this.attackUntil = this.chargeUntil
-    this.setFlipX(normalized.x < 0)
+    this.setFlipX(this.facesLeftNatively ? (normalized.x > 0) : (normalized.x < 0))
     this.playLoop('attack')
   }
 
@@ -376,7 +376,7 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     const time = this.scene.time.now
 
     if (this.isCharging(time)) {
-      this.setFlipX(this.chargeVector.x < 0)
+      this.setFlipX(this.facesLeftNatively ? (this.chargeVector.x > 0) : (this.chargeVector.x < 0))
       return
     }
 
