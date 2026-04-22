@@ -369,9 +369,38 @@ export default class MainScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    if (this.isEnding || this.combat?.isGameOver || this.physics.world.isPaused) {
+    // Always update visual/HUD systems regardless of pause state
+    this.hud?.update();
+    this.radar?.update();
+    this.weather?.update();
+    this.fogOfWar?.update(delta);
+
+    if (this.isEnding || this.combat?.isGameOver) {
       return;
     }
+
+    // Safety watchdog: detect stuck physics-pause states.
+    // If physics is paused but we're NOT in a legitimate pause phase
+    // (paused, upgrade-select, victory, game-over, restarting),
+    // force-resume after 15 seconds to prevent permanent freezes.
+    if (this.physics.world.isPaused) {
+      const legitimatePausePhases = ['paused', 'upgrade-select', 'victory', 'game-over', 'restarting', 'starting', 'idle'];
+      const currentPhase = this.gameStore?.phase;
+      if (!legitimatePausePhases.includes(currentPhase)) {
+        if (!this._stuckPauseSince) {
+          this._stuckPauseSince = time;
+        } else if (time - this._stuckPauseSince > 15000) {
+          console.warn('[MainScene] Force-resuming stuck physics pause. Phase:', currentPhase);
+          this._stuckPauseSince = 0;
+          this.physics.resume();
+        }
+      } else {
+        this._stuckPauseSince = 0;
+      }
+      return;
+    }
+
+    this._stuckPauseSince = 0;
 
     this.pathfinding?.update(time);
     this.playerController?.update(time, delta);
@@ -451,11 +480,7 @@ export default class MainScene extends Phaser.Scene {
       }
     }
 
-    this.hud.update();
-    this.radar.update();
-    this.dropDirector.update(time);
-    this.weather?.update();
-    this.fogOfWar?.update(delta);
+    this.dropDirector?.update(time);
   }
 
   scheduleGameOver() {

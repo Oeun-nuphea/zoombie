@@ -183,14 +183,15 @@
         <!-- Bestiary -->
         <template v-else-if="showBestiary">
           <p class="landing-screen__modal-label">The Horde</p>
-          <h2 class="landing-screen__modal-title">Subject Files</h2>
+          <h2 class="landing-screen__modal-title">Zombies</h2>
           <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
             <div class="challenge-picker__grid" style="grid-template-columns: repeat(5, 1fr); gap: 0.5rem;">
-              <div v-for="i in 5" :key="i" class="challenge-picker__card" style="padding: 0.5rem; text-align: center;">
+              <div v-for="zombie in bestiaryZombies" :key="zombie.id" 
+                   class="challenge-picker__card" style="padding: 0.5rem; text-align: center;">
                 <div style="width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 8px; margin-bottom: 0.5rem; background: rgba(0,0,0,0.5);">
-                  <img :src="`/assets/zombiles/z${i}.jpg`" alt="Zombie" style="width: 100%; height: 100%; object-fit: cover;" />
+                  <img :src="`/assets/zombiles/${zombie.spriteKey || zombie.id}.jpg`" :alt="zombie.name" style="width: 100%; height: 100%; object-fit: cover;" />
                 </div>
-                <span class="challenge-picker__card-name" style="font-size: 0.75rem;">Subject 0{{ i }}</span>
+                <span class="challenge-picker__card-name" style="font-size: 0.75rem;">{{ zombie.name }}</span>
               </div>
             </div>
           </div>
@@ -214,6 +215,7 @@ import { useGameStore } from '../../stores/gameStore'
 import { APP_NAME, STORAGE_KEYS, CHALLENGES, MAP_CONFIG } from '../../utils/constants'
 import { PLAYER_SKINS } from '../../game/config/playerVisualConfig'
 import { getGameRuntimeProfile } from '../../utils/device'
+import { ZOMBIE_TYPES } from '../../game/config/gameplayConfig'
 import { formatScore } from '../../utils/helpers'
 
 const CHALLENGE_ICONS = {
@@ -252,6 +254,10 @@ const closePanels = () => {
   showSkinSelector.value = false
   showBestiary.value = false
 }
+
+const bestiaryZombies = computed(() => {
+  return Object.values(ZOMBIE_TYPES).filter(z => !z.bossOnly)
+})
 
 const healthCost = computed(() => 50 * ((gameStore.metaUpgrades?.health || 0) + 1))
 const speedCost = computed(() => 40 * ((gameStore.metaUpgrades?.speed || 0) + 1))

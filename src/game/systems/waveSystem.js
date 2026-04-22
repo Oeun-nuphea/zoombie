@@ -625,6 +625,9 @@ export function createWaveDirector(scene, config) {
     );
 
     if (!selectionOpened) {
+      // Resume physics since pauseGameplay() was called above but no selection opened
+      resumeGameplay?.();
+
       if (!currentWave?.isBossWave) {
         grantNormalWaveReward();
         scheduleNextWave(WAVE_REWARD_CONFIG.normalRewardDelay);

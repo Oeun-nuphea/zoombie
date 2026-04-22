@@ -277,7 +277,7 @@ export const MINI_BOSS_REWARD_CONFIG = {
 export const ZOMBIE_TYPES = {
   z1: {
     id: 'z1',
-    name: 'Subject 01',
+    name: 'Bone Shambler',
     healthMultiplier: 0.9,
     speedMultiplier: 1.72,
     size: 0.78,
@@ -305,7 +305,7 @@ export const ZOMBIE_TYPES = {
   },
   z2: {
     id: 'z2',
-    name: 'Subject 02',
+    name: 'Grave Rot',
     healthMultiplier: 1.45,
     speedMultiplier: 0.88,
     size: 0.86,
@@ -334,7 +334,7 @@ export const ZOMBIE_TYPES = {
   },
   z3: {
     id: 'z3',
-    name: 'Subject 03',
+    name: 'Cinder Maw',
     healthMultiplier: 1.15,
     speedMultiplier: 1.15,
     size: 0.85,
@@ -368,7 +368,7 @@ export const ZOMBIE_TYPES = {
   },
   z4: {
     id: 'z4',
-    name: 'Subject 04',
+    name: 'Hollow Walker',
     healthMultiplier: 3.4,
     speedMultiplier: 0.66,
     size: 1.08,
@@ -396,7 +396,7 @@ export const ZOMBIE_TYPES = {
   },
   z5: {
     id: 'z5',
-    name: 'Subject 05',
+    name: 'Flesh Drifter',
     healthMultiplier: 0.85,
     speedMultiplier: 1.35,
     size: 0.82,

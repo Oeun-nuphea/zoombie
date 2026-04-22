@@ -151,8 +151,20 @@ export function createUpgradeDirector(scene, config) {
     let resolved = false
     const autoPickDelayMs = Math.max(0, options.autoPickDelayMs ?? UPGRADE_SELECTION_CONFIG.autoPickDelayMs)
 
-    function finalizeSelection(selectedUpgradeId) {
-      if (resolved || !selectedUpgradeId) {
+    function finalizeSelection(selectedUpgradeId, forceComplete = false) {
+      if (resolved) {
+        return
+      }
+
+      if (!selectedUpgradeId) {
+        // If forceComplete is true, we must call onComplete even with no upgrade
+        // to avoid leaving the game permanently stuck in upgrade-select phase.
+        if (forceComplete) {
+          resolved = true
+          clearSelectionFlow()
+          gameStore.clearUpgradeChoices()
+          onComplete?.(null)
+        }
         return
       }
 
@@ -191,8 +203,9 @@ export function createUpgradeDirector(scene, config) {
 
     if (autoPickDelayMs > 0) {
       autoPickEvent = scene.time.delayedCall(autoPickDelayMs, () => {
-        const fallbackChoice = Phaser.Utils.Array.GetRandom(choices)
-        finalizeSelection(fallbackChoice?.id ?? null)
+        // Try to find a valid fallback choice with an id
+        const fallbackChoice = choices.find(c => c?.id) ?? Phaser.Utils.Array.GetRandom(choices)
+        finalizeSelection(fallbackChoice?.id ?? null, true)
       })
     }
 

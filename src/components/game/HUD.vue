@@ -86,12 +86,15 @@
 <script setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 
-import { getWeaponDefinition } from '../../game/config/gameplayConfig'
+import { getWeaponDefinition, ZOMBIE_TYPES } from '../../game/config/gameplayConfig'
 import { formatScore } from '../../utils/helpers'
 
 function formatZombieTypes(waveInfo) {
   if (!waveInfo) return ''
-  const types = (waveInfo.zombieTypeWeights || []).map(w => w.id.charAt(0).toUpperCase() + w.id.slice(1))
+  const types = (waveInfo.zombieTypeWeights || []).map(w => {
+    const typeDef = ZOMBIE_TYPES[w.id]
+    return typeDef ? typeDef.name : w.id
+  })
   if (waveInfo.isBossWave && waveInfo.boss?.healthBarLabel) {
     types.push(waveInfo.boss.healthBarLabel)
   }
