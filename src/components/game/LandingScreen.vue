@@ -72,7 +72,6 @@
               </li>
             </ul>
           </div>
-          <p class="challenge-picker__desc" v-if="selectedChallenge !== 'none'">{{ CHALLENGES[selectedChallenge].desc }}</p>
         </div>
       </div>
     </div>
