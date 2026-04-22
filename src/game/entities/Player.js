@@ -157,8 +157,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     
     // Terrain effects
     const tile = this.scene.arena?.groundLayer?.getTileAtWorldXY(this.x, this.y);
-    if (tile && tile.index === 5) { // 5 is the mud/water tile
-      speedMult *= 0.6; // 40% slowdown in mud
+    if (tile && tile.index === 5) { // 5 is the desert/quicksand tile
+      speedMult *= 0.6; // 40% slowdown in deep sand
     }
 
     return PLAYER_CONFIG.maxSpeed * speedMult;

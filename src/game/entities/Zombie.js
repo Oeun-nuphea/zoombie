@@ -541,7 +541,7 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
 
     let terrainModifier = 1;
     const tile = this.scene.arena?.groundLayer?.getTileAtWorldXY(this.x, this.y);
-    if (tile && tile.index === 5) { // mud area
+    if (tile && tile.index === 5) { // desert sand area
       terrainModifier = 0.6;
     }
 

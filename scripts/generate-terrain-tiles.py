@@ -206,28 +206,31 @@ def make_brick_wall(size=TILE):
 
 
 def make_water(size=TILE):
-    """Dark, murky water with subtle ripple patterns."""
+    """Deep desert sand/quicksand with wavy dune patterns."""
     img = Image.new("RGB", (size, size))
     pixels = img.load()
     for py in range(size):
         for px in range(size):
-            # Ripple: sine waves at angle + noise
-            ripple = math.sin((px + py * 0.5) * 0.35) * 0.5 + 0.5
-            ripple2 = math.sin((px * 0.6 - py * 0.4) * 0.28 + 1.2) * 0.5 + 0.5
-            n = fbm(px, py, octaves=3, scale=10.0, seed=23)
-            v = ripple * 0.4 + ripple2 * 0.3 + n * 0.3
-            # Deep teal-dark blue
-            r = int(clamp(8  + v*25, 0, 60))
-            g = int(clamp(22 + v*40, 10, 80))
-            b = int(clamp(48 + v*55, 30, 120))
+            # Dune waves: sine waves at angle + noise
+            wave = math.sin((px * 0.8 + py * 0.5) * 0.15) * 0.5 + 0.5
+            wave2 = math.sin((px * 0.3 - py * 0.7) * 0.12 + 1.5) * 0.5 + 0.5
+            n = fbm(px, py, octaves=4, scale=12.0, seed=23)
+            v = wave * 0.4 + wave2 * 0.4 + n * 0.2
+            
+            # Desert sand tones (yellow/orange/beige)
+            r = int(clamp(170 + v*60, 140, 240))
+            g = int(clamp(140 + v*55, 110, 210))
+            b = int(clamp(100 + v*45,  70, 170))
             pixels[px, py] = (r, g, b)
-    # Specular glints
+            
+    # Add scattered pebbles/grain
     draw = ImageDraw.Draw(img)
-    for _ in range(20):
+    for _ in range(80):
         gx = rng.randint(3, size-3); gy = rng.randint(3, size-3)
-        w = rng.randint(4, 12); h2 = rng.randint(1, 2)
-        draw.ellipse([gx, gy, gx+w, gy+h2], fill=(80, 120, 160))
-    img = img.filter(ImageFilter.GaussianBlur(0.5))
+        rad = rng.randint(1, 2)
+        draw.ellipse([gx, gy, gx+rad, gy+rad], fill=(150, 120, 80))
+        
+    img = img.filter(ImageFilter.GaussianBlur(0.4))
     return img
 
 # ─── Assemble tileset ─────────────────────────────────────────────────────────
