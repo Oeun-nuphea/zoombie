@@ -133,7 +133,8 @@ export default class MainScene extends Phaser.Scene {
       }
       
       if (valid) {
-        const types = ['obstacle-wall', 'obstacle-pillar', 'obstacle-crate'];
+        // Boost the frequency of trees!
+        const types = ['obstacle-wall', 'obstacle-pillar', 'obstacle-crate', 'obstacle-tree', 'obstacle-tree', 'obstacle-tree'];
         const type = Phaser.Utils.Array.GetRandom(types);
         const obs = this.obstacles.create(x, y, type);
         obs.setDepth(20);
@@ -145,6 +146,11 @@ export default class MainScene extends Phaser.Scene {
         } else if (type === 'obstacle-pillar') {
           obs.body.setSize(48, 48);
           obs.body.setOffset(4, 4);
+        } else if (type === 'obstacle-tree') {
+          // collision on the trunk
+          obs.body.setCircle(16);
+          obs.body.setOffset(32, 44);
+          obs.setDepth(24); // taller so player walks under the leaves partially
         } else {
           // obstacle-crate
           obs.body.setSize(60, 60);
@@ -187,7 +193,7 @@ export default class MainScene extends Phaser.Scene {
     this.arena = createArenaBackground(this);
 
     this.obstacles = this.physics.add.staticGroup();
-    this.spawnObstacles(6);
+    this.spawnObstacles(18); // Increased spawn count so the map feels more populated
 
     // Spawn player at the center of the WORLD (tilemap), not the screen
     const worldDims = this.getWorldDimensions();

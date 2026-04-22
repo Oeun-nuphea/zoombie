@@ -1939,6 +1939,29 @@ export function registerPlaceholderTextures(scene) {
     obGraphic.generateTexture('obstacle-crate', 64, 64)
     obGraphic.destroy()
   }
+
+  if (!scene.textures.exists('obstacle-tree')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    // Trunk shadow
+    obGraphic.fillStyle(0x3e2723, 1)
+    obGraphic.fillRoundedRect(36, 40, 24, 40, 4)
+    // Trunk highlight
+    obGraphic.fillStyle(0x5d4037, 1)
+    obGraphic.fillRoundedRect(38, 40, 12, 38, 3)
+    // Leaves base
+    obGraphic.fillStyle(0x064e3b, 1) // Dark green
+    obGraphic.fillCircle(48, 40, 36)
+    // Leaves highlight
+    obGraphic.fillStyle(0x059669, 1) // Green
+    obGraphic.fillCircle(48, 32, 28)
+    // Small leaves accents
+    obGraphic.fillStyle(0x10b981, 1) // Light green
+    obGraphic.fillCircle(38, 22, 16)
+    obGraphic.fillCircle(62, 28, 14)
+    obGraphic.fillCircle(48, 18, 12)
+    obGraphic.generateTexture('obstacle-tree', 96, 96)
+    obGraphic.destroy()
+  }
 }
 
 export function registerCustomZombieAnimations(scene) {
