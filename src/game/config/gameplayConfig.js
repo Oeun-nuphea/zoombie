@@ -573,18 +573,11 @@ export const ZOMBIE_TYPES = {
 export function getSpawnPointDefinitions(dimensions = GAME_DIMENSIONS) {
   return [
     {
-      id: 'east_perimeter',
-      label: 'East Perimeter',
+      id: 'east_mid',
+      label: 'East Mid',
       x: dimensions.width - 48,
       y: dimensions.height * 0.5,
-      radius: 64,
-    },
-    {
-      id: 'west_breach',
-      label: 'West Breach',
-      x: 48,
-      y: dimensions.height * 0.5,
-      radius: 64,
+      radius: 72,
     },
   ]
 }
