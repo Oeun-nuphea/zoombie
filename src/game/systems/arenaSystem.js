@@ -120,6 +120,48 @@ export function createArenaBackground(scene) {
   // Try to load the scheduled tilemap
   const scheduledMapKey = scene.gameStore?.currentRunMap ?? "arena1";
 
+  // ── Adventure map: tile arena1 in a 2×2 grid to fill 4× world ──────────
+  if (
+    scheduledMapKey === "adventure" &&
+    scene.cache.tilemap.has("arena1") &&
+    scene.textures.exists("terrain-tiles")
+  ) {
+    const copies = [];
+    let tileW = 0;
+    let tileH = 0;
+
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 2; col++) {
+        const m = scene.make.tilemap({ key: "arena1" });
+        const ts = m.addTilesetImage("terrain", "terrain-tiles", 128, 128);
+        tileW = m.widthInPixels;
+        tileH = m.heightInPixels;
+
+        const gl = m.createLayer("Ground", ts, col * tileW, row * tileH);
+        gl.setDepth(0);
+
+        const wl = m.createLayer("Walls", ts, col * tileW, row * tileH);
+        if (wl) {
+          wl.setDepth(15);
+          wl.setTint(0x4a5a4a);
+          wl.setAlpha(0.95);
+        }
+
+        copies.push({ map: m, groundLayer: gl, wallLayer: wl });
+      }
+    }
+
+    scene.physics.world.setBounds(0, 0, tileW * 2, tileH * 2);
+
+    return {
+      map: copies[0].map,
+      groundLayer: copies[0].groundLayer,
+      wallLayer: copies[0].wallLayer,
+      extraCopies: copies.slice(1),
+      resize: () => {},
+    };
+  }
+
   if (
     scene.cache.tilemap.has(scheduledMapKey) &&
     scene.textures.exists("terrain-tiles")

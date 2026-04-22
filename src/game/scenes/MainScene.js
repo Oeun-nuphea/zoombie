@@ -24,6 +24,7 @@ import { pinia } from "../../stores";
 import { useGameStore } from "../../stores/gameStore";
 import { getSceneGameDimensions } from "../../utils/gameViewport";
 import { getWaveDefinition } from "../config/gameplayConfig";
+import { MAP_CONFIG } from "../../utils/constants";
 
 export default class MainScene extends Phaser.Scene {
   constructor() {
@@ -44,12 +45,13 @@ export default class MainScene extends Phaser.Scene {
   }
 
   getWorldDimensions() {
-    // When a tilemap is loaded, the world is the map size, not the screen size.
+    // When a tilemap is loaded (including adventure's tiled arena1),
+    // the physics world bounds reflect the full world size.
     // Fall back to screen dimensions only for fallback (procedural) arenas.
     if (this.arena?.map) {
       return {
-        width: this.arena.map.widthInPixels,
-        height: this.arena.map.heightInPixels,
+        width: this.physics.world.bounds.width || this.arena.map.widthInPixels,
+        height: this.physics.world.bounds.height || this.arena.map.heightInPixels,
       };
     }
     return getSceneGameDimensions(this);
@@ -162,9 +164,18 @@ export default class MainScene extends Phaser.Scene {
   }
 
   create() {
+    this.gameStore = useGameStore(pinia);
+
+    // ── Adventure map: 4× world, force endless ─────────────────────────
+    const mapConfig = MAP_CONFIG[this.gameStore.currentRunMap];
+    if (mapConfig?.endless && this.gameStore.runMode !== 'endless') {
+      this.gameStore.setRunMode('endless');
+    }
+    this._adventureMap = Boolean(mapConfig?.endless);
+    this._worldScale = mapConfig?.worldScale ?? 1;
+
     const { width, height } = this.getWorldDimensions();
 
-    this.gameStore = useGameStore(pinia);
     this.gameStore.beginRunTimer();
     this.gameStore.setPhase("running");
     this.isEnding = false;
@@ -193,7 +204,9 @@ export default class MainScene extends Phaser.Scene {
     this.arena = createArenaBackground(this);
 
     this.obstacles = this.physics.add.staticGroup();
-    this.spawnObstacles(18); // Increased spawn count so the map feels more populated
+    // More obstacles on the big adventure map
+    const obstacleCount = this._adventureMap ? 60 : 18;
+    this.spawnObstacles(obstacleCount);
 
     // Spawn player at the center of the WORLD (tilemap), not the screen
     const worldDims = this.getWorldDimensions();
@@ -250,6 +263,29 @@ export default class MainScene extends Phaser.Scene {
           onComplete: () => spark.destroy(),
         });
       });
+    }
+
+    // Adventure map: register wall collisions for the extra 3 tilemap copies
+    if (this.arena.extraCopies) {
+      for (const copy of this.arena.extraCopies) {
+        if (!copy.wallLayer) continue;
+        copy.wallLayer.setCollisionByExclusion([-1]);
+        this.physics.add.collider(this.player, copy.wallLayer);
+        this.physics.add.collider(this.zombies, copy.wallLayer);
+        this.physics.add.collider(this.bullets, copy.wallLayer, (bullet) => {
+          if (!bullet.active) return;
+          bullet.disableBody(true, true);
+          const spark = this.add.circle(bullet.x, bullet.y, 4, 0xfacc15, 0.8);
+          spark.setDepth(30);
+          this.tweens.add({
+            targets: spark,
+            scale: 2.5,
+            alpha: 0,
+            duration: 120,
+            onComplete: () => spark.destroy(),
+          });
+        });
+      }
     }
 
     this.hud = createCombatHud(this, this.gameStore);
@@ -363,8 +399,8 @@ export default class MainScene extends Phaser.Scene {
       0.12,          // lerp X — smooth follow
       0.12,          // lerp Y — smooth follow
     );
-    // slightly zoom out to give player more peripheral tactical vision
-    this.cameras.main.setZoom(0.82);
+    // Zoom out more on the adventure (big) map for better situational awareness
+    this.cameras.main.setZoom(this._adventureMap ? 0.5 : 0.82);
 
     this.turretDirector = createTurretDirector(this, {
       zombies: this.zombies,

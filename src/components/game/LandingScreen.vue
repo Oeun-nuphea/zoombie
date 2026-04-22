@@ -87,15 +87,17 @@
           <p class="landing-screen__modal-label">Select Battleground</p>
           <h2 class="landing-screen__modal-title">Where to Deploy?</h2>
           <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
-            <div class="challenge-picker__grid" style="grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+            <div class="challenge-picker__grid" style="grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
               <button v-for="(mapConfig, key) in MAP_CONFIG" :key="key" type="button" class="challenge-picker__card"
                 :class="{
                   'challenge-picker__card--active': previewMap === key,
+                  'challenge-picker__card--adventure': mapConfig.endless,
                   'shop-item__btn--disabled': !mapConfig.default && !gameStore.unlockedMaps.includes(key)
-                }" @click="previewMap = key" style="padding: 1rem; border-radius: 12px; min-height: 5.5rem;">
+                }" @click="previewMap = key" style="padding: 1rem; border-radius: 12px; min-height: 5.5rem; position: relative;">
                 <span class="challenge-picker__card-icon"
                   style="font-size: 2rem; margin-bottom: 0.5rem; display: block;">{{ MAP_ICONS[key] }}</span>
                 <span class="challenge-picker__card-name" style="font-size: 0.85rem;">{{ mapConfig.label }}</span>
+                <span v-if="mapConfig.endless" class="map-badge-endless">∞ ENDLESS</span>
               </button>
             </div>
 
@@ -232,6 +234,7 @@ const MAP_ICONS = {
   angkor: '🛕',
   pagoda: '⛩️',
   palace: '🏯',
+  adventure: '🗺️',
 }
 
 const router = useRouter()
@@ -301,7 +304,9 @@ function initiateStartGame(mode = 'normal') {
 async function confirmMapAndStart() {
   await enterFullscreenMode()
   gameStore.selectMap(previewMap.value)
-  const mode = pendingRunMode.value
+  const mapCfg = MAP_CONFIG[previewMap.value]
+  // Adventure map forces endless mode regardless of what was selected
+  const mode = mapCfg?.endless ? 'endless' : pendingRunMode.value
   closePanels()
   gameStore.startRun(mode, selectedChallenge.value)
   await router.push('/game')
@@ -1015,5 +1020,37 @@ async function confirmMapAndStart() {
   .landing-screen__modal-title {
     font-size: 2rem;
   }
+}
+
+/* ── Adventure / Endless Map card ────────────────────────── */
+.challenge-picker__card--adventure {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.challenge-picker__card--adventure:hover {
+  border-color: rgba(16, 185, 129, 0.8);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2), 0 0 18px rgba(16, 185, 129, 0.25);
+}
+
+.challenge-picker__card--active.challenge-picker__card--adventure {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3), inset 0 0 0 1px rgba(16, 185, 129, 0.5);
+}
+
+.map-badge-endless {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.15rem 0.55rem;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.55);
+  border-radius: 999px;
+  color: #6ee7b7;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 </style>

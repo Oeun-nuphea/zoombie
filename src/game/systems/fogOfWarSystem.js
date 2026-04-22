@@ -59,10 +59,10 @@ export function createFogOfWarSystem(
   // correctly follows the player regardless of camera lag.
   //
   // FOG_W / FOG_H must be large enough to cover the full camera viewport at
-  // any supported zoom level plus generous margin.  3200×2400 covers a 1920×1080
-  // screen at up to ~0.6× zoom with 400 px margin each side — plenty.
-  const FOG_W = 3200;
-  const FOG_H = 2400;
+  // any supported zoom level plus generous margin. 4200×3200 covers a 1920×1080
+  // screen at up to 0.5× zoom (adventure map) with margin.
+  const FOG_W = 4200;
+  const FOG_H = 3200;
 
   let fog = scene.add.renderTexture(0, 0, FOG_W, FOG_H);
   fog.setOrigin(0, 0).setDepth(50);

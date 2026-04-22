@@ -28,6 +28,7 @@ export const MAP_CONFIG = {
   angkor: { id: 'angkor', label: 'Sunken Courtyard', desc: 'Layered courtyards with double moats. Narrow causeways create deadly choke points.', cost: 500, default: false },
   pagoda: { id: 'pagoda', label: 'Serene Pagoda', desc: 'Five islands on a vast lake. Bridges funnel enemies — hold the crossing or drown.', cost: 750, default: false },
   palace: { id: 'palace', label: 'Royal Palace', desc: 'Throne room at the heart of a labyrinth. Armoury chambers and grand corridors.', cost: 1000, default: false },
+  adventure: { id: 'adventure', label: 'Open World', desc: '4× the battlefield — endless waves with no escape. Explore or be overrun.', cost: 0, default: true, endless: true, worldScale: 4 },
 }
 
 export const CHALLENGES = {
