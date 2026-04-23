@@ -1,6 +1,6 @@
 import { WEAPON_DEFINITIONS, getWeaponDropTextureKey } from '../config/weapons'
 import { HEALTH_DROP_DEFINITIONS, getHealthDropTextureKey } from '../config/dropItems'
-import { PLAYER_CARRIED_WEAPON_TEXTURE, PLAYER_FRAME_POSES, PLAYER_SKINS } from '../config/playerVisualConfig'
+import { PLAYER_CARRIED_WEAPON_TEXTURE, PLAYER_FRAME_POSES, PLAYER_SKINS, GUN_SKINS } from '../config/playerVisualConfig'
 import { readStorage } from '../../services/storageService'
 
 const zombieOutline = '#311a4d'
@@ -30,6 +30,9 @@ let survivorBoot = '#111216'
 let survivorBootTop = '#242831'
 let survivorGunDark = '#1a1e24'
 let survivorGunAccent = '#677182'
+let survivorGunBody = '#2a2e38'
+let survivorGunBarrel = '#4a5568'
+let survivorGunHandguard = '#1f2128'
 let survivorSleeve = '#d6a073'
 let survivorUnderShirt = '#edb483'
 
@@ -1391,7 +1394,7 @@ function drawPlayerCarriedWeapon(scene) {
 
   // --- M4 / AR-15 Gun Base ---
   // Stock sticking out back
-  context.fillStyle = '#111216' // black stock
+  context.fillStyle = survivorGunDark // black stock
   context.fillRect(shoulderX - 16, shoulderY - 2, 12, 8)
   
   // Buffer tube (connects stock to receiver)
@@ -1399,15 +1402,15 @@ function drawPlayerCarriedWeapon(scene) {
   context.fillRect(shoulderX - 6, shoulderY, 6, 4)
 
   // Receiver/Magwell (middle body)
-  context.fillStyle = '#2a2e38' // dark grey receiver
+  context.fillStyle = survivorGunBody // dark grey receiver
   context.fillRect(shoulderX, shoulderY - 4, 16, 12)
   
   // Magazine hanging down
-  context.fillStyle = '#111216' 
+  context.fillStyle = survivorGunDark
   context.fillRect(shoulderX + 6, shoulderY + 8, 8, 14)
   
   // Handguard / Barrel shroud
-  context.fillStyle = '#1f2128' // dark ribbed handguard
+  context.fillStyle = survivorGunHandguard // dark ribbed handguard
   context.fillRect(shoulderX + 16, shoulderY - 2, 22, 8)
   
   // Barrel sticking out
@@ -1415,7 +1418,7 @@ function drawPlayerCarriedWeapon(scene) {
   context.fillRect(shoulderX + 38, shoulderY, 18, 4)
   
   // Front Sight (Triangle)
-  context.fillStyle = '#111216'
+  context.fillStyle = survivorGunDark
   context.beginPath()
   context.moveTo(shoulderX + 46, shoulderY)
   context.lineTo(shoulderX + 50, shoulderY)
@@ -1423,7 +1426,7 @@ function drawPlayerCarriedWeapon(scene) {
   context.fill()
 
   // Carrying Handle / Optics mount on top of receiver
-  context.fillStyle = '#111216'
+  context.fillStyle = survivorGunDark
   context.fillRect(shoulderX + 2, shoulderY - 8, 12, 4)
   
   // --- Back arm connection ---
@@ -1813,6 +1816,15 @@ export function registerPlaceholderTextures(scene) {
   survivorSleeve = skinConfig.sleeve || '#d6a073';
   survivorUnderShirt = skinConfig.underShirt || '#edb483';
   
+  // Apply gun skin colors
+  const gunSkinId = readStorage('zoombie.selected-gun-skin', 'standard')
+  const gunSkinConfig = GUN_SKINS[gunSkinId] || GUN_SKINS['standard']
+  survivorGunBody = gunSkinConfig.gunBody || '#2a2e38'
+  survivorGunDark = gunSkinConfig.gunDark || '#1a1e24'
+  survivorGunAccent = gunSkinConfig.gunAccent || '#677182'
+  survivorGunBarrel = gunSkinConfig.gunBarrel || '#4a5568'
+  survivorGunHandguard = gunSkinConfig.handguard || '#1f2128'
+
   if (scene.textures.exists('player-idle-0')) {
     const playerFrames = [
       'player-idle-0', 'player-idle-1',

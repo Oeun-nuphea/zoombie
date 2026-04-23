@@ -30,6 +30,9 @@
         <button class="header-action-btn" type="button" @click="showSkinSelector = true">
           👕 Operatives
         </button>
+        <button class="header-action-btn" type="button" @click="showArsenal = true">
+          🔫 Arsenal
+        </button>
         <button class="header-action-btn" type="button" @click="showShop = true">
           💀 Upgrades
         </button>
@@ -89,7 +92,7 @@
     </div>
 
     <!-- ── Modals ── -->
-    <div v-if="showShop || showMapSelector || showSkinSelector || showBestiary"
+    <div v-if="showShop || showMapSelector || showSkinSelector || showBestiary || showArsenal"
       class="landing-screen__modal-backdrop responsive-overlay" @click.self="closePanels">
       <div class="landing-screen__modal responsive-overlay__panel">
 
@@ -149,6 +152,69 @@
                 </div>
                 <span class="challenge-picker__card-desc">Select Operator</span>
               </button>
+            </div>
+          </div>
+        </template>
+
+        <!-- Arsenal (Gun Skins) -->
+        <template v-else-if="showArsenal">
+          <p class="landing-screen__modal-label">Armory</p>
+          <h2 class="landing-screen__modal-title">Gun Skins</h2>
+          <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
+            <div class="gun-skin-grid">
+              <button
+                v-for="(skin, key) in GUN_SKINS" :key="key" type="button"
+                class="gun-skin-card"
+                :class="[
+                  `gun-skin-card--${skin.rarity}`,
+                  { 'gun-skin-card--active': gameStore.selectedGunSkin === key },
+                  { 'gun-skin-card--locked': !gameStore.unlockedGunSkins.includes(key) },
+                ]"
+                @click="selectGunSkinPreview(key)"
+              >
+                <span class="gun-skin-card__rarity-badge" :class="`rarity--${skin.rarity}`">
+                  {{ GUN_SKIN_RARITY[skin.rarity].label }}
+                </span>
+                <span class="gun-skin-card__icon">{{ skin.icon }}</span>
+                <span class="gun-skin-card__name">{{ skin.name }}</span>
+                <span v-if="!gameStore.unlockedGunSkins.includes(key)" class="gun-skin-card__cost">
+                  {{ skin.cost }} 💀
+                </span>
+                <span v-else-if="gameStore.selectedGunSkin === key" class="gun-skin-card__equipped">
+                  ✓ Equipped
+                </span>
+                <span v-else class="gun-skin-card__cost" style="color: #4ade80;">Owned</span>
+              </button>
+            </div>
+
+            <!-- Preview / Action panel -->
+            <div v-if="previewGunSkin" class="gun-skin-preview">
+              <div class="gun-skin-preview__info">
+                <span class="gun-skin-card__rarity-badge" :class="`rarity--${GUN_SKINS[previewGunSkin].rarity}`" style="font-size: 0.75rem;">
+                  {{ GUN_SKIN_RARITY[GUN_SKINS[previewGunSkin].rarity].label }}
+                </span>
+                <h4 class="gun-skin-preview__name">{{ GUN_SKINS[previewGunSkin].icon }} {{ GUN_SKINS[previewGunSkin].name }}</h4>
+                <p class="gun-skin-preview__desc">{{ GUN_SKINS[previewGunSkin].desc }}</p>
+              </div>
+              <div class="gun-skin-preview__actions">
+                <button
+                  v-if="!gameStore.unlockedGunSkins.includes(previewGunSkin)"
+                  class="landing-screen__play-button shop-item__btn"
+                  :disabled="gameStore.souls < GUN_SKINS[previewGunSkin].cost"
+                  :class="{ 'shop-item__btn--disabled': gameStore.souls < GUN_SKINS[previewGunSkin].cost }"
+                  @click="buyGunSkin"
+                >
+                  Unlock ({{ GUN_SKINS[previewGunSkin].cost }} 💀)
+                </button>
+                <button
+                  v-else-if="gameStore.selectedGunSkin !== previewGunSkin"
+                  class="landing-screen__play-button shop-item__btn"
+                  @click="equipGunSkin"
+                >
+                  ✓ Equip Skin
+                </button>
+                <span v-else class="gun-skin-equipped-label">✓ Currently Equipped</span>
+              </div>
             </div>
           </div>
         </template>
@@ -226,7 +292,7 @@ import { requestDocumentFullscreen } from '../../composables/useFullscreenMode'
 import { readStorage, writeStorage } from '../../services/storageService'
 import { useGameStore } from '../../stores/gameStore'
 import { APP_NAME, STORAGE_KEYS, CHALLENGES, MAP_CONFIG } from '../../utils/constants'
-import { PLAYER_SKINS } from '../../game/config/playerVisualConfig'
+import { PLAYER_SKINS, GUN_SKINS, GUN_SKIN_RARITY } from '../../game/config/playerVisualConfig'
 import { getGameRuntimeProfile } from '../../utils/device'
 import { ZOMBIE_TYPES } from '../../game/config/gameplayConfig'
 import { formatScore } from '../../utils/helpers'
@@ -254,7 +320,9 @@ const gameStore = useGameStore()
 const showShop = ref(false)
 const showMapSelector = ref(false)
 const showSkinSelector = ref(false)
+const showArsenal = ref(false)
 const showBestiary = ref(false)
+const previewGunSkin = ref(gameStore.selectedGunSkin || 'standard')
 const pendingRunMode = ref('normal')
 const selectedChallenge = ref('none')
 const dropdownOpen = ref(false)
@@ -266,6 +334,7 @@ const closePanels = () => {
   showShop.value = false
   showMapSelector.value = false
   showSkinSelector.value = false
+  showArsenal.value = false
   showBestiary.value = false
 }
 
@@ -287,6 +356,21 @@ function buyMap() {
   const mapItem = MAP_CONFIG[previewMap.value];
   if (!mapItem) return;
   gameStore.buyMap(previewMap.value, mapItem.cost);
+}
+
+function selectGunSkinPreview(key) {
+  previewGunSkin.value = key
+}
+
+function buyGunSkin() {
+  const skin = GUN_SKINS[previewGunSkin.value]
+  if (!skin) return
+  const ok = gameStore.buyGunSkin(previewGunSkin.value, skin.cost)
+  if (ok) gameStore.setSelectedGunSkin(previewGunSkin.value)
+}
+
+function equipGunSkin() {
+  gameStore.setSelectedGunSkin(previewGunSkin.value)
 }
 
 function toggleSound() {
@@ -1126,5 +1210,160 @@ async function confirmMapAndStart() {
   font-weight: 800;
   letter-spacing: 0.15em;
   text-transform: uppercase;
+}
+
+/* ── Gun Skin Arsenal ─────────────────────────────────────── */
+.gun-skin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.gun-skin-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.75rem 0.5rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px);
+  color: #cbd5e1;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.gun-skin-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--skin-glow, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.gun-skin-card:hover::before { opacity: 1; }
+
+.gun-skin-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--skin-color, rgba(255,255,255,0.3));
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 16px var(--skin-color, rgba(255,255,255,0.1));
+}
+
+.gun-skin-card--active {
+  border-color: var(--skin-color, #fbbf24) !important;
+  background: var(--skin-bg, rgba(251,191,36,0.12)) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 20px var(--skin-color, rgba(251,191,36,0.3)) !important;
+  transform: translateY(-2px);
+}
+
+.gun-skin-card--locked {
+  opacity: 0.72;
+}
+
+/* Rarity CSS variables */
+.gun-skin-card--standard  { --skin-color: #94a3b8; --skin-glow: rgba(148,163,184,0.06); --skin-bg: rgba(148,163,184,0.1); }
+.gun-skin-card--special   { --skin-color: #60a5fa; --skin-glow: rgba(96,165,250,0.08);  --skin-bg: rgba(96,165,250,0.12);  }
+.gun-skin-card--epic      { --skin-color: #c084fc; --skin-glow: rgba(192,132,252,0.08); --skin-bg: rgba(192,132,252,0.12); }
+.gun-skin-card--sakura    { --skin-color: #f472b6; --skin-glow: rgba(244,114,182,0.08); --skin-bg: rgba(244,114,182,0.12); }
+.gun-skin-card--phantom   { --skin-color: #34d399; --skin-glow: rgba(52,211,153,0.08);  --skin-bg: rgba(52,211,153,0.12);  }
+.gun-skin-card--inferno   { --skin-color: #fb923c; --skin-glow: rgba(251,146,60,0.08);  --skin-bg: rgba(251,146,60,0.12);  }
+
+.gun-skin-card__rarity-badge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+  border: 1px solid currentColor;
+}
+
+.rarity--standard { color: #94a3b8; background: rgba(148,163,184,0.12); }
+.rarity--special  { color: #60a5fa; background: rgba(96,165,250,0.14);  }
+.rarity--epic     { color: #c084fc; background: rgba(192,132,252,0.14); }
+.rarity--sakura   { color: #f472b6; background: rgba(244,114,182,0.14); }
+.rarity--phantom  { color: #34d399; background: rgba(52,211,153,0.14);  }
+.rarity--inferno  { color: #fb923c; background: rgba(251,146,60,0.14);  }
+
+.gun-skin-card__icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+}
+
+.gun-skin-card__name {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #e2e8f0;
+}
+
+.gun-skin-card__cost {
+  font-size: 0.65rem;
+  color: #fcd34d;
+  font-weight: 700;
+}
+
+.gun-skin-card__equipped {
+  font-size: 0.65rem;
+  color: #4ade80;
+  font-weight: 700;
+}
+
+/* Preview panel */
+.gun-skin-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.gun-skin-preview__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.gun-skin-preview__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.gun-skin-preview__desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  max-width: 24rem;
+}
+
+.gun-skin-preview__actions {
+  flex-shrink: 0;
+}
+
+.gun-skin-equipped-label {
+  color: #4ade80;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 </style>

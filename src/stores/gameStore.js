@@ -25,6 +25,8 @@ export const useGameStore = defineStore('game', {
     unlockedMaps: readStorage(STORAGE_KEYS.unlockedMaps, ['arena1']),
     selectedMap: readStorage(STORAGE_KEYS.selectedMap, 'arena1'),
     selectedSkin: readStorage('selectedSkin', 'swat'),
+    selectedGunSkin: readStorage(STORAGE_KEYS.selectedGunSkin, 'standard'),
+    unlockedGunSkins: readStorage(STORAGE_KEYS.unlockedGunSkins, ['standard']),
     currentRunMap: null,
     score: 0,
     bestScore: readStorage(STORAGE_KEYS.bestScore, 0),
@@ -109,6 +111,26 @@ export const useGameStore = defineStore('game', {
     setSelectedSkin(skinId) {
       this.selectedSkin = skinId
       writeStorage('selectedSkin', skinId)
+    },
+    setSelectedGunSkin(skinId) {
+      this.selectedGunSkin = skinId
+      writeStorage(STORAGE_KEYS.selectedGunSkin, skinId)
+    },
+    unlockGunSkin(skinId) {
+      if (!this.unlockedGunSkins.includes(skinId)) {
+        this.unlockedGunSkins = [...this.unlockedGunSkins, skinId]
+        writeStorage(STORAGE_KEYS.unlockedGunSkins, this.unlockedGunSkins)
+      }
+    },
+    buyGunSkin(skinId, cost) {
+      if (this.unlockedGunSkins.includes(skinId)) return false
+      if (this.souls >= cost) {
+        this.souls -= cost
+        writeStorage(STORAGE_KEYS.souls, this.souls)
+        this.unlockGunSkin(skinId)
+        return true
+      }
+      return false
     },
     addScore(amount = 1) {
       const multiplier = this.challengeMode === 'overtime' ? 1.75 : 1

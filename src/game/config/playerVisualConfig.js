@@ -66,3 +66,114 @@ export const PLAYER_SKINS = {
     underShirt: '#2b2a2e'
   }
 }
+
+// Gun skin rarity tiers
+export const GUN_SKIN_RARITY = {
+  standard: { label: 'Standard', color: '#94a3b8', glow: 'rgba(148,163,184,0.4)' },
+  special:  { label: 'Special',  color: '#60a5fa', glow: 'rgba(96,165,250,0.5)'  },
+  epic:     { label: 'Epic',     color: '#c084fc', glow: 'rgba(192,132,252,0.6)' },
+  sakura:   { label: 'Sakura',   color: '#f472b6', glow: 'rgba(244,114,182,0.6)' },
+  phantom:  { label: 'Phantom',  color: '#34d399', glow: 'rgba(52,211,153,0.6)'  },
+  inferno:  { label: 'Inferno',  color: '#fb923c', glow: 'rgba(251,146,60,0.6)'  },
+}
+
+export const GUN_SKINS = {
+  standard: {
+    id: 'standard',
+    name: 'Standard Issue',
+    rarity: 'standard',
+    cost: 0,
+    default: true,
+    icon: '🔫',
+    desc: 'The default military-grade rifle. Reliable and battle-tested.',
+    gunBody:    '#2a2e38',
+    gunDark:    '#1a1e24',
+    gunAccent:  '#677182',
+    gunBarrel:  '#4a5568',
+    handguard:  '#1f2128',
+    bulletTint: 0xfff1b8,   // warm brass
+  },
+  special: {
+    id: 'special',
+    name: 'Arctic Blue',
+    rarity: 'special',
+    cost: 200,
+    default: false,
+    icon: '🧊',
+    desc: 'Cold-weather spec. Icy blue finish with chrome accents.',
+    gunBody:    '#1e3a5f',
+    gunDark:    '#0f2440',
+    gunAccent:  '#60a5fa',
+    gunBarrel:  '#93c5fd',
+    handguard:  '#1a3252',
+    bulletTint: 0x93c5fd,   // light blue
+  },
+  epic: {
+    id: 'epic',
+    name: 'Void Walker',
+    rarity: 'epic',
+    cost: 500,
+    default: false,
+    icon: '🔮',
+    desc: 'Forged from the void. Purple energy pulses through the frame.',
+    gunBody:    '#2e1065',
+    gunDark:    '#1e0a45',
+    gunAccent:  '#c084fc',
+    gunBarrel:  '#a855f7',
+    handguard:  '#1a0838',
+    bulletTint: 0xd8b4fe,   // lavender
+  },
+  sakura: {
+    id: 'sakura',
+    name: 'Sakura Bloom',
+    rarity: 'sakura',
+    cost: 600,
+    default: false,
+    icon: '🌸',
+    desc: 'Cherry blossom pink. Beautiful but deadly.',
+    gunBody:    '#4a1942',
+    gunDark:    '#2d0a27',
+    gunAccent:  '#f472b6',
+    gunBarrel:  '#ec4899',
+    handguard:  '#3b1535',
+    bulletTint: 0xfda4af,   // rose pink
+  },
+  phantom: {
+    id: 'phantom',
+    name: 'Ghost Protocol',
+    rarity: 'phantom',
+    cost: 750,
+    default: false,
+    icon: '👻',
+    desc: 'Stealth-spec emerald. Silent and invisible in the dark.',
+    gunBody:    '#042f2e',
+    gunDark:    '#021a1a',
+    gunAccent:  '#34d399',
+    gunBarrel:  '#10b981',
+    handguard:  '#053333',
+    bulletTint: 0x6ee7b7,   // mint green
+  },
+  inferno: {
+    id: 'inferno',
+    name: 'Hellfire',
+    rarity: 'inferno',
+    cost: 1000,
+    default: false,
+    icon: '🔥',
+    desc: 'Tempered in the flames of war. Burns bright with every shot.',
+    gunBody:    '#431407',
+    gunDark:    '#2c0a04',
+    gunAccent:  '#fb923c',
+    gunBarrel:  '#f97316',
+    handguard:  '#3a1005',
+    bulletTint: 0xfed7aa,   // peach orange
+  },
+}
+
+/**
+ * Returns the bullet tint hex number for the given gun skin ID.
+ * Falls back to the standard brass tint if the skin is not found.
+ */
+export function getActiveBulletTint(skinId) {
+  return GUN_SKINS[skinId]?.bulletTint ?? GUN_SKINS.standard.bulletTint
+}

@@ -21,6 +21,8 @@ export const STORAGE_KEYS = {
   metaUpgrades: 'zoombie.meta-upgrades',
   unlockedMaps: 'zoombie.unlocked-maps',
   selectedMap: 'zoombie.selected-map',
+  selectedGunSkin: 'zoombie.selected-gun-skin',
+  unlockedGunSkins: 'zoombie.unlocked-gun-skins',
 }
 
 export const MAP_CONFIG = {

@@ -6,6 +6,7 @@ import {
   getWeaponDefinition,
   resolveWeaponAmmo,
 } from '../config/weapons'
+import { getActiveBulletTint } from '../config/playerVisualConfig'
 
 export function createWeaponDirector(scene, config) {
   const { player, bullets, gameStore, upgradeDirector } = config
@@ -132,12 +133,16 @@ export function createWeaponDirector(scene, config) {
         continue
       }
 
+      // Override bullet tint with gun skin colour (unless the bullet upgrade config is already forcing a custom tint)
+      const skinId = gameStore.selectedGunSkin ?? 'standard'
+      const skinTint = skinId !== 'standard' ? getActiveBulletTint(skinId) : weapon.bulletTint
+
       bullet.fire(muzzle.x, muzzle.y, pelletAngle, time, {
         damage: weapon.damage * (playerStats.damage ?? 1),
         speed: weapon.bulletSpeed,
         lifetime: weapon.bulletLifetime,
         scale: weapon.bulletScale,
-        tint: weapon.bulletTint,
+        tint: bulletUpgradeConfig.tint ?? skinTint,
         ...bulletUpgradeConfig,
       })
       pelletsFired += 1
