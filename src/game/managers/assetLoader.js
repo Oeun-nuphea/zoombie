@@ -2457,6 +2457,102 @@ export function registerPlaceholderTextures(scene) {
     obGraphic.generateTexture('obstacle-stone-6', 96, 96);
     obGraphic.destroy();
   }
+
+  // Cactus 1: Saguaro
+  if (!scene.textures.exists('obstacle-cactus-1')) {
+    const obGraphic = scene.make.graphics({ add: false });
+    // shadow
+    obGraphic.fillStyle(0x1B5E20, 1);
+    obGraphic.fillRoundedRect(40, 20, 16, 70, 8); // main body
+    obGraphic.fillRoundedRect(20, 40, 16, 35, 8); // left arm
+    obGraphic.fillRoundedRect(25, 40, 30, 14, 6); // left arm connect
+    obGraphic.fillRoundedRect(60, 30, 16, 40, 8); // right arm
+    obGraphic.fillRoundedRect(45, 56, 30, 14, 6); // right arm connect
+    
+    // highlight
+    obGraphic.fillStyle(0x388E3C, 1);
+    obGraphic.fillRoundedRect(42, 22, 10, 66, 5); 
+    obGraphic.fillRoundedRect(22, 42, 10, 30, 5); 
+    obGraphic.fillRoundedRect(25, 42, 20, 10, 5); 
+    obGraphic.fillRoundedRect(62, 32, 10, 35, 5); 
+    obGraphic.fillRoundedRect(53, 58, 15, 10, 5); 
+
+    // spikes
+    obGraphic.fillStyle(0xAED581, 1);
+    for(let i=0; i<25; i++) {
+        obGraphic.fillCircle(Phaser.Math.Between(20, 76), Phaser.Math.Between(20, 85), 1.5);
+    }
+    
+    // flower on top
+    obGraphic.fillStyle(0xF48FB1, 1);
+    obGraphic.fillCircle(48, 20, 5);
+    obGraphic.fillCircle(28, 40, 4);
+    obGraphic.fillCircle(68, 30, 4);
+    
+    obGraphic.generateTexture('obstacle-cactus-1', 96, 96);
+    obGraphic.destroy();
+  }
+
+  // Cactus 2: Barrel Cactus Cluster
+  if (!scene.textures.exists('obstacle-cactus-2')) {
+    const obGraphic = scene.make.graphics({ add: false });
+    obGraphic.fillStyle(0x1B5E20, 1);
+    obGraphic.fillCircle(48, 60, 24);
+    obGraphic.fillCircle(65, 70, 16);
+    obGraphic.fillCircle(30, 75, 14);
+
+    obGraphic.fillStyle(0x43A047, 1);
+    obGraphic.fillCircle(48, 60, 20);
+    obGraphic.fillCircle(65, 70, 12);
+    obGraphic.fillCircle(30, 75, 10);
+
+    // Ribs
+    obGraphic.lineStyle(2, 0x1B5E20, 0.5);
+    obGraphic.beginPath(); obGraphic.moveTo(48, 40); obGraphic.lineTo(48, 80); obGraphic.stroke();
+    
+    // Spikes
+    obGraphic.fillStyle(0xDCEDC8, 1);
+    for(let i=0; i<30; i++) {
+        obGraphic.fillCircle(Phaser.Math.Between(20, 76), Phaser.Math.Between(40, 85), 1.5);
+    }
+
+    // flower
+    obGraphic.fillStyle(0xFF8A80, 1);
+    obGraphic.fillCircle(48, 38, 7);
+    obGraphic.fillCircle(65, 55, 5);
+
+    obGraphic.generateTexture('obstacle-cactus-2', 96, 96);
+    obGraphic.destroy();
+  }
+  
+  // Cactus 3: Prickly Pear
+  if (!scene.textures.exists('obstacle-cactus-3')) {
+    const obGraphic = scene.make.graphics({ add: false });
+    obGraphic.fillStyle(0x1B5E20, 1);
+    obGraphic.fillEllipse(48, 65, 24, 25);
+    obGraphic.fillEllipse(30, 48, 18, 22);
+    obGraphic.fillEllipse(66, 45, 16, 20);
+    obGraphic.fillEllipse(40, 25, 14, 18);
+
+    obGraphic.fillStyle(0x4CAF50, 1);
+    obGraphic.fillEllipse(48, 65, 20, 21);
+    obGraphic.fillEllipse(30, 48, 15, 18);
+    obGraphic.fillEllipse(66, 45, 13, 16);
+    obGraphic.fillEllipse(40, 25, 11, 14);
+
+    obGraphic.fillStyle(0xDCEDC8, 1);
+    for(let i=0; i<30; i++) {
+        obGraphic.fillCircle(Phaser.Math.Between(15, 80), Phaser.Math.Between(15, 85), 1.5);
+    }
+
+    // flower
+    obGraphic.fillStyle(0xFF8A80, 1);
+    obGraphic.fillCircle(30, 27, 4);
+    obGraphic.fillCircle(66, 26, 4);
+
+    obGraphic.generateTexture('obstacle-cactus-3', 96, 96);
+    obGraphic.destroy();
+  }
 }
 
 export function registerCustomZombieAnimations(scene) {

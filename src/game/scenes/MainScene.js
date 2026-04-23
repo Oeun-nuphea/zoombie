@@ -126,6 +126,7 @@ export default class MainScene extends Phaser.Scene {
     for (let i = 0; i < count; i++) {
         let x, y, scale;
         let valid = false;
+        let spawnBiome = 'grass';
         
         for (let attempts = 0; attempts < 50; attempts++) {
             x = Phaser.Math.Between(200, width - 200);
@@ -135,29 +136,10 @@ export default class MainScene extends Phaser.Scene {
             continue;
             }
             
-            const rand = Math.random();
-            if (rand < 0.15) {
-                scale = Phaser.Math.FloatBetween(2.5, 4.2); // Massive trees
-            } else if (rand < 0.45) {
-                scale = Phaser.Math.FloatBetween(1.6, 2.5); // Large trees
-            } else {
-                scale = Phaser.Math.FloatBetween(0.7, 1.6); // Normal/small trees
-            }
-            
-            // Assume an approximate visual boundary relative to the scale
-            const approxRadius = 40 * scale; 
-            
-            let overlap = false;
-            for (const bounds of spawnedBounds) {
-                if (Phaser.Math.Distance.Between(x, y, bounds.x, bounds.y) < (approxRadius + bounds.radius) * 0.75) {
-                    overlap = true;
-                    break;
-                }
-            }
-            if (overlap) continue;
-            
-            // Prevent trees from spawning on walls or "white stone" path tiles
+            // 1. Check tile validity and biome first
             let invalidPlatform = false;
+            spawnBiome = 'grass';
+
             if (this.arena && this.arena.groundLayer) {
                 const mapLayers = [
                     { ground: this.arena.groundLayer, wall: this.arena.wallLayer },
@@ -174,26 +156,69 @@ export default class MainScene extends Phaser.Scene {
                     }
                     if (layers.ground) {
                         const gTile = layers.ground.getTileAtWorldXY(x, y, true);
-                        // Path tiles / white stone typically map to index 2, 3, 4, 5. Pure grass is index 1.
-                        if (gTile && gTile.index !== -1 && gTile.index !== 1) {
+                        const isGrass = gTile && gTile.index === 1;
+                        const isDesert = gTile && gTile.index === 5; // Desert sand tile index
+
+                        if (gTile && gTile.index !== -1 && !isGrass && !isDesert) {
                             invalidPlatform = true;
                             break;
+                        }
+
+                        if (isDesert) {
+                            spawnBiome = 'desert';
+                        } else if (isGrass) {
+                            spawnBiome = 'grass';
                         }
                     }
                 }
             }
 
-            if (!invalidPlatform) {
-                valid = true;
-                break;
+            if (invalidPlatform) {
+                continue;
             }
+
+            // 2. Set scale based on the identified biome
+            if (spawnBiome === 'desert') {
+                // Keep cacti strictly small as requested
+                scale = Phaser.Math.FloatBetween(0.8, 1.2); 
+            } else {
+                const rand = Math.random();
+                if (rand < 0.15) {
+                    scale = Phaser.Math.FloatBetween(2.5, 4.2); // Massive trees
+                } else if (rand < 0.45) {
+                    scale = Phaser.Math.FloatBetween(1.6, 2.5); // Large trees
+                } else {
+                    scale = Phaser.Math.FloatBetween(0.7, 1.6); // Normal/small trees
+                }
+            }
+            
+            // 3. Assume an approximate visual boundary relative to the chosen scale
+            const approxRadius = 40 * scale; 
+            
+            let overlap = false;
+            for (const bounds of spawnedBounds) {
+                if (Phaser.Math.Distance.Between(x, y, bounds.x, bounds.y) < (approxRadius + bounds.radius) * 0.75) {
+                    overlap = true;
+                    break;
+                }
+            }
+            if (overlap) continue;
+            
+            // If we made it here, placement is totally valid
+            valid = true;
+            break;
         }
       
       if (valid) {
         spawnedBounds.push({ x, y, radius: 40 * scale });
         
-        // Boost the frequency of trees!
-        const types = ['obstacle-tree-1', 'obstacle-tree-2', 'obstacle-tree-3', 'obstacle-tree-4', 'obstacle-tree-5', 'obstacle-tree-6', 'obstacle-stone-1', 'obstacle-stone-2', 'obstacle-stone-3', 'obstacle-stone-4', 'obstacle-stone-5', 'obstacle-stone-6'];
+        let types = [];
+        if (spawnBiome === 'desert') {
+            types = ['obstacle-cactus-1', 'obstacle-cactus-2', 'obstacle-cactus-3'];
+        } else {
+            types = ['obstacle-tree-1', 'obstacle-tree-2', 'obstacle-tree-3', 'obstacle-tree-4', 'obstacle-tree-5', 'obstacle-tree-6', 'obstacle-stone-1', 'obstacle-stone-2', 'obstacle-stone-3', 'obstacle-stone-4', 'obstacle-stone-5', 'obstacle-stone-6'];
+        }
+        
         const type = Phaser.Utils.Array.GetRandom(types);
         const obs = this.obstacles.create(x, y, type);
         
@@ -202,8 +227,10 @@ export default class MainScene extends Phaser.Scene {
         obs.setRotation(Phaser.Math.FloatBetween(-0.06, 0.06));
 
         obs.refreshBody();
-        if (type.startsWith('obstacle-stone')) {
+        if (type.startsWith('obstacle-stone') || type.startsWith('obstacle-cactus-2') || type.startsWith('obstacle-cactus-3')) {
             obs.body.setCircle(22 * scale, (48 * scale - 22 * scale), (56 * scale - 22 * scale));
+        } else if (type.startsWith('obstacle-cactus-1')) {
+            obs.body.setCircle(14 * scale, (48 * scale - 14 * scale), (65 * scale - 14 * scale));
         } else {
             obs.body.setCircle(16 * scale, (48 * scale - 16 * scale), (60 * scale - 16 * scale));
         }
