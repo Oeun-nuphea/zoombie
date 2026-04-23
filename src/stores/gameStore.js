@@ -27,6 +27,8 @@ export const useGameStore = defineStore('game', {
     selectedSkin: readStorage('selectedSkin', 'swat'),
     selectedGunSkin: readStorage(STORAGE_KEYS.selectedGunSkin, 'standard'),
     unlockedGunSkins: readStorage(STORAGE_KEYS.unlockedGunSkins, ['standard']),
+    selectedHeadSkin: readStorage(STORAGE_KEYS.selectedHeadSkin, 'none'),
+    unlockedHeadSkins: readStorage(STORAGE_KEYS.unlockedHeadSkins, ['none']),
     currentRunMap: null,
     score: 0,
     bestScore: readStorage(STORAGE_KEYS.bestScore, 0),
@@ -128,6 +130,26 @@ export const useGameStore = defineStore('game', {
         this.souls -= cost
         writeStorage(STORAGE_KEYS.souls, this.souls)
         this.unlockGunSkin(skinId)
+        return true
+      }
+      return false
+    },
+    setSelectedHeadSkin(skinId) {
+      this.selectedHeadSkin = skinId
+      writeStorage(STORAGE_KEYS.selectedHeadSkin, skinId)
+    },
+    unlockHeadSkin(skinId) {
+      if (!this.unlockedHeadSkins.includes(skinId)) {
+        this.unlockedHeadSkins = [...this.unlockedHeadSkins, skinId]
+        writeStorage(STORAGE_KEYS.unlockedHeadSkins, this.unlockedHeadSkins)
+      }
+    },
+    buyHeadSkin(skinId, cost) {
+      if (this.unlockedHeadSkins.includes(skinId)) return false
+      if (this.souls >= cost) {
+        this.souls -= cost
+        writeStorage(STORAGE_KEYS.souls, this.souls)
+        this.unlockHeadSkin(skinId)
         return true
       }
       return false

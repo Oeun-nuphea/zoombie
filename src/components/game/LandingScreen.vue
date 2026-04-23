@@ -156,66 +156,123 @@
           </div>
         </template>
 
-        <!-- Arsenal (Gun Skins) -->
+        <!-- Arsenal (Gun Skins + Head Skins) -->
         <template v-else-if="showArsenal">
           <p class="landing-screen__modal-label">Armory</p>
-          <h2 class="landing-screen__modal-title">Gun Skins</h2>
-          <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
-            <div class="gun-skin-grid">
-              <button
-                v-for="(skin, key) in GUN_SKINS" :key="key" type="button"
-                class="gun-skin-card"
-                :class="[
-                  `gun-skin-card--${skin.rarity}`,
-                  { 'gun-skin-card--active': gameStore.selectedGunSkin === key },
-                  { 'gun-skin-card--locked': !gameStore.unlockedGunSkins.includes(key) },
-                ]"
-                @click="selectGunSkinPreview(key)"
-              >
-                <span class="gun-skin-card__rarity-badge" :class="`rarity--${skin.rarity}`">
-                  {{ GUN_SKIN_RARITY[skin.rarity].label }}
-                </span>
-                <span class="gun-skin-card__icon">{{ skin.icon }}</span>
-                <span class="gun-skin-card__name">{{ skin.name }}</span>
-                <span v-if="!gameStore.unlockedGunSkins.includes(key)" class="gun-skin-card__cost">
-                  {{ skin.cost }} 💀
-                </span>
-                <span v-else-if="gameStore.selectedGunSkin === key" class="gun-skin-card__equipped">
-                  ✓ Equipped
-                </span>
-                <span v-else class="gun-skin-card__cost" style="color: #4ade80;">Owned</span>
-              </button>
-            </div>
+          <h2 class="landing-screen__modal-title">Loadout Cosmetics</h2>
 
-            <!-- Preview / Action panel -->
-            <div v-if="previewGunSkin" class="gun-skin-preview">
-              <div class="gun-skin-preview__info">
-                <span class="gun-skin-card__rarity-badge" :class="`rarity--${GUN_SKINS[previewGunSkin].rarity}`" style="font-size: 0.75rem;">
-                  {{ GUN_SKIN_RARITY[GUN_SKINS[previewGunSkin].rarity].label }}
-                </span>
-                <h4 class="gun-skin-preview__name">{{ GUN_SKINS[previewGunSkin].icon }} {{ GUN_SKINS[previewGunSkin].name }}</h4>
-                <p class="gun-skin-preview__desc">{{ GUN_SKINS[previewGunSkin].desc }}</p>
-              </div>
-              <div class="gun-skin-preview__actions">
+          <!-- Tabs -->
+          <div class="arsenal-tabs">
+            <button class="arsenal-tab" :class="{ 'arsenal-tab--active': arsenalTab === 'gun' }" @click="arsenalTab = 'gun'">
+              🔫 Gun Skins
+            </button>
+            <button class="arsenal-tab" :class="{ 'arsenal-tab--active': arsenalTab === 'head' }" @click="arsenalTab = 'head'">
+              🤖 Head Gear
+            </button>
+          </div>
+
+          <div class="landing-screen__modal-copy" style="margin-top: 1rem;">
+            <!-- Gun Skins tab -->
+            <template v-if="arsenalTab === 'gun'">
+              <div class="gun-skin-grid">
                 <button
-                  v-if="!gameStore.unlockedGunSkins.includes(previewGunSkin)"
-                  class="landing-screen__play-button shop-item__btn"
-                  :disabled="gameStore.souls < GUN_SKINS[previewGunSkin].cost"
-                  :class="{ 'shop-item__btn--disabled': gameStore.souls < GUN_SKINS[previewGunSkin].cost }"
-                  @click="buyGunSkin"
+                  v-for="(skin, key) in GUN_SKINS" :key="key" type="button"
+                  class="gun-skin-card"
+                  :class="[
+                    `gun-skin-card--${skin.rarity}`,
+                    { 'gun-skin-card--active': gameStore.selectedGunSkin === key },
+                    { 'gun-skin-card--locked': !gameStore.unlockedGunSkins.includes(key) },
+                  ]"
+                  @click="selectGunSkinPreview(key)"
                 >
-                  Unlock ({{ GUN_SKINS[previewGunSkin].cost }} 💀)
+                  <span class="gun-skin-card__rarity-badge" :class="`rarity--${skin.rarity}`">
+                    {{ GUN_SKIN_RARITY[skin.rarity].label }}
+                  </span>
+                  <span class="gun-skin-card__icon">{{ skin.icon }}</span>
+                  <span class="gun-skin-card__name">{{ skin.name }}</span>
+                  <span v-if="!gameStore.unlockedGunSkins.includes(key)" class="gun-skin-card__cost">
+                    {{ skin.cost }} 💀
+                  </span>
+                  <span v-else-if="gameStore.selectedGunSkin === key" class="gun-skin-card__equipped">✓ Equipped</span>
+                  <span v-else class="gun-skin-card__cost" style="color: #4ade80;">Owned</span>
                 </button>
-                <button
-                  v-else-if="gameStore.selectedGunSkin !== previewGunSkin"
-                  class="landing-screen__play-button shop-item__btn"
-                  @click="equipGunSkin"
-                >
-                  ✓ Equip Skin
-                </button>
-                <span v-else class="gun-skin-equipped-label">✓ Currently Equipped</span>
               </div>
-            </div>
+              <div v-if="previewGunSkin" class="gun-skin-preview">
+                <div class="gun-skin-preview__info">
+                  <span class="gun-skin-card__rarity-badge" :class="`rarity--${GUN_SKINS[previewGunSkin].rarity}`" style="font-size: 0.75rem;">
+                    {{ GUN_SKIN_RARITY[GUN_SKINS[previewGunSkin].rarity].label }}
+                  </span>
+                  <h4 class="gun-skin-preview__name">{{ GUN_SKINS[previewGunSkin].icon }} {{ GUN_SKINS[previewGunSkin].name }}</h4>
+                  <p class="gun-skin-preview__desc">{{ GUN_SKINS[previewGunSkin].desc }}</p>
+                </div>
+                <div class="gun-skin-preview__actions">
+                  <button v-if="!gameStore.unlockedGunSkins.includes(previewGunSkin)"
+                    class="landing-screen__play-button shop-item__btn"
+                    :disabled="gameStore.souls < GUN_SKINS[previewGunSkin].cost"
+                    :class="{ 'shop-item__btn--disabled': gameStore.souls < GUN_SKINS[previewGunSkin].cost }"
+                    @click="buyGunSkin">
+                    Unlock ({{ GUN_SKINS[previewGunSkin].cost }} 💀)
+                  </button>
+                  <button v-else-if="gameStore.selectedGunSkin !== previewGunSkin"
+                    class="landing-screen__play-button shop-item__btn"
+                    @click="equipGunSkin">
+                    ✓ Equip Skin
+                  </button>
+                  <span v-else class="gun-skin-equipped-label">✓ Currently Equipped</span>
+                </div>
+              </div>
+            </template>
+
+            <!-- Head Gear tab -->
+            <template v-else-if="arsenalTab === 'head'">
+              <div class="gun-skin-grid">
+                <button
+                  v-for="(skin, key) in HEAD_SKINS" :key="key" type="button"
+                  class="gun-skin-card"
+                  :class="[
+                    `gun-skin-card--${skin.rarity}`,
+                    { 'gun-skin-card--active': gameStore.selectedHeadSkin === key },
+                    { 'gun-skin-card--locked': !gameStore.unlockedHeadSkins.includes(key) },
+                  ]"
+                  @click="selectHeadSkinPreview(key)"
+                >
+                  <span class="gun-skin-card__rarity-badge" :class="`rarity-head--${skin.rarity}`">
+                    {{ HEAD_SKIN_RARITY[skin.rarity].label }}
+                  </span>
+                  <span class="gun-skin-card__icon">{{ skin.icon }}</span>
+                  <span class="gun-skin-card__name">{{ skin.name }}</span>
+                  <span v-if="!gameStore.unlockedHeadSkins.includes(key)" class="gun-skin-card__cost">
+                    {{ skin.cost }} 💀
+                  </span>
+                  <span v-else-if="gameStore.selectedHeadSkin === key" class="gun-skin-card__equipped">✓ Equipped</span>
+                  <span v-else class="gun-skin-card__cost" style="color: #4ade80;">Owned</span>
+                </button>
+              </div>
+              <div v-if="previewHeadSkin" class="gun-skin-preview">
+                <div class="gun-skin-preview__info">
+                  <span class="gun-skin-card__rarity-badge" :class="`rarity-head--${HEAD_SKINS[previewHeadSkin].rarity}`" style="font-size: 0.75rem;">
+                    {{ HEAD_SKIN_RARITY[HEAD_SKINS[previewHeadSkin].rarity].label }}
+                  </span>
+                  <h4 class="gun-skin-preview__name">{{ HEAD_SKINS[previewHeadSkin].icon }} {{ HEAD_SKINS[previewHeadSkin].name }}</h4>
+                  <p class="gun-skin-preview__desc">{{ HEAD_SKINS[previewHeadSkin].desc }}</p>
+                </div>
+                <div class="gun-skin-preview__actions">
+                  <button v-if="!gameStore.unlockedHeadSkins.includes(previewHeadSkin)"
+                    class="landing-screen__play-button shop-item__btn"
+                    :disabled="gameStore.souls < HEAD_SKINS[previewHeadSkin].cost"
+                    :class="{ 'shop-item__btn--disabled': gameStore.souls < HEAD_SKINS[previewHeadSkin].cost }"
+                    @click="buyHeadSkin">
+                    Unlock ({{ HEAD_SKINS[previewHeadSkin].cost }} 💀)
+                  </button>
+                  <button v-else-if="gameStore.selectedHeadSkin !== previewHeadSkin"
+                    class="landing-screen__play-button shop-item__btn"
+                    @click="equipHeadSkin">
+                    ✓ Equip Gear
+                  </button>
+                  <span v-else class="gun-skin-equipped-label">✓ Currently Equipped</span>
+                </div>
+              </div>
+            </template>
           </div>
         </template>
 
@@ -292,7 +349,7 @@ import { requestDocumentFullscreen } from '../../composables/useFullscreenMode'
 import { readStorage, writeStorage } from '../../services/storageService'
 import { useGameStore } from '../../stores/gameStore'
 import { APP_NAME, STORAGE_KEYS, CHALLENGES, MAP_CONFIG } from '../../utils/constants'
-import { PLAYER_SKINS, GUN_SKINS, GUN_SKIN_RARITY } from '../../game/config/playerVisualConfig'
+import { PLAYER_SKINS, GUN_SKINS, GUN_SKIN_RARITY, HEAD_SKINS, HEAD_SKIN_RARITY } from '../../game/config/playerVisualConfig'
 import { getGameRuntimeProfile } from '../../utils/device'
 import { ZOMBIE_TYPES } from '../../game/config/gameplayConfig'
 import { formatScore } from '../../utils/helpers'
@@ -322,7 +379,9 @@ const showMapSelector = ref(false)
 const showSkinSelector = ref(false)
 const showArsenal = ref(false)
 const showBestiary = ref(false)
+const arsenalTab = ref('gun')
 const previewGunSkin = ref(gameStore.selectedGunSkin || 'standard')
+const previewHeadSkin = ref(gameStore.selectedHeadSkin || 'none')
 const pendingRunMode = ref('normal')
 const selectedChallenge = ref('none')
 const dropdownOpen = ref(false)
@@ -372,6 +431,22 @@ function buyGunSkin() {
 function equipGunSkin() {
   gameStore.setSelectedGunSkin(previewGunSkin.value)
 }
+
+function selectHeadSkinPreview(key) {
+  previewHeadSkin.value = key
+}
+
+function buyHeadSkin() {
+  const skin = HEAD_SKINS[previewHeadSkin.value]
+  if (!skin) return
+  const ok = gameStore.buyHeadSkin(previewHeadSkin.value, skin.cost)
+  if (ok) gameStore.setSelectedHeadSkin(previewHeadSkin.value)
+}
+
+function equipHeadSkin() {
+  gameStore.setSelectedHeadSkin(previewHeadSkin.value)
+}
+
 
 function toggleSound() {
   soundMuted.value = !soundMuted.value
@@ -1366,4 +1441,47 @@ async function confirmMapAndStart() {
   font-size: 0.85rem;
   font-weight: 700;
 }
+
+/* ── Arsenal tabs ─────────────────────────────────────────────── */
+.arsenal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.arsenal-tab {
+  flex: 1;
+  padding: 0.55rem 1rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  background: rgba(15,23,42,0.4);
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.arsenal-tab:hover {
+  background: rgba(255,255,255,0.06);
+  color: #e2e8f0;
+}
+
+.arsenal-tab--active {
+  background: rgba(99,102,241,0.18);
+  border-color: rgba(99,102,241,0.5);
+  color: #a5b4fc;
+  box-shadow: 0 0 12px rgba(99,102,241,0.2);
+}
+
+/* ── Head skin rarity badges (separate from gun rarity palette) ── */
+.rarity-head--none    { color: #94a3b8; background: rgba(148,163,184,0.12); border: 1px solid currentColor; }
+.rarity-head--rare    { color: #60a5fa; background: rgba(96,165,250,0.14);  border: 1px solid currentColor; }
+.rarity-head--epic    { color: #c084fc; background: rgba(192,132,252,0.14); border: 1px solid currentColor; }
+.rarity-head--mythic  { color: #fb923c; background: rgba(251,146,60,0.18);  border: 1px solid currentColor; }
+.rarity-head--sakura  { color: #f472b6; background: rgba(244,114,182,0.14); border: 1px solid currentColor; }
+.rarity-head--phantom { color: #34d399; background: rgba(52,211,153,0.14);  border: 1px solid currentColor; }
 </style>
+

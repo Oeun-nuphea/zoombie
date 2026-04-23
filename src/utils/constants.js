@@ -23,6 +23,8 @@ export const STORAGE_KEYS = {
   selectedMap: 'zoombie.selected-map',
   selectedGunSkin: 'zoombie.selected-gun-skin',
   unlockedGunSkins: 'zoombie.unlocked-gun-skins',
+  selectedHeadSkin: 'zoombie.selected-head-skin',
+  unlockedHeadSkins: 'zoombie.unlocked-head-skins',
 }
 
 export const MAP_CONFIG = {

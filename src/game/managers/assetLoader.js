@@ -1,6 +1,6 @@
 import { WEAPON_DEFINITIONS, getWeaponDropTextureKey } from '../config/weapons'
 import { HEALTH_DROP_DEFINITIONS, getHealthDropTextureKey } from '../config/dropItems'
-import { PLAYER_CARRIED_WEAPON_TEXTURE, PLAYER_FRAME_POSES, PLAYER_SKINS, GUN_SKINS } from '../config/playerVisualConfig'
+import { PLAYER_CARRIED_WEAPON_TEXTURE, PLAYER_FRAME_POSES, PLAYER_SKINS, GUN_SKINS, HEAD_SKINS } from '../config/playerVisualConfig'
 import { readStorage } from '../../services/storageService'
 
 const zombieOutline = '#311a4d'
@@ -33,6 +33,7 @@ let survivorGunAccent = '#677182'
 let survivorGunBody = '#2a2e38'
 let survivorGunBarrel = '#4a5568'
 let survivorGunHandguard = '#1f2128'
+let activeHeadSkinId = 'none'
 let survivorSleeve = '#d6a073'
 let survivorUnderShirt = '#edb483'
 
@@ -1462,6 +1463,187 @@ function drawPlayerCarriedWeapon(scene) {
   texture.refresh()
 }
 
+/**
+ * Draw the selected helmet/head-skin overlay on top of the player's balaclava.
+ * All coordinates are relative to the 128×128 canvas; head center is at ~(58, 31).
+ */
+function drawHelmetOverlay(context, skinId) {
+  if (!skinId || skinId === 'none') return
+  const skin = HEAD_SKINS[skinId]
+  if (!skin || skin.helmetStyle === 'none') return
+
+  const hx = 58   // head center X on canvas
+  const hy = 31   // head center Y on canvas
+
+  context.save()
+  context.translate(hx, hy)
+
+  const primary = skin.helmetColor || '#111'
+  const accent  = skin.helmetAccent || '#888'
+
+  if (skin.helmetStyle === 'skull') {
+    // Ghost-white skull face overlay
+    context.fillStyle = primary
+    context.beginPath()
+    context.ellipse(0, -1, 16, 19, 0, 0, Math.PI * 2)
+    context.fill()
+    // Hollow eye sockets
+    context.fillStyle = '#000000'
+    context.beginPath()
+    context.ellipse(-5, -5, 5, 6, -0.2, 0, Math.PI * 2)
+    context.fill()
+    context.beginPath()
+    context.ellipse(8, -4, 5, 6, 0.2, 0, Math.PI * 2)
+    context.fill()
+    // Nose cavity
+    context.beginPath()
+    context.arc(2, 4, 3, 0, Math.PI * 2)
+    context.fill()
+    // Teeth grin
+    context.strokeStyle = '#000000'
+    context.lineWidth = 2
+    for (let i = -8; i <= 8; i += 4) {
+      context.beginPath()
+      context.moveTo(i, 12)
+      context.lineTo(i, 18)
+      context.stroke()
+    }
+    // Crack detail
+    context.strokeStyle = accent
+    context.lineWidth = 1
+    context.beginPath()
+    context.moveTo(-2, -18)
+    context.lineTo(1, -10)
+    context.lineTo(-3, -4)
+    context.stroke()
+  }
+
+  else if (skin.helmetStyle === 'samurai') {
+    // Red/gold Oni kabuto helmet dome
+    context.fillStyle = primary
+    context.beginPath()
+    context.ellipse(0, -4, 19, 22, 0, Math.PI, Math.PI * 2)
+    context.fill()
+    // Brow guard plate
+    context.fillStyle = primary
+    context.fillRect(-20, -2, 40, 8)
+    // Gold trim
+    context.strokeStyle = accent
+    context.lineWidth = 2
+    context.beginPath()
+    context.ellipse(0, -4, 19, 22, 0, Math.PI, Math.PI * 2)
+    context.stroke()
+    context.strokeRect(-20, -2, 40, 8)
+    // Left horn
+    context.fillStyle = accent
+    context.beginPath()
+    context.moveTo(-16, -4)
+    context.lineTo(-22, -28)
+    context.lineTo(-10, -6)
+    context.closePath()
+    context.fill()
+    // Right horn
+    context.beginPath()
+    context.moveTo(16, -4)
+    context.lineTo(22, -28)
+    context.lineTo(10, -6)
+    context.closePath()
+    context.fill()
+    // Menpo face mask (lower face plate)
+    context.fillStyle = primary
+    context.beginPath()
+    context.roundRect(-13, 6, 26, 16, 4);
+    context.fill()
+    context.strokeStyle = accent
+    context.lineWidth = 1.5
+    context.stroke()
+    // Oni frown detail
+    context.strokeStyle = accent
+    context.lineWidth = 2
+    context.beginPath()
+    context.moveTo(-8, 12)
+    context.quadraticCurveTo(0, 18, 8, 12)
+    context.stroke()
+  }
+
+  else if (skin.helmetStyle === 'inferno') {
+    // Deep crimson crown base
+    context.fillStyle = primary
+    context.beginPath()
+    context.ellipse(0, -2, 18, 20, 0, Math.PI, Math.PI * 2)
+    context.fill()
+    // Gold brow band
+    context.fillStyle = accent
+    context.fillRect(-18, -2, 36, 5)
+    // 3 flame spike crown tips
+    const spikes = [[-10, -22], [0, -28], [10, -22]]
+    for (const [sx, sy] of spikes) {
+      context.fillStyle = accent
+      context.beginPath()
+      context.moveTo(sx - 5, -4)
+      context.quadraticCurveTo(sx - 8, (sy + 4) / 2, sx, sy)
+      context.quadraticCurveTo(sx + 8, (sy + 4) / 2, sx + 5, -4)
+      context.closePath()
+      context.fill()
+      // Inner flame
+      context.fillStyle = '#fef08a'
+      context.beginPath()
+      context.moveTo(sx - 2, -4)
+      context.quadraticCurveTo(sx - 3, (sy + 6) / 2, sx, sy - 4)
+      context.quadraticCurveTo(sx + 3, (sy + 6) / 2, sx + 2, -4)
+      context.closePath()
+      context.fill()
+    }
+  }
+
+  else if (skin.helmetStyle === 'crown') {
+    // Sakura crown — rose-gold circlet
+    context.strokeStyle = primary
+    context.lineWidth = 6
+    context.beginPath()
+    context.arc(0, -2, 18, Math.PI, Math.PI * 2)
+    context.stroke()
+    context.strokeStyle = accent
+    context.lineWidth = 3
+    context.stroke()
+    // 5 petal jewels along the crown arc
+    const jewels = [[-16, -10], [-9, -20], [0, -22], [9, -20], [16, -10]]
+    for (const [jx, jy] of jewels) {
+      context.fillStyle = accent
+      context.beginPath()
+      context.arc(jx, jy, 3.5, 0, Math.PI * 2)
+      context.fill()
+      context.fillStyle = '#fff'
+      context.beginPath()
+      context.arc(jx - 1, jy - 1, 1.2, 0, Math.PI * 2)
+      context.fill()
+    }
+  }
+
+  else if (skin.helmetStyle === 'phantom') {
+    // Dark emerald wraith cowl
+    context.fillStyle = primary
+    context.globalAlpha = 0.82
+    context.beginPath()
+    context.ellipse(0, -1, 18, 22, 0, 0, Math.PI * 2)
+    context.fill()
+    context.globalAlpha = 1
+    // Glowing green eye slits
+    context.shadowColor = accent
+    context.shadowBlur = 10
+    context.fillStyle = accent
+    context.beginPath()
+    context.ellipse(-5, -4, 7, 3, -0.15, 0, Math.PI * 2)
+    context.fill()
+    context.beginPath()
+    context.ellipse(8, -3, 7, 3, 0.15, 0, Math.PI * 2)
+    context.fill()
+    context.shadowBlur = 0
+  }
+
+  context.restore()
+}
+
 function drawPlayerFrame(scene, key, pose) {
   if (scene.textures.exists(key)) {
     return
@@ -1567,6 +1749,10 @@ function drawPlayerFrame(scene, key, pose) {
   context.fill()
 
   context.restore()
+
+  // ── Head skin helmet overlay ── draw on top of the balaclava
+  drawHelmetOverlay(context, activeHeadSkinId)
+
   texture.refresh()
 }
 
@@ -1824,6 +2010,9 @@ export function registerPlaceholderTextures(scene) {
   survivorGunAccent = gunSkinConfig.gunAccent || '#677182'
   survivorGunBarrel = gunSkinConfig.gunBarrel || '#4a5568'
   survivorGunHandguard = gunSkinConfig.handguard || '#1f2128'
+
+  // Apply head skin
+  activeHeadSkinId = readStorage('zoombie.selected-head-skin', 'none')
 
   if (scene.textures.exists('player-idle-0')) {
     const playerFrames = [
