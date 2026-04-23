@@ -224,6 +224,10 @@ export default class Boss extends Phaser.Physics.Arcade.Sprite {
     return !this.isDead && time >= this.lastDamageAt + this.damageCooldownMs
   }
 
+  isPlayerInAttackRange(target) {
+    return Phaser.Math.Distance.Between(this.x, this.y, target.x, target.y) <= this.attackRange
+  }
+
   markDamageDealt(time) {
     this.lastDamageAt = time
     this.attack(time)
