@@ -20,6 +20,7 @@ import { createRadarSystem } from "../systems/radarSystem";
 import { createPathfindingSystem } from "../systems/pathfindingSystem";
 import { createFogOfWarSystem } from "../systems/fogOfWarSystem";
 import { createWeatherSystem } from "../systems/weatherSystem";
+import { createGunSkinParticleSystem } from "../systems/gunSkinParticleSystem";
 import { pinia } from "../../stores";
 import { useGameStore } from "../../stores/gameStore";
 import { getSceneGameDimensions } from "../../utils/gameViewport";
@@ -259,6 +260,7 @@ export default class MainScene extends Phaser.Scene {
     this.scale.on("resize", this.handleScaleResize);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scale.off("resize", this.handleScaleResize);
+      this.gunSkinParticles?.destroy();
     });
     this.soundManager = getSoundManager(this);
     this.bullets = this.physics.add.group({
@@ -293,6 +295,12 @@ export default class MainScene extends Phaser.Scene {
       getMaxHealth: () => this.gameStore.maxPlayerHealth,
     });
     this.player.setDepth(20);
+
+    // Gun skin ambient particle effect (Sakura petals, Inferno embers, etc.)
+    this.gunSkinParticles = createGunSkinParticleSystem(this, {
+      player: this.player,
+      gameStore: this.gameStore,
+    });
 
     this.pathfinding = createPathfindingSystem(this, {
       arena: this.arena,
