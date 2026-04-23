@@ -179,8 +179,8 @@ export default class MainScene extends Phaser.Scene {
 
             // 2. Set scale based on the identified biome
             if (spawnBiome === 'desert') {
-                // Keep cacti strictly small as requested
-                scale = Phaser.Math.FloatBetween(0.8, 1.2); 
+                // Keep cacti mostly small-medium, bumped up slightly per user request
+                scale = Phaser.Math.FloatBetween(1.1, 1.6); 
             } else {
                 const rand = Math.random();
                 if (rand < 0.15) {
