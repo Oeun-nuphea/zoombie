@@ -121,66 +121,82 @@ export default class MainScene extends Phaser.Scene {
     const { width, height } = this.getWorldDimensions();
     const centerX = width * 0.5;
     const centerY = height * 0.5;
+    const spawnedBounds = [];
 
     for (let i = 0; i < count; i++) {
-      let x, y;
-      let valid = false;
-      for (let attempts = 0; attempts < 50; attempts++) {
-        x = Phaser.Math.Between(200, width - 200);
-        y = Phaser.Math.Between(200, height - 200);
+        let x, y, scale;
+        let valid = false;
         
-        if (Phaser.Math.Distance.Between(x, y, centerX, centerY) <= 280) {
-          continue;
-        }
-        
-        // Prevent trees from spawning on walls or "white stone" path tiles
-        let invalidPlatform = false;
-        if (this.arena && this.arena.groundLayer) {
-           const mapLayers = [
-             { ground: this.arena.groundLayer, wall: this.arena.wallLayer },
-             ...(this.arena.extraCopies?.map(c => ({ ground: c.groundLayer, wall: c.wallLayer })) || [])
-           ];
+        for (let attempts = 0; attempts < 50; attempts++) {
+            x = Phaser.Math.Between(200, width - 200);
+            y = Phaser.Math.Between(200, height - 200);
+            
+            if (Phaser.Math.Distance.Between(x, y, centerX, centerY) <= 280) {
+            continue;
+            }
+            
+            const rand = Math.random();
+            if (rand < 0.15) {
+                scale = Phaser.Math.FloatBetween(2.5, 4.2); // Massive trees
+            } else if (rand < 0.45) {
+                scale = Phaser.Math.FloatBetween(1.6, 2.5); // Large trees
+            } else {
+                scale = Phaser.Math.FloatBetween(0.7, 1.6); // Normal/small trees
+            }
+            
+            // Assume an approximate visual boundary relative to the scale
+            const approxRadius = 40 * scale; 
+            
+            let overlap = false;
+            for (const bounds of spawnedBounds) {
+                if (Phaser.Math.Distance.Between(x, y, bounds.x, bounds.y) < (approxRadius + bounds.radius) * 0.75) {
+                    overlap = true;
+                    break;
+                }
+            }
+            if (overlap) continue;
+            
+            // Prevent trees from spawning on walls or "white stone" path tiles
+            let invalidPlatform = false;
+            if (this.arena && this.arena.groundLayer) {
+                const mapLayers = [
+                    { ground: this.arena.groundLayer, wall: this.arena.wallLayer },
+                    ...(this.arena.extraCopies?.map(c => ({ ground: c.groundLayer, wall: c.wallLayer })) || [])
+                ];
 
-           for (const layers of mapLayers) {
-             if (layers.wall) {
-               const wTile = layers.wall.getTileAtWorldXY(x, y, true);
-               if (wTile && wTile.index !== -1) {
-                 invalidPlatform = true;
-                 break;
-               }
-             }
-             if (layers.ground) {
-               const gTile = layers.ground.getTileAtWorldXY(x, y, true);
-               // Path tiles / white stone typically map to index 2, 3, 4, 5. Pure grass is index 1.
-               if (gTile && gTile.index !== -1 && gTile.index !== 1) {
-                 invalidPlatform = true;
-                 break;
-               }
-             }
-           }
-        }
+                for (const layers of mapLayers) {
+                    if (layers.wall) {
+                        const wTile = layers.wall.getTileAtWorldXY(x, y, true);
+                        if (wTile && wTile.index !== -1) {
+                            invalidPlatform = true;
+                            break;
+                        }
+                    }
+                    if (layers.ground) {
+                        const gTile = layers.ground.getTileAtWorldXY(x, y, true);
+                        // Path tiles / white stone typically map to index 2, 3, 4, 5. Pure grass is index 1.
+                        if (gTile && gTile.index !== -1 && gTile.index !== 1) {
+                            invalidPlatform = true;
+                            break;
+                        }
+                    }
+                }
+            }
 
-        if (!invalidPlatform) {
-          valid = true;
-          break;
+            if (!invalidPlatform) {
+                valid = true;
+                break;
+            }
         }
-      }
       
       if (valid) {
+        spawnedBounds.push({ x, y, radius: 40 * scale });
+        
         // Boost the frequency of trees!
-        const types = ['obstacle-tree-1', 'obstacle-tree-2', 'obstacle-tree-3', 'obstacle-tree-4', 'obstacle-tree-5', 'obstacle-tree-6', 'obstacle-stone-1', 'obstacle-stone-2', 'obstacle-stone-3', 'obstacle-stone-4'];
+        const types = ['obstacle-tree-1', 'obstacle-tree-2', 'obstacle-tree-3', 'obstacle-tree-4', 'obstacle-tree-5', 'obstacle-tree-6', 'obstacle-stone-1', 'obstacle-stone-2', 'obstacle-stone-3', 'obstacle-stone-4', 'obstacle-stone-5', 'obstacle-stone-6'];
         const type = Phaser.Utils.Array.GetRandom(types);
         const obs = this.obstacles.create(x, y, type);
         
-        let scale;
-        const rand = Math.random();
-        if (rand < 0.15) {
-          scale = Phaser.Math.FloatBetween(2.5, 4.2); // Massive trees
-        } else if (rand < 0.45) {
-          scale = Phaser.Math.FloatBetween(1.6, 2.5); // Large trees
-        } else {
-          scale = Phaser.Math.FloatBetween(0.7, 1.6); // Normal/small trees
-        }
         obs.setScale(scale);
         obs.setDepth(24);
         obs.setRotation(Phaser.Math.FloatBetween(-0.06, 0.06));
