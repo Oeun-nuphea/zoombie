@@ -2,6 +2,18 @@
   <section class="landing-screen">
     <div class="landing-screen__backdrop"></div>
     <div class="landing-screen__grain"></div>
+
+    <!-- Zombie silhouettes walking in the background -->
+    <!-- z1 faces RIGHT natively; z2,z3,z4,z5 face LEFT natively -->
+    <div class="landing-screen__zombies">
+      <div class="bg-zombie bg-zombie--ltr-native-right bg-zombie--1" style="background-image: url(/assets/zombiles/z1_frame.png)"></div>
+      <div class="bg-zombie bg-zombie--rtl-native-left  bg-zombie--2" style="background-image: url(/assets/zombiles/z3_frame.png)"></div>
+      <div class="bg-zombie bg-zombie--ltr-native-left  bg-zombie--3" style="background-image: url(/assets/zombiles/z5_frame.png)"></div>
+      <div class="bg-zombie bg-zombie--rtl-native-left  bg-zombie--4" style="background-image: url(/assets/zombiles/z2_frame.png)"></div>
+      <div class="bg-zombie bg-zombie--ltr-native-left  bg-zombie--5" style="background-image: url(/assets/zombiles/z4_frame.png)"></div>
+      <div class="bg-zombie bg-zombie--rtl-native-right bg-zombie--6" style="background-image: url(/assets/zombiles/z1_frame.png)"></div>
+    </div>
+
     <header class="landing-header">
       <div class="landing-header__stats">
         <div class="header-stat">
@@ -363,6 +375,69 @@ async function confirmMapAndStart() {
   z-index: 1;
   pointer-events: none;
 }
+
+/* ── Walking zombie silhouettes ──────────────────────────── */
+.landing-screen__zombies {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Sprite faces RIGHT natively → no flip for LTR, flip for RTL */
+@keyframes walk-ltr-no-flip {
+  from { transform: translateX(-180px); }
+  to   { transform: translateX(calc(100vw + 180px)); }
+}
+@keyframes walk-rtl-flip {
+  from { transform: translateX(calc(100vw + 180px)) scaleX(-1); }
+  to   { transform: translateX(-180px) scaleX(-1); }
+}
+
+/* Sprite faces LEFT natively → flip for LTR, no flip for RTL */
+@keyframes walk-ltr-flip {
+  from { transform: translateX(-180px) scaleX(-1); }
+  to   { transform: translateX(calc(100vw + 180px)) scaleX(-1); }
+}
+@keyframes walk-rtl-no-flip {
+  from { transform: translateX(calc(100vw + 180px)); }
+  to   { transform: translateX(-180px); }
+}
+
+@keyframes zombie-walk-frames {
+  0%   { background-position: 0%   33.33%; }
+  33%  { background-position: 50%  33.33%; }
+  66%  { background-position: 100% 33.33%; }
+  100% { background-position: 0%   33.33%; }
+}
+
+.bg-zombie {
+  position: absolute;
+  width: 120px;
+  height: 97px;
+  background-size: 300% 400%;
+  background-position: 0% 33.33%;
+  background-repeat: no-repeat;
+  filter: brightness(0.35) saturate(0.3);
+  opacity: 0.4;
+  will-change: transform;
+}
+
+/* Faces right natively: no flip going right, flip going left */
+.bg-zombie--ltr-native-right { animation: walk-ltr-no-flip linear infinite, zombie-walk-frames 0.6s steps(1) infinite; }
+.bg-zombie--rtl-native-right { animation: walk-rtl-flip    linear infinite, zombie-walk-frames 0.6s steps(1) infinite; }
+
+/* Faces left natively: flip going right, no flip going left */
+.bg-zombie--ltr-native-left  { animation: walk-ltr-flip    linear infinite, zombie-walk-frames 0.6s steps(1) infinite; }
+.bg-zombie--rtl-native-left  { animation: walk-rtl-no-flip linear infinite, zombie-walk-frames 0.6s steps(1) infinite; }
+
+.bg-zombie--1 { top: 72%; animation-duration: 28s, 0.6s; animation-delay: -4s, 0s;  height: 90px; }
+.bg-zombie--2 { top: 80%; animation-duration: 35s, 0.6s; animation-delay: -12s, 0s; height: 80px; }
+.bg-zombie--3 { top: 65%; animation-duration: 24s, 0.6s; animation-delay: -18s, 0s; height: 110px; }
+.bg-zombie--4 { top: 85%; animation-duration: 32s, 0.6s; animation-delay: -8s, 0s;  height: 75px; }
+.bg-zombie--5 { top: 58%; animation-duration: 30s, 0.6s; animation-delay: -22s, 0s; height: 95px; }
+.bg-zombie--6 { top: 76%; animation-duration: 26s, 0.6s; animation-delay: -15s, 0s; height: 85px; }
 
 /* ── Layout ───────────────────────────────────────────────── */
 .landing-header {
