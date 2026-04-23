@@ -125,10 +125,42 @@ export default class MainScene extends Phaser.Scene {
     for (let i = 0; i < count; i++) {
       let x, y;
       let valid = false;
-      for (let attempts = 0; attempts < 15; attempts++) {
+      for (let attempts = 0; attempts < 50; attempts++) {
         x = Phaser.Math.Between(200, width - 200);
         y = Phaser.Math.Between(200, height - 200);
-        if (Phaser.Math.Distance.Between(x, y, centerX, centerY) > 280) {
+        
+        if (Phaser.Math.Distance.Between(x, y, centerX, centerY) <= 280) {
+          continue;
+        }
+        
+        // Prevent trees from spawning on walls or "white stone" path tiles
+        let invalidPlatform = false;
+        if (this.arena && this.arena.groundLayer) {
+           const mapLayers = [
+             { ground: this.arena.groundLayer, wall: this.arena.wallLayer },
+             ...(this.arena.extraCopies?.map(c => ({ ground: c.groundLayer, wall: c.wallLayer })) || [])
+           ];
+
+           for (const layers of mapLayers) {
+             if (layers.wall) {
+               const wTile = layers.wall.getTileAtWorldXY(x, y, true);
+               if (wTile && wTile.index !== -1) {
+                 invalidPlatform = true;
+                 break;
+               }
+             }
+             if (layers.ground) {
+               const gTile = layers.ground.getTileAtWorldXY(x, y, true);
+               // Path tiles / white stone typically map to index 2, 3, 4, 5. Pure grass is index 1.
+               if (gTile && gTile.index !== -1 && gTile.index !== 1) {
+                 invalidPlatform = true;
+                 break;
+               }
+             }
+           }
+        }
+
+        if (!invalidPlatform) {
           valid = true;
           break;
         }
