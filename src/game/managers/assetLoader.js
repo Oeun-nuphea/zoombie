@@ -1940,26 +1940,190 @@ export function registerPlaceholderTextures(scene) {
     obGraphic.destroy()
   }
 
-  if (!scene.textures.exists('obstacle-tree')) {
+  // Tree 1: default green
+  if (!scene.textures.exists('obstacle-tree-1')) {
     const obGraphic = scene.make.graphics({ add: false })
-    // Trunk shadow
-    obGraphic.fillStyle(0x3e2723, 1)
+    obGraphic.fillStyle(0x3e2723, 1) // Brown trunk
     obGraphic.fillRoundedRect(36, 40, 24, 40, 4)
-    // Trunk highlight
-    obGraphic.fillStyle(0x5d4037, 1)
+    obGraphic.fillStyle(0x5d4037, 1) // Trunk highlight
     obGraphic.fillRoundedRect(38, 40, 12, 38, 3)
-    // Leaves base
     obGraphic.fillStyle(0x064e3b, 1) // Dark green
     obGraphic.fillCircle(48, 40, 36)
-    // Leaves highlight
     obGraphic.fillStyle(0x059669, 1) // Green
     obGraphic.fillCircle(48, 32, 28)
-    // Small leaves accents
     obGraphic.fillStyle(0x10b981, 1) // Light green
     obGraphic.fillCircle(38, 22, 16)
     obGraphic.fillCircle(62, 28, 14)
     obGraphic.fillCircle(48, 18, 12)
-    obGraphic.generateTexture('obstacle-tree', 96, 96)
+    obGraphic.generateTexture('obstacle-tree-1', 96, 96)
+    obGraphic.destroy()
+  }
+
+  // Tree 2: Pine tree / triangular and darker green
+  if (!scene.textures.exists('obstacle-tree-2')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    obGraphic.fillStyle(0x4e342e, 1) // Dark brown trunk
+    obGraphic.fillRoundedRect(40, 40, 16, 40, 2)
+    // Triangular pine layers
+    obGraphic.fillStyle(0x004d40, 1) // Very dark cyan/green base
+    obGraphic.fillTriangle(48, 10, 16, 64, 80, 64)
+    obGraphic.fillStyle(0x00695c, 1) // Dark cyan highlight
+    obGraphic.fillTriangle(48, 20, 26, 64, 70, 64)
+    obGraphic.fillStyle(0x00897b, 1) // Light highlight
+    obGraphic.fillTriangle(48, 30, 34, 64, 62, 64)
+    obGraphic.generateTexture('obstacle-tree-2', 96, 96)
+    obGraphic.destroy()
+  }
+
+  // Tree 3: Autumn / orange tree
+  if (!scene.textures.exists('obstacle-tree-3')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    obGraphic.fillStyle(0x3e2723, 1) // Brown trunk
+    obGraphic.fillRoundedRect(36, 40, 24, 40, 4)
+    obGraphic.fillStyle(0x5d4037, 1)
+    obGraphic.fillRoundedRect(38, 40, 12, 38, 3)
+    obGraphic.fillStyle(0x9a3412, 1) // Dark orange
+    obGraphic.fillCircle(48, 40, 34)
+    obGraphic.fillStyle(0xc2410c, 1) // Orange
+    obGraphic.fillCircle(48, 32, 26)
+    obGraphic.fillStyle(0xea580c, 1) // Bright orange
+    obGraphic.fillCircle(38, 22, 15)
+    obGraphic.fillCircle(62, 28, 13)
+    obGraphic.fillCircle(48, 18, 11)
+    obGraphic.generateTexture('obstacle-tree-3', 96, 96)
+    obGraphic.destroy()
+  }
+
+  // Tree 4: Split-shaded Pine (like in the image)
+  if (!scene.textures.exists('obstacle-tree-4')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    // Trunk
+    obGraphic.fillStyle(0x795548, 1) // Brown trunk
+    obGraphic.fillRoundedRect(42, 50, 12, 35, 2)
+    obGraphic.fillStyle(0x5D4037, 1) // Trunk shadow (right)
+    obGraphic.fillRoundedRect(48, 50, 6, 35, 1)
+
+    // Base triangle
+    obGraphic.fillStyle(0x2E7D32, 1) // Left side (lighter)
+    obGraphic.beginPath()
+    obGraphic.moveTo(48, 30) // Top center
+    obGraphic.lineTo(16, 70) // Bottom left
+    obGraphic.lineTo(48, 70) // Bottom center
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    obGraphic.fillStyle(0x1B5E20, 1) // Right side (darker)
+    obGraphic.beginPath()
+    obGraphic.moveTo(48, 30) // Top center
+    obGraphic.lineTo(48, 70) // Bottom center
+    obGraphic.lineTo(80, 70) // Bottom right
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    // Middle triangle
+    obGraphic.fillStyle(0x388E3C, 1)
+    obGraphic.beginPath()
+    obGraphic.moveTo(48, 15)
+    obGraphic.lineTo(24, 55)
+    obGraphic.lineTo(48, 55)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    obGraphic.fillStyle(0x2E7D32, 1)
+    obGraphic.beginPath()
+    obGraphic.moveTo(48, 15)
+    obGraphic.lineTo(48, 55)
+    obGraphic.lineTo(72, 55)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    // Top triangle
+    obGraphic.fillStyle(0x43A047, 1)
+    obGraphic.beginPath()
+    obGraphic.moveTo(48, 0)
+    obGraphic.lineTo(32, 35)
+    obGraphic.lineTo(48, 35)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    obGraphic.fillStyle(0x388E3C, 1)
+    obGraphic.beginPath()
+    obGraphic.moveTo(48, 0)
+    obGraphic.lineTo(48, 35)
+    obGraphic.lineTo(64, 35)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    obGraphic.generateTexture('obstacle-tree-4', 96, 96)
+    obGraphic.destroy()
+  }
+
+  // Tree 5: Clustered Fluffy Tree (like in the image)
+  if (!scene.textures.exists('obstacle-tree-5')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    // Trunk
+    obGraphic.fillStyle(0x6D4C41, 1)
+    obGraphic.fillRoundedRect(42, 60, 12, 30, 2)
+    obGraphic.fillStyle(0x4E342E, 1) // Trunk shadow (right)
+    obGraphic.fillRoundedRect(48, 60, 6, 30, 1)
+
+    // Leaves shadow circles
+    obGraphic.fillStyle(0x2E7D32, 1)
+    obGraphic.fillCircle(38, 48, 22)
+    obGraphic.fillCircle(62, 44, 20)
+    obGraphic.fillCircle(48, 28, 24)
+    obGraphic.fillCircle(30, 32, 18)
+    obGraphic.fillCircle(68, 28, 16)
+    
+    // Leaves highlight circles
+    obGraphic.fillStyle(0x43A047, 1)
+    obGraphic.fillCircle(34, 44, 20)
+    obGraphic.fillCircle(58, 40, 18)
+    obGraphic.fillCircle(44, 24, 22)
+    obGraphic.fillCircle(26, 26, 16)
+    obGraphic.fillCircle(64, 24, 14)
+
+    obGraphic.generateTexture('obstacle-tree-5', 96, 96)
+    obGraphic.destroy()
+  }
+
+  // Tree 6: Tree stump
+  if (!scene.textures.exists('obstacle-tree-6')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    
+    // Stump base (cylinder body)
+    obGraphic.fillStyle(0x5D4037, 1) // Base brown
+    obGraphic.fillRoundedRect(34, 50, 28, 30, 4)
+    
+    // Roots / bottom flare
+    obGraphic.beginPath()
+    obGraphic.moveTo(36, 75)
+    obGraphic.lineTo(24, 85)
+    obGraphic.lineTo(38, 80)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    obGraphic.beginPath()
+    obGraphic.moveTo(60, 75)
+    obGraphic.lineTo(72, 85)
+    obGraphic.lineTo(58, 80)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    // Shadow on right side
+    obGraphic.fillStyle(0x3E2723, 1)
+    obGraphic.fillRoundedRect(48, 50, 14, 30, 4)
+
+    // Stump top (cut center)
+    obGraphic.fillStyle(0x8D6E63, 1) // Lighter wood color inside
+    obGraphic.fillEllipse(48, 50, 28, 10)
+    
+    // Tree rings
+    obGraphic.lineStyle(1, 0x5D4037, 0.6)
+    obGraphic.strokeEllipse(48, 50, 20, 7)
+    obGraphic.strokeEllipse(48, 50, 10, 3)
+
+    obGraphic.generateTexture('obstacle-tree-6', 96, 96)
     obGraphic.destroy()
   }
 }
