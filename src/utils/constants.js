@@ -28,11 +28,11 @@ export const STORAGE_KEYS = {
 }
 
 export const MAP_CONFIG = {
-  arena1: { id: 'arena1', label: 'Training Field', cost: 0, default: true },
-  angkor: { id: 'angkor', label: 'Sunken Courtyard', cost: 500, default: false },
-  pagoda: { id: 'pagoda', label: 'Serene Pagoda', cost: 750, default: false },
-  palace: { id: 'palace', label: 'Royal Palace',cost: 1000, default: false },
-  adventure: { id: 'adventure', label: 'Open World', cost: 0, default: true, endless: true, worldScale: 4 },
+  arena1:    { id: 'arena1',    label: 'Training Field',          cost: 0,    default: true },
+  angkor:    { id: 'angkor',    label: 'Sunken Courtyard',  cost: 500,  default: false },
+  pagoda:    { id: 'pagoda',    label: 'Serene Pagoda',     cost: 750,  default: false },
+  palace:    { id: 'palace',    label: 'Royal Palace',      cost: 1000, default: false },
+  adventure: { id: 'adventure', label: 'Open World',        cost: 0,    default: true, endless: true, worldScale: 4 },
 }
 
 export const CHALLENGES = {

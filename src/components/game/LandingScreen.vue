@@ -99,19 +99,20 @@
         <!-- Map Selector Mode -->
         <template v-if="showMapSelector">
           <p class="landing-screen__modal-label">Select Battleground</p>
-          <h2 class="landing-screen__modal-title">Where to Deploy?</h2>
+          <h2 class="landing-screen__modal-title">Let's go</h2>
           <div class="landing-screen__modal-copy" style="margin-top: 1.5rem;">
             <div class="challenge-picker__grid" style="grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
               <button v-for="(mapConfig, key) in MAP_CONFIG" :key="key" type="button" class="challenge-picker__card"
                 :class="{
                   'challenge-picker__card--active': previewMap === key,
                   'challenge-picker__card--adventure': mapConfig.endless,
-                  'shop-item__btn--disabled': !mapConfig.default && !gameStore.unlockedMaps.includes(key)
+                  'map-card--locked': !mapConfig.default && !gameStore.unlockedMaps.includes(key)
                 }" @click="previewMap = key" style="padding: 1rem; border-radius: 12px; min-height: 5.5rem; position: relative;">
                 <span class="challenge-picker__card-icon"
                   style="font-size: 2rem; margin-bottom: 0.5rem; display: block;">{{ MAP_ICONS[key] }}</span>
                 <span class="challenge-picker__card-name" style="font-size: 0.85rem;">{{ mapConfig.label }}</span>
                 <span v-if="mapConfig.endless" class="map-badge-endless">∞ ENDLESS</span>
+                <span v-if="!mapConfig.default && !gameStore.unlockedMaps.includes(key)" class="map-lock-badge">🔒</span>
               </button>
             </div>
 
@@ -1170,6 +1171,26 @@ async function confirmMapAndStart() {
   box-shadow: none;
   animation: none;
   pointer-events: none;
+}
+
+/* Locked map card — still clickable so user can preview & buy */
+.map-card--locked {
+  opacity: 0.55;
+  filter: grayscale(0.8);
+  cursor: pointer;
+}
+
+.map-card--locked:hover {
+  opacity: 0.8;
+  filter: grayscale(0.4);
+}
+
+.map-lock-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 /* ── Responsive ───────────────────────────────────────────── */
