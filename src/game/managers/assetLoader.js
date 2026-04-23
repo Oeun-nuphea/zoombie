@@ -2126,6 +2126,337 @@ export function registerPlaceholderTextures(scene) {
     obGraphic.generateTexture('obstacle-tree-6', 96, 96)
     obGraphic.destroy()
   }
+
+  // Stone 1: Round/Hexagonal boulder
+  if (!scene.textures.exists('obstacle-stone-1')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    // Center at 48, 56. Radius ~24
+    obGraphic.fillStyle(0x444A59, 1) // Shadow base
+    obGraphic.beginPath()
+    obGraphic.moveTo(34, 40)
+    obGraphic.lineTo(62, 40)
+    obGraphic.lineTo(76, 56)
+    obGraphic.lineTo(62, 72)
+    obGraphic.lineTo(34, 72)
+    obGraphic.lineTo(20, 56)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    obGraphic.fillStyle(0x5C6374, 1) // Mid-tone
+    obGraphic.beginPath()
+    obGraphic.moveTo(34, 40)
+    obGraphic.lineTo(62, 40)
+    obGraphic.lineTo(72, 54)
+    obGraphic.lineTo(60, 68)
+    obGraphic.lineTo(34, 68)
+    obGraphic.lineTo(22, 54)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    obGraphic.fillStyle(0x7B8497, 1) // Highlight top
+    obGraphic.beginPath()
+    obGraphic.moveTo(34, 40)
+    obGraphic.lineTo(62, 40)
+    obGraphic.lineTo(54, 52)
+    obGraphic.lineTo(40, 52)
+    obGraphic.closePath()
+    obGraphic.fill()
+
+    // Cracks
+    obGraphic.lineStyle(2, 0x333845, 0.8)
+    obGraphic.beginPath()
+    obGraphic.moveTo(60, 40)
+    obGraphic.lineTo(50, 52)
+    obGraphic.lineTo(54, 62)
+    obGraphic.stroke()
+
+    obGraphic.generateTexture('obstacle-stone-1', 96, 96)
+    obGraphic.destroy()
+  }
+
+  // Stone 2: Wide flat rock
+  if (!scene.textures.exists('obstacle-stone-2')) {
+    const obGraphic = scene.make.graphics({ add: false })
+    // Center at 48, 56. Width ~56, Height ~30
+    obGraphic.fillStyle(0x444A59, 1) // Shadow base
+    obGraphic.fillRoundedRect(18, 46, 60, 26, 6)
+
+    obGraphic.fillStyle(0x5C6374, 1) // Mid-tone
+    obGraphic.fillRoundedRect(20, 46, 56, 22, 4)
+
+    obGraphic.fillStyle(0x7B8497, 1) // Highlight
+    obGraphic.fillRoundedRect(22, 46, 52, 10, 4)
+
+    // Details/cracks
+    obGraphic.lineStyle(2, 0x333845, 0.8)
+    obGraphic.beginPath()
+    obGraphic.moveTo(30, 46)
+    obGraphic.lineTo(36, 56)
+    obGraphic.lineTo(26, 66)
+    obGraphic.stroke()
+
+    obGraphic.beginPath()
+    obGraphic.moveTo(65, 46)
+    obGraphic.lineTo(55, 58)
+    obGraphic.stroke()
+
+    obGraphic.generateTexture('obstacle-stone-2', 96, 96)
+    obGraphic.destroy()
+  }
+
+  // Stone 3: Messy Rubble Pile
+  if (!scene.textures.exists('obstacle-stone-3')) {
+    const obGraphic = scene.make.graphics({ add: false });
+
+    const drawJagged = (points, baseC, midC, highC, crack) => {
+      obGraphic.fillStyle(baseC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      for(let i=1; i<points.length; i++) obGraphic.lineTo(points[i].x, points[i].y);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      // Top face/mid-tone
+      obGraphic.fillStyle(midC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      obGraphic.lineTo(points[1].x, points[1].y);
+      obGraphic.lineTo(points[2].x, points[2].y);
+      obGraphic.lineTo(points[3].x, points[3].y);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      // Highlight
+      obGraphic.fillStyle(highC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      obGraphic.lineTo(points[1].x, points[1].y);
+      obGraphic.lineTo((points[1].x + points[2].x)/2, (points[1].y + points[2].y)/2);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      if(crack) {
+        obGraphic.lineStyle(2, 0x333845, 0.8);
+        obGraphic.beginPath();
+        obGraphic.moveTo(points[1].x, points[1].y);
+        obGraphic.lineTo((points[0].x + points[3].x)/2, (points[0].y + points[3].y)/2);
+        obGraphic.stroke();
+      }
+    };
+
+    // Rock 1 (bottom left)
+    drawJagged([
+      {x: 22, y: 56}, {x: 44, y: 52}, {x: 40, y: 68}, 
+      {x: 26, y: 72}, {x: 18, y: 64}
+    ], 0x333845, 0x5C6374, 0x7B8497, true);
+
+    // Rock 2 (bottom right)
+    drawJagged([
+      {x: 42, y: 54}, {x: 68, y: 48}, {x: 74, y: 60}, 
+      {x: 64, y: 68}, {x: 46, y: 66}
+    ], 0x444A59, 0x5C6374, 0x7B8497, false);
+
+    // Rock 3 (center middle)
+    drawJagged([
+      {x: 32, y: 40}, {x: 58, y: 35}, {x: 52, y: 55}, 
+      {x: 38, y: 58}, {x: 28, y: 48}
+    ], 0x333845, 0x5C6374, 0x7B8497, true);
+
+    // Rock 4 (left middle)
+    drawJagged([
+      {x: 20, y: 45}, {x: 34, y: 35}, {x: 36, y: 45}, 
+      {x: 28, y: 52}, {x: 22, y: 50}
+    ], 0x444A59, 0x5C6374, 0x7B8497, false);
+
+    // Rock 5 (top)
+    drawJagged([
+      {x: 38, y: 24}, {x: 54, y: 26}, {x: 48, y: 42}, 
+      {x: 36, y: 38}, {x: 34, y: 30}
+    ], 0x444A59, 0x5C6374, 0x7B8497, true);
+
+    obGraphic.generateTexture('obstacle-stone-3', 96, 96);
+    obGraphic.destroy();
+  }
+
+  // Stone 4: Tall, Precarious Messy Cairn
+  if (!scene.textures.exists('obstacle-stone-4')) {
+    const obGraphic = scene.make.graphics({ add: false });
+
+    const drawJagged = (points, baseC, midC, highC, crack) => {
+      obGraphic.fillStyle(baseC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      for(let i=1; i<points.length; i++) obGraphic.lineTo(points[i].x, points[i].y);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      // Top face/mid-tone
+      obGraphic.fillStyle(midC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      obGraphic.lineTo(points[1].x, points[1].y);
+      obGraphic.lineTo(points[2].x, points[2].y);
+      obGraphic.lineTo(points[3].x, points[3].y);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      // Highlight
+      obGraphic.fillStyle(highC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      obGraphic.lineTo(points[1].x, points[1].y);
+      obGraphic.lineTo((points[1].x + points[2].x)/2, (points[1].y + points[2].y)/2);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      if(crack) {
+        obGraphic.lineStyle(2, 0x333845, 0.8);
+        obGraphic.beginPath();
+        obGraphic.moveTo(points[1].x, points[1].y);
+        obGraphic.lineTo((points[0].x + points[3].x)/2, (points[0].y + points[3].y)/2);
+        obGraphic.stroke();
+      }
+    };
+
+    // Base rock
+    drawJagged([
+      {x: 25, y: 55}, {x: 65, y: 60}, {x: 60, y: 72}, 
+      {x: 35, y: 75}, {x: 20, y: 65}
+    ], 0x333845, 0x5C6374, 0x7B8497, true);
+
+    // Angled second rock
+    drawJagged([
+      {x: 35, y: 40}, {x: 68, y: 45}, {x: 62, y: 58}, 
+      {x: 40, y: 62}, {x: 30, y: 50}
+    ], 0x444A59, 0x5C6374, 0x7B8497, false);
+
+    // Shorter third rock wedged inside
+    drawJagged([
+      {x: 28, y: 35}, {x: 52, y: 28}, {x: 56, y: 45}, 
+      {x: 40, y: 48}, {x: 24, y: 42}
+    ], 0x333845, 0x5C6374, 0x7B8497, true);
+
+    // Precarious fourth rock
+    drawJagged([
+      {x: 45, y: 15}, {x: 62, y: 22}, {x: 55, y: 35}, 
+      {x: 42, y: 30}, {x: 38, y: 25}
+    ], 0x444A59, 0x5C6374, 0x7B8497, false);
+
+    // Tip rock balancing
+    drawJagged([
+      {x: 50, y: 5}, {x: 60, y: 8}, {x: 58, y: 18}, 
+      {x: 48, y: 15}, {x: 46, y: 10}
+    ], 0x444A59, 0x5C6374, 0x7B8497, true);
+
+    obGraphic.generateTexture('obstacle-stone-4', 96, 96);
+    obGraphic.destroy();
+  }
+
+  // Stone 5: Loose Messy Scattered Rocks
+  if (!scene.textures.exists('obstacle-stone-5')) {
+    const obGraphic = scene.make.graphics({ add: false });
+
+    const drawJagged = (points, baseC, midC, highC, crack) => {
+      obGraphic.fillStyle(baseC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      for(let i=1; i<points.length; i++) obGraphic.lineTo(points[i].x, points[i].y);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      obGraphic.fillStyle(midC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      obGraphic.lineTo(points[1].x, points[1].y);
+      obGraphic.lineTo(points[2].x, points[2].y);
+      obGraphic.lineTo(points[3].x, points[3].y);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      obGraphic.fillStyle(highC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      obGraphic.lineTo(points[1].x, points[1].y);
+      obGraphic.lineTo((points[1].x + points[2].x)/2, (points[1].y + points[2].y)/2);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      if(crack) {
+        obGraphic.lineStyle(2, 0x333845, 0.8);
+        obGraphic.beginPath();
+        obGraphic.moveTo(points[1].x, points[1].y);
+        obGraphic.lineTo((points[0].x + points[3].x)/2, (points[0].y + points[3].y)/2);
+        obGraphic.stroke();
+      }
+    };
+
+    // Loose rock 1 (bottom left)
+    drawJagged([ {x: 15, y: 55}, {x: 35, y: 50}, {x: 40, y: 70}, {x: 20, y: 75}, {x: 10, y: 65} ], 0x333845, 0x5C6374, 0x7B8497, true);
+    // Loose rock 2 (bottom right, further away)
+    drawJagged([ {x: 60, y: 65}, {x: 80, y: 60}, {x: 85, y: 75}, {x: 65, y: 80}, {x: 55, y: 70} ], 0x444A59, 0x5C6374, 0x7B8497, false);
+    // Loose rock 3 (center top)
+    drawJagged([ {x: 40, y: 35}, {x: 60, y: 40}, {x: 55, y: 55}, {x: 35, y: 50}, {x: 30, y: 40} ], 0x333845, 0x5C6374, 0x7B8497, true);
+    // Loose pebble 1
+    drawJagged([ {x: 20, y: 30}, {x: 30, y: 25}, {x: 35, y: 35}, {x: 25, y: 40} ], 0x444A59, 0x5C6374, 0x7B8497, false);
+    // Loose pebble 2
+    drawJagged([ {x: 75, y: 40}, {x: 85, y: 45}, {x: 80, y: 55}, {x: 70, y: 50} ], 0x333845, 0x5C6374, 0x7B8497, false);
+
+    obGraphic.generateTexture('obstacle-stone-5', 96, 96);
+    obGraphic.destroy();
+  }
+
+  // Stone 6: Shattered wide scattered debris
+  if (!scene.textures.exists('obstacle-stone-6')) {
+    const obGraphic = scene.make.graphics({ add: false });
+
+    const drawJagged = (points, baseC, midC, highC, crack) => {
+      obGraphic.fillStyle(baseC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      for(let i=1; i<points.length; i++) obGraphic.lineTo(points[i].x, points[i].y);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      obGraphic.fillStyle(midC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      obGraphic.lineTo(points[1].x, points[1].y);
+      obGraphic.lineTo(points[2].x, points[2].y);
+      obGraphic.lineTo(points[3].x, points[3].y);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      obGraphic.fillStyle(highC, 1);
+      obGraphic.beginPath();
+      obGraphic.moveTo(points[0].x, points[0].y);
+      obGraphic.lineTo(points[1].x, points[1].y);
+      obGraphic.lineTo((points[1].x + points[2].x)/2, (points[1].y + points[2].y)/2);
+      obGraphic.closePath();
+      obGraphic.fill();
+
+      if(crack) {
+        obGraphic.lineStyle(2, 0x333845, 0.8);
+        obGraphic.beginPath();
+        obGraphic.moveTo(points[1].x, points[1].y);
+        obGraphic.lineTo((points[0].x + points[3].x)/2, (points[0].y + points[3].y)/2);
+        obGraphic.stroke();
+      }
+    };
+
+    // Split broken half 1
+    drawJagged([ {x: 10, y: 45}, {x: 35, y: 40}, {x: 40, y: 60}, {x: 20, y: 70}, {x: 5, y: 55} ], 0x444A59, 0x5C6374, 0x7B8497, true);
+    // Split broken half 2
+    drawJagged([ {x: 45, y: 35}, {x: 85, y: 30}, {x: 75, y: 55}, {x: 50, y: 60}, {x: 40, y: 45} ], 0x333845, 0x5C6374, 0x7B8497, true);
+    // Shattered chunk
+    drawJagged([ {x: 42, y: 65}, {x: 55, y: 60}, {x: 60, y: 75}, {x: 45, y: 80} ], 0x444A59, 0x5C6374, 0x7B8497, false);
+    // Pebble 1
+    drawJagged([ {x: 30, y: 20}, {x: 40, y: 25}, {x: 35, y: 35}, {x: 25, y: 30} ], 0x333845, 0x5C6374, 0x7B8497, false);
+    // Pebble 2
+    drawJagged([ {x: 60, y: 15}, {x: 75, y: 20}, {x: 70, y: 30}, {x: 55, y: 25} ], 0x444A59, 0x5C6374, 0x7B8497, false);
+
+    obGraphic.generateTexture('obstacle-stone-6', 96, 96);
+    obGraphic.destroy();
+  }
 }
 
 export function registerCustomZombieAnimations(scene) {

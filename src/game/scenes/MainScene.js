@@ -168,7 +168,7 @@ export default class MainScene extends Phaser.Scene {
       
       if (valid) {
         // Boost the frequency of trees!
-        const types = ['obstacle-tree-1', 'obstacle-tree-2', 'obstacle-tree-3', 'obstacle-tree-4', 'obstacle-tree-5', 'obstacle-tree-6'];
+        const types = ['obstacle-tree-1', 'obstacle-tree-2', 'obstacle-tree-3', 'obstacle-tree-4', 'obstacle-tree-5', 'obstacle-tree-6', 'obstacle-stone-1', 'obstacle-stone-2', 'obstacle-stone-3', 'obstacle-stone-4'];
         const type = Phaser.Utils.Array.GetRandom(types);
         const obs = this.obstacles.create(x, y, type);
         
@@ -185,20 +185,12 @@ export default class MainScene extends Phaser.Scene {
         obs.setDepth(24);
         obs.setRotation(Phaser.Math.FloatBetween(-0.06, 0.06));
 
-        // collision on the trunk
-        // Since we scale the sprite, let's keep the circle size fixed relative to the unscaled texture
-        // or we can adjust it by scale. 
-        obs.body.setCircle(16 * scale);
-        // setOffset takes unscaled pixel values for coordinates. To center the circle (radius 16 * scale) at unscaled (48, 60),
-        obs.body.setOffset((48 - 16) / scale, (60 - 16) / scale); // actually phaser offset on scaled circles is weird, standard offset is (32, 44)
-        // A safer way is to just use default offset and adjust geometry:
-        // Actually since we changed scale, we should just use:
-        obs.body.setOffset(32, 44);
-
-        // However, standard workaround for Phaser 3 scaled static circles is to not use setScale on the body, just let body follow display origin if we don't scale it?
-        // Let's just use:
         obs.refreshBody();
-        obs.body.setCircle(16 * scale, (48 * scale - 16 * scale), (60 * scale - 16 * scale));
+        if (type.startsWith('obstacle-stone')) {
+            obs.body.setCircle(22 * scale, (48 * scale - 22 * scale), (56 * scale - 22 * scale));
+        } else {
+            obs.body.setCircle(16 * scale, (48 * scale - 16 * scale), (60 * scale - 16 * scale));
+        }
       }
     }
     // No need to refresh again since refreshBody was called on each, but it's safe.
