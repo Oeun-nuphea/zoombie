@@ -140,7 +140,15 @@ export default class MainScene extends Phaser.Scene {
         const type = Phaser.Utils.Array.GetRandom(types);
         const obs = this.obstacles.create(x, y, type);
         
-        const scale = Phaser.Math.FloatBetween(0.7, 1.8);
+        let scale;
+        const rand = Math.random();
+        if (rand < 0.15) {
+          scale = Phaser.Math.FloatBetween(2.5, 4.2); // Massive trees
+        } else if (rand < 0.45) {
+          scale = Phaser.Math.FloatBetween(1.6, 2.5); // Large trees
+        } else {
+          scale = Phaser.Math.FloatBetween(0.7, 1.6); // Normal/small trees
+        }
         obs.setScale(scale);
         obs.setDepth(24);
         obs.setRotation(Phaser.Math.FloatBetween(-0.06, 0.06));
