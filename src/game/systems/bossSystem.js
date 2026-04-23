@@ -55,6 +55,10 @@ export function createBossDirector(scene, config) {
       return false
     }
 
+    if ((ability.minTier ?? 0) > (activeBoss?.bossTier ?? 0)) {
+      return false
+    }
+
     return (ability.unlockPhase ?? 1) <= (activeBoss?.phase ?? 1)
   }
 

@@ -107,6 +107,7 @@ export const BOSS_BEHAVIOR_CONFIG = {
       radius: 126,
       maxConcurrent: 4,
       maxAliveBonus: 2,
+      minTier: 1, // First mini-boss (tier 0) cannot summon yet
       spawnTypes: ['z1', 'z2', 'z3'],
       bannerText: 'CALLING THE HORDE',
       warningText: 'SUMMONING',
