@@ -21,17 +21,24 @@ export const PLAYER_CARRIED_WEAPON_TEXTURE = Object.freeze({
 })
 
 export const PLAYER_FRAME_POSES = Object.freeze({
-    'player-idle-0': Object.freeze({ bob: 0, torsoLean: 0.01, headTilt: -0.02, armRear: -0.15, armFront: 0.26, legRear: -0.04, legFront: 0.04, gunKick: 0, gunLift: 0 }),
-  'player-idle-1': Object.freeze({ bob: -1, torsoLean: -0.01, headTilt: 0.02, armRear: -0.12, armFront: 0.2, legRear: -0.02, legFront: 0.02, gunKick: 0, gunLift: -1 }),
-  'player-walk-0': Object.freeze({ bob: -1, torsoLean: 0.04, headTilt: -0.04, armRear: -0.18, armFront: 0.46, legRear: -0.24, legFront: 0.26, gunKick: 0, gunLift: -1 }),
-  'player-walk-1': Object.freeze({ bob: 1, torsoLean: -0.04, headTilt: 0.05, armRear: -0.10, armFront: 0.1, legRear: 0.22, legFront: -0.2, gunKick: 0, gunLift: 1 }),
-  'player-aim-0': Object.freeze({ bob: 0, torsoLean: 0.03, headTilt: -0.05, armRear: -0.15, armFront: 0.18, legRear: 0.02, legFront: -0.02, gunKick: 0, gunLift: -2, aim: true }),
-  'player-aim-1': Object.freeze({ bob: -1, torsoLean: 0.02, headTilt: -0.02, armRear: -0.12, armFront: 0.16, legRear: 0.03, legFront: -0.01, gunKick: 0, gunLift: -1, aim: true }),
-  'player-shoot-0': Object.freeze({ bob: -1, torsoLean: -0.06, headTilt: -0.08, armRear: -0.16, armFront: 0.08, legRear: 0.02, legFront: 0.02, gunKick: 5, gunLift: -2, aim: true, flash: true }),
-  'player-shoot-1': Object.freeze({ bob: 0, torsoLean: 0.05, headTilt: 0.02, armRear: -0.12, armFront: 0.2, legRear: 0.04, legFront: 0.02, gunKick: 2, gunLift: -1, aim: true }),
-  'player-hit': Object.freeze({ bob: 0, torsoLean: -0.12, headTilt: 0.18, armRear: -0.04, armFront: 0.44, legRear: 0.16, legFront: -0.12, gunKick: -4, gunLift: 2, hit: true }),
-  'player-death-0': Object.freeze({ bob: 8, torsoLean: 0.22, headTilt: 0.24, armRear: 0.42, armFront: 0.72, legRear: 0.48, legFront: -0.22, gunKick: -8, gunLift: 4, dead: true }),
-  'player-death-1': Object.freeze({ bob: 18, torsoLean: 0.48, headTilt: 0.4, armRear: 1.12, armFront: 1.3, legRear: 0.88, legFront: -0.58, gunKick: -12, gunLift: 9, dead: true }),
+  // Idle — 3 frames for a more lively breathing cycle
+  'player-idle-0': Object.freeze({ bob: 0,  torsoLean:  0.01,  headTilt: -0.02, armRear: -0.15, armFront:  0.26, legRear: -0.04, legFront:  0.04, gunKick: 0, gunLift:  0 }),
+  'player-idle-1': Object.freeze({ bob: -1, torsoLean: -0.01,  headTilt:  0.02, armRear: -0.12, armFront:  0.20, legRear: -0.02, legFront:  0.02, gunKick: 0, gunLift: -1 }),
+  'player-idle-2': Object.freeze({ bob: -2, torsoLean:  0.00,  headTilt: -0.01, armRear: -0.14, armFront:  0.23, legRear: -0.03, legFront:  0.03, gunKick: 0, gunLift: -2 }),
+  // Walk — 4 frames for a full stride
+  'player-walk-0': Object.freeze({ bob: -2, torsoLean:  0.05,  headTilt: -0.05, armRear: -0.20, armFront:  0.50, legRear: -0.28, legFront:  0.30, gunKick: 0, gunLift: -2 }),
+  'player-walk-1': Object.freeze({ bob:  0, torsoLean:  0.00,  headTilt:  0.00, armRear: -0.13, armFront:  0.16, legRear:  0.06, legFront: -0.06, gunKick: 0, gunLift:  0 }),
+  'player-walk-2': Object.freeze({ bob:  2, torsoLean: -0.05,  headTilt:  0.06, armRear: -0.08, armFront:  0.10, legRear:  0.26, legFront: -0.24, gunKick: 0, gunLift:  2 }),
+  'player-walk-3': Object.freeze({ bob:  0, torsoLean:  0.00,  headTilt:  0.00, armRear: -0.13, armFront:  0.16, legRear: -0.06, legFront:  0.06, gunKick: 0, gunLift:  0 }),
+  // Aim / shoot
+  'player-aim-0':   Object.freeze({ bob:  0, torsoLean:  0.03,  headTilt: -0.05, armRear: -0.15, armFront:  0.18, legRear:  0.02, legFront: -0.02, gunKick: 0, gunLift: -2, aim: true }),
+  'player-aim-1':   Object.freeze({ bob: -1, torsoLean:  0.02,  headTilt: -0.02, armRear: -0.12, armFront:  0.16, legRear:  0.03, legFront: -0.01, gunKick: 0, gunLift: -1, aim: true }),
+  'player-shoot-0': Object.freeze({ bob: -1, torsoLean: -0.06,  headTilt: -0.08, armRear: -0.16, armFront:  0.08, legRear:  0.02, legFront:  0.02, gunKick: 5, gunLift: -2, aim: true, flash: true }),
+  'player-shoot-1': Object.freeze({ bob:  0, torsoLean:  0.05,  headTilt:  0.02, armRear: -0.12, armFront:  0.20, legRear:  0.04, legFront:  0.02, gunKick: 2, gunLift: -1, aim: true }),
+  // Hit & death
+  'player-hit':     Object.freeze({ bob:  0, torsoLean: -0.12,  headTilt:  0.18, armRear: -0.04, armFront:  0.44, legRear:  0.16, legFront: -0.12, gunKick: -4, gunLift:  2, hit: true }),
+  'player-death-0': Object.freeze({ bob:  8, torsoLean:  0.22,  headTilt:  0.24, armRear:  0.42, armFront:  0.72, legRear:  0.48, legFront: -0.22, gunKick: -8, gunLift:  4, dead: true }),
+  'player-death-1': Object.freeze({ bob: 18, torsoLean:  0.48,  headTilt:  0.40, armRear:  1.12, armFront:  1.30, legRear:  0.88, legFront: -0.58, gunKick:-12, gunLift:  9, dead: true }),
 })
 
 export const PLAYER_SKINS = {
@@ -69,12 +76,15 @@ export const PLAYER_SKINS = {
 
 // Gun skin rarity tiers
 export const GUN_SKIN_RARITY = {
-  standard: { label: 'Standard', color: '#94a3b8', glow: 'rgba(148,163,184,0.4)' },
-  special:  { label: 'Special',  color: '#60a5fa', glow: 'rgba(96,165,250,0.5)'  },
-  epic:     { label: 'Epic',     color: '#c084fc', glow: 'rgba(192,132,252,0.6)' },
-  sakura:   { label: 'Sakura',   color: '#f472b6', glow: 'rgba(244,114,182,0.6)' },
-  phantom:  { label: 'Phantom',  color: '#34d399', glow: 'rgba(52,211,153,0.6)'  },
-  inferno:  { label: 'Inferno',  color: '#fb923c', glow: 'rgba(251,146,60,0.6)'  },
+  standard: { label: 'Standard',  color: '#94a3b8', glow: 'rgba(148,163,184,0.4)' },
+  special:  { label: 'Special',   color: '#60a5fa', glow: 'rgba(96,165,250,0.5)'  },
+  epic:     { label: 'Epic',      color: '#c084fc', glow: 'rgba(192,132,252,0.6)' },
+  sakura:   { label: 'Sakura',    color: '#f472b6', glow: 'rgba(244,114,182,0.6)' },
+  phantom:  { label: 'Phantom',   color: '#34d399', glow: 'rgba(52,211,153,0.6)'  },
+  inferno:  { label: 'Inferno',   color: '#fb923c', glow: 'rgba(251,146,60,0.6)'  },
+  thunder:  { label: 'Thunder',   color: '#facc15', glow: 'rgba(250,204,21,0.7)'  },
+  galaxy:   { label: 'Galaxy',    color: '#818cf8', glow: 'rgba(129,140,248,0.7)' },
+  venom:    { label: 'Venom',     color: '#84cc16', glow: 'rgba(132,204,22,0.7)'  },
 }
 
 export const GUN_SKINS = {
@@ -162,6 +172,48 @@ export const GUN_SKINS = {
     handguard:  '#3a1005',
     bulletTint: 0xfed7aa,   // peach orange
   },
+  thunder: {
+    id: 'thunder',
+    name: 'Thunderstrike',
+    rarity: 'thunder',
+    cost: 1100,
+    default: false,
+    icon: '⚡',
+    gunBody:    '#1c1a05',
+    gunDark:    '#0d0c02',
+    gunAccent:  '#facc15',
+    gunBarrel:  '#fde047',
+    handguard:  '#16140a',
+    bulletTint: 0xfef08a,   // electric yellow
+  },
+  galaxy: {
+    id: 'galaxy',
+    name: 'Cosmic Galaxy',
+    rarity: 'galaxy',
+    cost: 1300,
+    default: false,
+    icon: '🌌',
+    gunBody:    '#0f0a2e',
+    gunDark:    '#07051a',
+    gunAccent:  '#818cf8',
+    gunBarrel:  '#a5b4fc',
+    handguard:  '#0c0822',
+    bulletTint: 0xc7d2fe,   // indigo starlight
+  },
+  venom: {
+    id: 'venom',
+    name: 'Venom Strike',
+    rarity: 'venom',
+    cost: 1200,
+    default: false,
+    icon: '🐍',
+    gunBody:    '#0a1a02',
+    gunDark:    '#050e01',
+    gunAccent:  '#84cc16',
+    gunBarrel:  '#a3e635',
+    handguard:  '#091500',
+    bulletTint: 0xbef264,   // acid green
+  },
 }
 
 /**
@@ -174,12 +226,15 @@ export function getActiveBulletTint(skinId) {
 
 // ── Head Skin Rarity Tiers ──────────────────────────────────────────────────
 export const HEAD_SKIN_RARITY = {
-  none:    { label: 'None',    color: '#94a3b8', glow: 'rgba(148,163,184,0.4)' },
-  rare:    { label: 'Rare',    color: '#60a5fa', glow: 'rgba(96,165,250,0.5)'  },
-  epic:    { label: 'Epic',    color: '#c084fc', glow: 'rgba(192,132,252,0.6)' },
-  mythic:  { label: 'Mythic',  color: '#fb923c', glow: 'rgba(251,146,60,0.7)'  },
-  sakura:  { label: 'Sakura',  color: '#f472b6', glow: 'rgba(244,114,182,0.6)' },
-  phantom: { label: 'Phantom', color: '#34d399', glow: 'rgba(52,211,153,0.6)'  },
+  none:    { label: 'None',     color: '#94a3b8', glow: 'rgba(148,163,184,0.4)' },
+  rare:    { label: 'Rare',     color: '#60a5fa', glow: 'rgba(96,165,250,0.5)'  },
+  epic:    { label: 'Epic',     color: '#c084fc', glow: 'rgba(192,132,252,0.6)' },
+  mythic:  { label: 'Mythic',   color: '#fb923c', glow: 'rgba(251,146,60,0.7)'  },
+  sakura:  { label: 'Sakura',   color: '#f472b6', glow: 'rgba(244,114,182,0.6)' },
+  phantom: { label: 'Phantom',  color: '#34d399', glow: 'rgba(52,211,153,0.6)'  },
+  cyber:   { label: 'Cyber',    color: '#22d3ee', glow: 'rgba(34,211,238,0.7)'  },
+  ancient: { label: 'Ancient',  color: '#a78bfa', glow: 'rgba(167,139,250,0.7)' },
+  demonic: { label: 'Demonic',  color: '#f87171', glow: 'rgba(248,113,113,0.7)' },
 }
 
 // ── Head Skins ──────────────────────────────────────────────────────────────
@@ -340,6 +395,131 @@ export const HEAD_SKINS = {
           blendMode: 'ADD',
           shrink: false,
           wisp: true,
+          headOffset: true,
+        },
+      ],
+    },
+  },
+
+  cyberVisor: {
+    id: 'cyberVisor',
+    name: 'Cyber Visor',
+    rarity: 'cyber',
+    cost: 950,
+    default: false,
+    icon: '🥽',
+    helmetColor: '#0c1a2e',
+    helmetAccent: '#22d3ee',
+    helmetStyle: 'cyber',
+    particles: {
+      layers: [
+        {
+          intervalMs: 200,
+          count: 1,
+          color: 0x22d3ee,
+          altColor: 0xa5f3fc,
+          size: [2, 5],
+          spread: 10,
+          drift: { x: [-6, 6], y: [-20, -8] },
+          lifetime: [400, 600],
+          alphaStart: 0.85,
+          shape: 'diamond',
+          blendMode: 'ADD',
+          spin: true,
+          shrink: true,
+          headOffset: true,
+        },
+        {
+          intervalMs: 500,
+          count: 1,
+          color: 0x22d3ee,
+          altColor: 0x0891b2,
+          size: [6, 14],
+          spread: 4,
+          drift: { x: [-4, 4], y: [-4, 4] },
+          lifetime: [200, 350],
+          alphaStart: 0.3,
+          shape: 'ring',
+          blendMode: 'ADD',
+          shrink: false,
+          headOffset: true,
+        },
+      ],
+    },
+  },
+
+  darkKnight: {
+    id: 'darkKnight',
+    name: 'Dark Knight',
+    rarity: 'ancient',
+    cost: 1100,
+    default: false,
+    icon: '🛡️',
+    helmetColor: '#1c1917',
+    helmetAccent: '#a78bfa',
+    helmetStyle: 'darkKnight',
+    particles: {
+      layers: [
+        {
+          intervalMs: 300,
+          count: 1,
+          color: 0xa78bfa,
+          altColor: 0xc4b5fd,
+          size: [2, 6],
+          spread: 12,
+          drift: { x: [-8, 8], y: [-18, -4] },
+          lifetime: [600, 900],
+          alphaStart: 0.5,
+          shape: 'star',
+          blendMode: 'ADD',
+          spin: true,
+          shrink: true,
+          headOffset: true,
+        },
+      ],
+    },
+  },
+
+  demonicMask: {
+    id: 'demonicMask',
+    name: 'Demonic Rage',
+    rarity: 'demonic',
+    cost: 1400,
+    default: false,
+    icon: '😈',
+    helmetColor: '#450a0a',
+    helmetAccent: '#f87171',
+    helmetStyle: 'demonic',
+    particles: {
+      layers: [
+        {
+          intervalMs: 80,
+          count: 2,
+          color: 0xf87171,
+          altColor: 0xfca5a5,
+          size: [2, 5],
+          spread: 12,
+          drift: { x: [-10, 10], y: [-30, -12] },
+          lifetime: [250, 450],
+          alphaStart: 0.9,
+          shape: 'circle',
+          blendMode: 'ADD',
+          shrink: true,
+          headOffset: true,
+        },
+        {
+          intervalMs: 160,
+          count: 1,
+          color: 0xfbbf24,
+          altColor: 0xef4444,
+          size: [3, 7],
+          spread: 8,
+          drift: { x: [-6, 6], y: [-24, -10] },
+          lifetime: [300, 500],
+          alphaStart: 0.7,
+          shape: 'circle',
+          blendMode: 'ADD',
+          shrink: true,
           headOffset: true,
         },
       ],

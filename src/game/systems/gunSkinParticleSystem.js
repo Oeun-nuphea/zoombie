@@ -44,6 +44,20 @@ const SKIN_PARTICLE_CONFIG = {
         blendMode: Phaser.BlendModes.ADD,
         orbit: true,
       },
+      {
+        count: 1,
+        intervalMs: 350,
+        color: 0x7c3aed,
+        altColor: 0xa855f7,
+        size: [4, 10],
+        spread: 6,
+        drift: { x: [-4, 4], y: [-4, 4] },
+        lifetime: [180, 300],
+        alphaStart: 0.25,
+        shape: 'ring',
+        blendMode: Phaser.BlendModes.ADD,
+        shrink: false,
+      },
     ],
   },
 
@@ -134,6 +148,110 @@ const SKIN_PARTICLE_CONFIG = {
       },
     ],
   },
+
+  thunder: {
+    // Thunderstrike — electric lightning bolts + yellow sparks
+    layers: [
+      {
+        count: 2,
+        intervalMs: 90,
+        color: 0xfacc15,
+        altColor: 0xfef9c3,
+        size: [2, 5],
+        spread: 16,
+        drift: { x: [-14, 14], y: [-30, -12] },
+        lifetime: [220, 380],
+        alphaStart: 1.0,
+        shape: 'lightning',
+        blendMode: Phaser.BlendModes.ADD,
+        shrink: true,
+      },
+      {
+        count: 1,
+        intervalMs: 240,
+        color: 0xfde047,
+        altColor: 0xfbbf24,
+        size: [5, 12],
+        spread: 8,
+        drift: { x: [-6, 6], y: [-6, 6] },
+        lifetime: [150, 250],
+        alphaStart: 0.4,
+        shape: 'ring',
+        blendMode: Phaser.BlendModes.ADD,
+        shrink: false,
+      },
+    ],
+  },
+
+  galaxy: {
+    // Cosmic Galaxy — floating stars + deep indigo nebula wisps
+    layers: [
+      {
+        count: 1,
+        intervalMs: 160,
+        color: 0xa5b4fc,
+        altColor: 0xe0e7ff,
+        size: [2, 5],
+        spread: 22,
+        drift: { x: [-14, 14], y: [-20, 4] },
+        lifetime: [700, 1000],
+        alphaStart: 0.9,
+        shape: 'star',
+        blendMode: Phaser.BlendModes.ADD,
+        spin: true,
+        shrink: true,
+      },
+      {
+        count: 1,
+        intervalMs: 280,
+        color: 0x818cf8,
+        altColor: 0x6366f1,
+        size: [5, 14],
+        spread: 10,
+        drift: { x: [-8, 8], y: [-16, -4] },
+        lifetime: [500, 800],
+        alphaStart: 0.35,
+        shape: 'circle',
+        blendMode: Phaser.BlendModes.ADD,
+        wisp: true,
+      },
+    ],
+  },
+
+  venom: {
+    // Venom Strike — acid green drips + toxic bubbles
+    layers: [
+      {
+        count: 2,
+        intervalMs: 110,
+        color: 0x84cc16,
+        altColor: 0xbef264,
+        size: [2, 5],
+        spread: 14,
+        drift: { x: [-10, 10], y: [8, 28] },  // drip downward
+        lifetime: [400, 650],
+        alphaStart: 0.9,
+        shape: 'circle',
+        blendMode: Phaser.BlendModes.ADD,
+        shrink: true,
+        gravity: 24,
+      },
+      {
+        count: 1,
+        intervalMs: 220,
+        color: 0x4d7c0f,
+        altColor: 0x65a30d,
+        size: [4, 9],
+        spread: 8,
+        drift: { x: [-6, 6], y: [4, 14] },
+        lifetime: [300, 500],
+        alphaStart: 0.5,
+        shape: 'ring',
+        blendMode: Phaser.BlendModes.NORMAL,
+        shrink: true,
+      },
+    ],
+  },
 }
 
 /**
@@ -156,16 +274,51 @@ function spawnParticle(scene, x, y, config, layer) {
     gfx.fillStyle(color, 1)
     gfx.fillTriangle(-size * 0.5, 0, 0, -size, size * 0.5, 0)
     gfx.fillTriangle(-size * 0.5, 0, 0, size, size * 0.5, 0)
+
   } else if (layer.shape === 'petal') {
-    // Simple oval petal
     gfx.fillStyle(color, 1)
     gfx.fillEllipse(0, 0, size * 0.6, size * 1.4)
+
+  } else if (layer.shape === 'star') {
+    // 5-point star
+    gfx.fillStyle(color, 1)
+    gfx.beginPath()
+    const outerR = size
+    const innerR = size * 0.42
+    const points = 5
+    for (let i = 0; i < points * 2; i++) {
+      const r = i % 2 === 0 ? outerR : innerR
+      const a = (i * Math.PI) / points - Math.PI / 2
+      if (i === 0) gfx.moveTo(Math.cos(a) * r, Math.sin(a) * r)
+      else gfx.lineTo(Math.cos(a) * r, Math.sin(a) * r)
+    }
+    gfx.closePath()
+    gfx.fillPath()
+
+  } else if (layer.shape === 'lightning') {
+    // Jagged lightning bolt stroke
+    gfx.lineStyle(Math.max(1, size * 0.5), color, 1)
+    gfx.beginPath()
+    const h = size * 2.5
+    gfx.moveTo(0, -h)
+    gfx.lineTo(size * 0.6, -h * 0.3)
+    gfx.lineTo(size * 0.2, -h * 0.3)
+    gfx.lineTo(size * 0.8, h)
+    gfx.lineTo(-size * 0.1, 0)
+    gfx.lineTo(size * 0.3, 0)
+    gfx.strokePath()
+
+  } else if (layer.shape === 'ring') {
+    // Expanding ring / pulse
+    gfx.lineStyle(Math.max(1, size * 0.25), color, 1)
+    gfx.strokeCircle(0, 0, size)
+
   } else {
     gfx.fillStyle(color, 1)
     gfx.fillCircle(0, 0, size)
   }
 
-  const startRot = layer.spin || layer.petal ? Phaser.Math.FloatBetween(0, Math.PI * 2) : 0
+  const startRot = (layer.spin || layer.petal) ? Phaser.Math.FloatBetween(0, Math.PI * 2) : 0
   gfx.setRotation(startRot)
   gfx.setAlpha(layer.alphaStart)
 
@@ -200,8 +353,13 @@ function spawnParticle(scene, x, y, config, layer) {
   }
 
   if (layer.gravity) {
-    // Simulate gentle downward drift for petals
     tweenProps.y = targetY + Phaser.Math.Between(10, 24)
+  }
+
+  // Ring shape: expand outward instead of shrinking
+  if (layer.shape === 'ring' && !layer.shrink) {
+    tweenProps.scaleX = 3.5
+    tweenProps.scaleY = 3.5
   }
 
   scene.tweens.add(tweenProps)

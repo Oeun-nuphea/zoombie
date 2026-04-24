@@ -1641,6 +1641,189 @@ function drawHelmetOverlay(context, skinId) {
     context.shadowBlur = 0
   }
 
+  else if (skin.helmetStyle === 'cyber') {
+    // Sci-fi visor dome — tinted glass with HUD scan lines
+    context.fillStyle = primary
+    context.globalAlpha = 0.9
+    context.beginPath()
+    context.ellipse(0, -1, 18, 21, 0, 0, Math.PI * 2)
+    context.fill()
+    context.globalAlpha = 1
+    // Visor glass tint (lower half)
+    context.fillStyle = accent
+    context.globalAlpha = 0.22
+    context.beginPath()
+    context.ellipse(0, 5, 16, 13, 0, 0, Math.PI * 2)
+    context.fill()
+    context.globalAlpha = 1
+    // HUD scan lines
+    context.strokeStyle = accent
+    context.lineWidth = 0.8
+    for (let sy = -8; sy <= 16; sy += 5) {
+      context.globalAlpha = 0.25
+      context.beginPath()
+      context.moveTo(-16, sy)
+      context.lineTo(16, sy)
+      context.stroke()
+    }
+    context.globalAlpha = 1
+    // Glowing cyan eye lenses
+    context.shadowColor = accent
+    context.shadowBlur = 12
+    context.fillStyle = accent
+    context.beginPath()
+    context.roundRect(-13, -7, 11, 7, 3)
+    context.fill()
+    context.beginPath()
+    context.roundRect(2, -7, 11, 7, 3)
+    context.fill()
+    // Lens highlight
+    context.fillStyle = '#ffffff'
+    context.globalAlpha = 0.5
+    context.beginPath()
+    context.ellipse(-9, -8, 3, 1.5, -0.3, 0, Math.PI * 2)
+    context.fill()
+    context.beginPath()
+    context.ellipse(6, -8, 3, 1.5, -0.3, 0, Math.PI * 2)
+    context.fill()
+    context.globalAlpha = 1
+    context.shadowBlur = 0
+    // Side tech plates
+    context.fillStyle = primary
+    context.fillRect(-20, -4, 4, 14)
+    context.fillRect(16, -4, 4, 14)
+    // Accent strip on brow
+    context.fillStyle = accent
+    context.fillRect(-16, -13, 32, 3)
+  }
+
+  else if (skin.helmetStyle === 'darkKnight') {
+    // Medieval great-helm — riveted plate with nasal guard
+    context.fillStyle = primary
+    context.beginPath()
+    context.ellipse(0, -3, 19, 23, 0, 0, Math.PI * 2)
+    context.fill()
+    // Flat visor slit area
+    context.fillStyle = '#0a0a0a'
+    context.beginPath()
+    context.roundRect(-15, -7, 30, 9, 2)
+    context.fill()
+    // Glowing purple eye slits
+    context.shadowColor = accent
+    context.shadowBlur = 10
+    context.fillStyle = accent
+    context.beginPath()
+    context.ellipse(-6, -3, 5, 2, 0, 0, Math.PI * 2)
+    context.fill()
+    context.beginPath()
+    context.ellipse(8, -3, 5, 2, 0, 0, Math.PI * 2)
+    context.fill()
+    context.shadowBlur = 0
+    // Nasal guard
+    context.fillStyle = primary
+    context.fillRect(-1.5, -12, 3, 20)
+    // Rivets
+    context.fillStyle = accent
+    const rivets = [[-14, -12], [14, -12], [-14, 4], [14, 4]]
+    for (const [rx, ry] of rivets) {
+      context.beginPath()
+      context.arc(rx, ry, 1.8, 0, Math.PI * 2)
+      context.fill()
+    }
+    // Cheek plates
+    context.fillStyle = '#111'
+    context.fillRect(-20, 3, 6, 16)
+    context.fillRect(14, 3, 6, 16)
+    // Accent brow plate
+    context.fillStyle = accent
+    context.fillRect(-18, -15, 36, 3)
+    // Notch at top
+    context.fillStyle = accent
+    context.beginPath()
+    context.moveTo(0, -28)
+    context.lineTo(-6, -20)
+    context.lineTo(6, -20)
+    context.closePath()
+    context.fill()
+  }
+
+  else if (skin.helmetStyle === 'demonic') {
+    // Demonic horned mask — carved bone with rune etching
+    context.fillStyle = primary
+    context.globalAlpha = 0.95
+    context.beginPath()
+    context.ellipse(0, 0, 18, 22, 0, 0, Math.PI * 2)
+    context.fill()
+    context.globalAlpha = 1
+    // Left curved horn
+    context.fillStyle = accent
+    context.beginPath()
+    context.moveTo(-14, -10)
+    context.bezierCurveTo(-28, -22, -24, -38, -12, -32)
+    context.bezierCurveTo(-6, -28, -10, -18, -10, -10)
+    context.closePath()
+    context.fill()
+    // Right curved horn
+    context.beginPath()
+    context.moveTo(14, -10)
+    context.bezierCurveTo(28, -22, 24, -38, 12, -32)
+    context.bezierCurveTo(6, -28, 10, -18, 10, -10)
+    context.closePath()
+    context.fill()
+    // Glowing red eyes (slanted menacing)
+    context.shadowColor = accent
+    context.shadowBlur = 14
+    context.fillStyle = accent
+    context.beginPath()
+    context.moveTo(-14, -8)
+    context.lineTo(-4, -5)
+    context.lineTo(-4, -1)
+    context.lineTo(-14, -4)
+    context.closePath()
+    context.fill()
+    context.beginPath()
+    context.moveTo(4, -5)
+    context.lineTo(14, -8)
+    context.lineTo(14, -4)
+    context.lineTo(4, -1)
+    context.closePath()
+    context.fill()
+    context.shadowBlur = 0
+    // Nose plate
+    context.fillStyle = '#2a0505'
+    context.beginPath()
+    context.moveTo(-3, 0)
+    context.lineTo(0, -3)
+    context.lineTo(3, 0)
+    context.lineTo(1, 5)
+    context.lineTo(-1, 5)
+    context.closePath()
+    context.fill()
+    // Grinning toothed mouth
+    context.fillStyle = '#000'
+    context.fillRect(-11, 8, 22, 9)
+    context.fillStyle = accent
+    for (let tx = -9; tx <= 9; tx += 4) {
+      context.fillStyle = '#e8d5d5'
+      context.fillRect(tx, 8, 2.5, 9)
+    }
+    // Rune cracks
+    context.strokeStyle = accent
+    context.lineWidth = 0.8
+    context.globalAlpha = 0.6
+    context.beginPath()
+    context.moveTo(-8, -18)
+    context.lineTo(-4, -12)
+    context.lineTo(-7, -8)
+    context.stroke()
+    context.beginPath()
+    context.moveTo(6, -20)
+    context.lineTo(3, -14)
+    context.lineTo(7, -10)
+    context.stroke()
+    context.globalAlpha = 1
+  }
+
   context.restore()
 }
 
@@ -1767,8 +1950,13 @@ function registerPlayerAnimations(scene) {
   if (!scene.anims.exists('player-idle')) {
     scene.anims.create({
       key: 'player-idle',
-      frames: [{ key: 'player-idle-0' }, { key: 'player-idle-1' }],
-      frameRate: 3,
+      // 3-frame breathing cycle: 0 → 1 → 2 → 1 → 0 (yoyo)
+      frames: [
+        { key: 'player-idle-0' },
+        { key: 'player-idle-1' },
+        { key: 'player-idle-2' },
+      ],
+      frameRate: 4,
       repeat: -1,
       yoyo: true,
     })
@@ -1777,8 +1965,14 @@ function registerPlayerAnimations(scene) {
   if (!scene.anims.exists('player-walk')) {
     scene.anims.create({
       key: 'player-walk',
-      frames: [{ key: 'player-walk-0' }, { key: 'player-walk-1' }],
-      frameRate: 7,
+      // Full 4-frame stride: 0 → 1 → 2 → 3 → 2 → 1 (yoyo) for smooth feel
+      frames: [
+        { key: 'player-walk-0' },
+        { key: 'player-walk-1' },
+        { key: 'player-walk-2' },
+        { key: 'player-walk-3' },
+      ],
+      frameRate: 9,
       repeat: -1,
       yoyo: true,
     })
@@ -1788,7 +1982,7 @@ function registerPlayerAnimations(scene) {
     scene.anims.create({
       key: 'player-aim',
       frames: [{ key: 'player-aim-0' }, { key: 'player-aim-1' }],
-      frameRate: 4,
+      frameRate: 5,
       repeat: -1,
       yoyo: true,
     })
@@ -1798,7 +1992,7 @@ function registerPlayerAnimations(scene) {
     scene.anims.create({
       key: 'player-shoot',
       frames: [{ key: 'player-shoot-0' }, { key: 'player-shoot-1' }],
-      frameRate: 16,
+      frameRate: 18,
       repeat: 0,
     })
   }
@@ -1807,7 +2001,7 @@ function registerPlayerAnimations(scene) {
     scene.anims.create({
       key: 'player-hit',
       frames: [{ key: 'player-hit' }, { key: 'player-aim-1' }],
-      frameRate: 11,
+      frameRate: 12,
       repeat: 0,
     })
   }
