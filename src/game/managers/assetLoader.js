@@ -2234,10 +2234,14 @@ export function registerPlaceholderTextures(scene) {
 
   if (!scene.textures.exists('bullet')) {
     const bulletGraphic = scene.make.graphics({ add: false })
-    bulletGraphic.fillStyle(0xfff7cc, 1)
-    bulletGraphic.fillRoundedRect(0, 2, 18, 4, 2)
-    bulletGraphic.fillStyle(0xffa94d, 1)
-    bulletGraphic.fillRoundedRect(14, 2, 6, 4, 2)
+    // Pure white body — Phaser's setTint() multiplies against this, so the
+    // final bullet color exactly matches the skin's bulletTint value.
+    // The tip is drawn in a slightly dimmer white (0xd4d4d4) so the two-tone
+    // silhouette remains visible regardless of the active tint color.
+    bulletGraphic.fillStyle(0xffffff, 1)          // body: pure white
+    bulletGraphic.fillRoundedRect(0, 2, 14, 4, 2)
+    bulletGraphic.fillStyle(0xd4d4d4, 1)          // tip: 83% white — stays darker when tinted
+    bulletGraphic.fillRoundedRect(13, 2, 7, 4, 2)
     bulletGraphic.generateTexture('bullet', 20, 8)
     bulletGraphic.destroy()
   }
