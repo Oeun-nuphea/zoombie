@@ -1,5 +1,5 @@
 git add .
-git commit -m "update on map"
+git commit -m "feat: replace auto-aim with manual right-stick aiming and update mobile HUD controls"
 
 git push origin main 
 

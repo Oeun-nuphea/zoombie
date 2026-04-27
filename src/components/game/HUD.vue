@@ -13,7 +13,7 @@
           <span>Wave</span>
           <strong>{{ String(gameStore.wave).padStart(2, '0') }}</strong>
         </div>
-        <div class="hud-shell__wave-intel" v-if="gameStore.waveInfo">
+        <div class="hud-shell__wave-intel" v-if="!isMobile && gameStore.waveInfo">
           <span class="hud-shell__intel-label">Target: {{ gameStore.waveInfo.totalZombies }} Zombies</span>
           <span class="hud-shell__intel-label">Types: {{ formatZombieTypes(gameStore.waveInfo) }}</span>
         </div>
@@ -44,7 +44,7 @@
             {{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}
           </button>
           <button
-            class="hud-shell__button hud-shell__button--secondary"
+            :class="['hud-shell__button hud-shell__button--secondary', { 'hud-shell__button--icon': isMobile }]"
             type="button"
             @touchstart.passive="engageMobileHud"
             @touchend.passive="scheduleMobileHudRelease"
@@ -53,10 +53,10 @@
             @blur="scheduleMobileHudRelease"
             @click="$emit('toggle-sound')"
           >
-            {{ soundMuted ? 'Muted' : 'Sound' }}
+            {{ isMobile ? (soundMuted ? '🔇' : '🔊') : (soundMuted ? 'Muted' : 'Sound') }}
           </button>
           <button
-            class="hud-shell__button"
+            :class="['hud-shell__button', { 'hud-shell__button--icon': isMobile }]"
             type="button"
             @touchstart.passive="engageMobileHud"
             @touchend.passive="scheduleMobileHudRelease"
@@ -65,7 +65,7 @@
             @blur="scheduleMobileHudRelease"
             @click="$emit('pause')"
           >
-            Pause
+            {{ isMobile ? '⏸' : 'Pause' }}
           </button>
         </div>
       </div>
@@ -275,6 +275,19 @@ defineEmits(['toggle-fullscreen', 'toggle-sound', 'pause'])
 
 .hud-shell__button--secondary {
   background: rgba(7, 10, 14, 0.45);
+}
+
+.hud-shell__button--icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  border-radius: 0.85rem;
+  font-size: 1rem;
+  letter-spacing: 0;
 }
 
 @media (max-width: 900px) {

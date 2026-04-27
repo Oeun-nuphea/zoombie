@@ -3,7 +3,7 @@ import Phaser from 'phaser'
 import { getGameRuntimeProfile } from '../../utils/device'
 
 const MOBILE_INPUT_STORE_KEY = '__zoombieMobileInputStore__'
-const MOBILE_AIM_FALLBACK_DISTANCE = 280
+const MOBILE_AIM_DISTANCE = 320
 const MOBILE_ACTIONS = ['dash', 'shield']
 
 function createMobileInputStore() {
@@ -12,6 +12,12 @@ function createMobileInputStore() {
       x: 0,
       y: 0,
       intensity: 0,
+    },
+    aimStick: {
+      x: 0,
+      y: 0,
+      intensity: 0,
+      active: false,
     },
     actions: {
       dash: false,
@@ -34,6 +40,8 @@ function resetActions(store) {
   })
 }
 
+// ── Movement joystick (left) ────────────────────────────────────────────
+
 export function setMobileJoystick(vector = {}) {
   const store = getMobileInputStore()
   const x = Phaser.Math.Clamp(Number(vector.x) || 0, -1, 1)
@@ -52,6 +60,30 @@ export function releaseMobileJoystick() {
     intensity: 0,
   })
 }
+
+// ── Aim joystick (right) ────────────────────────────────────────────────
+
+export function setMobileAimStick(vector = {}) {
+  const store = getMobileInputStore()
+  const x = Phaser.Math.Clamp(Number(vector.x) || 0, -1, 1)
+  const y = Phaser.Math.Clamp(Number(vector.y) || 0, -1, 1)
+  const intensity = Phaser.Math.Clamp(Number(vector.intensity) || Math.max(Math.abs(x), Math.abs(y)), 0, 1)
+
+  store.aimStick.x = x
+  store.aimStick.y = y
+  store.aimStick.intensity = intensity
+  store.aimStick.active = intensity > 0.05
+}
+
+export function releaseMobileAimStick() {
+  const store = getMobileInputStore()
+  store.aimStick.x = 0
+  store.aimStick.y = 0
+  store.aimStick.intensity = 0
+  store.aimStick.active = false
+}
+
+// ── Actions ─────────────────────────────────────────────────────────────
 
 export function triggerMobileAction(action) {
   const store = getMobileInputStore()
@@ -79,64 +111,18 @@ export function consumeMobileAction(action) {
 export function resetMobileInput() {
   const store = getMobileInputStore()
   releaseMobileJoystick()
+  releaseMobileAimStick()
   resetActions(store)
 }
 
+// ── Controller factory ──────────────────────────────────────────────────
+
 export function createMobileInput(scene, config = {}) {
-  const { player, zombies } = config
-  const runtimeProfile = getGameRuntimeProfile()
+  const { player } = config
   const virtualPointer = {
     worldX: player?.x ?? 0,
     worldY: player?.y ?? 0,
     isDown: false,
-  }
-
-  let cachedTarget = null
-  let nextTargetScanAt = 0
-
-  function isValidTarget(target) {
-    return Boolean(target?.active) && !target.isDead
-  }
-
-  function scoreTarget(target) {
-    const distanceSq = Phaser.Math.Distance.Squared(player.x, player.y, target.x, target.y)
-
-    if (target.isBoss) {
-      return distanceSq * 0.72
-    }
-
-    if (target.typeId === 'z1') {
-      return distanceSq * 0.84
-    }
-
-    return distanceSq
-  }
-
-  function findAutoAimTarget(time) {
-    if (isValidTarget(cachedTarget) && time < nextTargetScanAt) {
-      return cachedTarget
-    }
-
-    let closestTarget = null
-    let closestScore = Number.POSITIVE_INFINITY
-
-    zombies?.getChildren?.().forEach((zombie) => {
-      if (!isValidTarget(zombie)) {
-        return
-      }
-
-      const score = scoreTarget(zombie)
-
-      if (score < closestScore) {
-        closestTarget = zombie
-        closestScore = score
-      }
-    })
-
-    cachedTarget = closestTarget
-    nextTargetScanAt = time + (runtimeProfile.performance.autoAimIntervalMs ?? 96)
-
-    return cachedTarget
   }
 
   function getMoveVector() {
@@ -150,42 +136,46 @@ export function createMobileInput(scene, config = {}) {
     return vector
   }
 
-  function updateVirtualPointer(target) {
-    if (target) {
-      const hitPoint = target.getHeadHitCircle?.() ?? {
-        x: target.x,
-        y: target.y - target.displayHeight * 0.2,
+  function updateVirtualPointer() {
+    const { aimStick } = getMobileInputStore()
+
+    if (aimStick.active) {
+      // Right stick is active — aim in that direction
+      const center = player?.getPlayerCenter?.() ?? {
+        x: player.x,
+        y: player.y,
       }
 
-      virtualPointer.worldX = hitPoint.x
-      virtualPointer.worldY = hitPoint.y
+      virtualPointer.worldX = center.x + aimStick.x * MOBILE_AIM_DISTANCE
+      virtualPointer.worldY = center.y + aimStick.y * MOBILE_AIM_DISTANCE
       virtualPointer.isDown = true
       return
     }
 
+    // No aim stick — just face forward based on last angle
     const center = player?.getPlayerCenter?.() ?? {
       x: player.x,
       y: player.y,
     }
     const aimAngle = player?.lastAimAngle ?? 0
 
-    virtualPointer.worldX = center.x + Math.cos(aimAngle) * MOBILE_AIM_FALLBACK_DISTANCE
-    virtualPointer.worldY = center.y + Math.sin(aimAngle) * MOBILE_AIM_FALLBACK_DISTANCE
+    virtualPointer.worldX = center.x + Math.cos(aimAngle) * MOBILE_AIM_DISTANCE
+    virtualPointer.worldY = center.y + Math.sin(aimAngle) * MOBILE_AIM_DISTANCE
     virtualPointer.isDown = false
   }
 
   function read(time = scene.time.now, delta = scene.game.loop.delta) {
+    const { aimStick } = getMobileInputStore()
     const moveVector = getMoveVector()
-    const target = findAutoAimTarget(time)
 
-    updateVirtualPointer(target)
+    updateVirtualPointer()
 
     return {
       time,
       delta,
       moveVector,
       pointer: virtualPointer,
-      shouldShoot: Boolean(target),
+      shouldShoot: aimStick.active,
       actions: {
         dash: consumeMobileAction('dash'),
         shield: consumeMobileAction('shield'),

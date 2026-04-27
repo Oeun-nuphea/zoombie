@@ -607,6 +607,7 @@ watch(
   font-size: clamp(0.95rem, 3.5vw, 1.1rem);
   display: -webkit-box;
   overflow: hidden;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -616,6 +617,7 @@ watch(
   line-height: 1.25;
   display: -webkit-box;
   overflow: hidden;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
