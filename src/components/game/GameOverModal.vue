@@ -420,11 +420,62 @@ const grade = computed(() => {
   }
 }
 
-/* Landscape mobile */
+/* Landscape mobile - 2 column compact layout */
 @media (orientation: landscape) and (max-height: 600px) {
   .go-card {
-    max-width: 38rem;
-    padding: 1.1rem 1.5rem;
+    max-width: 42rem;
+    padding: 0.75rem 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    grid-template-rows: auto 1fr auto;
+    row-gap: 0.5rem;
+    column-gap: 1.5rem;
+    align-items: center;
+  }
+
+  .go-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+
+  .go-header__title {
+    font-size: 1.3rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .go-grade {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 0.5rem;
+  }
+
+  .go-stats {
+    grid-column: 2;
+    grid-row: 2;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+
+  .go-stat {
+    padding: 0.4rem 0.2rem;
+  }
+
+  .go-souls {
+    grid-column: 1 / -1;
+    padding: 0.35rem;
+  }
+
+  .go-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .go-btn {
+    padding: 0.65rem 1rem;
+    font-size: 0.7rem;
   }
 }
 </style>
