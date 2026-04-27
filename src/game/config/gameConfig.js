@@ -22,8 +22,9 @@ export function createGameConfig(parent) {
       },
     },
     render: {
-      antialias: !runtimeProfile.isMobile,
-      roundPixels: false,
+      antialias: false,
+      pixelArt: true,
+      roundPixels: true,
       powerPreference: 'high-performance',
     },
     fps: {

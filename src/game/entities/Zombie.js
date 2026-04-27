@@ -142,8 +142,8 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     const baseScale = config.scale ?? 0.82
     this.setScale(baseScale * eliteScaleMult)
 
-    // Custom spritesheet frames are 316×256 but procedural were ~128×128.
-    // Force display size to correct proportions so they don't render as huge cards.
+    // Custom spritesheet frames are 316×256 — displayed at original small size.
+    // pixelArt (nearest-neighbor) rendering in gameConfig keeps this sharp even when downscaled.
     if (config.spriteKey) {
       const displayH = Math.round(130 * baseScale * eliteScaleMult)
       const displayW = Math.round(displayH * (316 / 256))
