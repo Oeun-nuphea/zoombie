@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 
 import { ELITE_MUTATIONS, HEADSHOT_CONFIG } from '../config/gameplayConfig'
+import { createImpactBurst } from '../systems/effectsSystem'
 
 const ATTACK_HOLD_MS = 180
 
@@ -142,8 +143,8 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
     const baseScale = config.scale ?? 0.82
     this.setScale(baseScale * eliteScaleMult)
 
-    // Custom spritesheet frames are 316×256 — displayed at original small size.
-    // pixelArt (nearest-neighbor) rendering in gameConfig keeps this sharp even when downscaled.
+    // Custom spritesheet frames are 316×256 but procedural were ~128×128.
+    // Force display size to correct proportions so they don't render as huge cards.
     if (config.spriteKey) {
       const displayH = Math.round(130 * baseScale * eliteScaleMult)
       const displayW = Math.round(displayH * (316 / 256))
@@ -414,10 +415,8 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
         this.playLoop('attack')
         
         // Impact burst on leap
-        import('../systems/effectsSystem').then(({ createImpactBurst }) => {
-          createImpactBurst(this.scene, this.x, this.y + 20, {
-            color: 0x991b1b, radius: 10, endRadius: 28, particleCount: 8, duration: 160
-          })
+        createImpactBurst(this.scene, this.x, this.y + 20, {
+          color: 0x991b1b, radius: 10, endRadius: 28, particleCount: 8, duration: 160
         })
         return
       }
@@ -459,6 +458,11 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
 
       this.scene.obstacles.children.iterate((obs) => {
         if (!obs || !obs.active) return
+
+        // Fast early-out: skip obstacles far away (squared distance check, no sqrt)
+        const qdx = this.x - obs.x
+        const qdy = this.y - obs.y
+        if (qdx * qdx + qdy * qdy > 90000) return  // 300px² — well beyond max avoidance radius
 
         // Use actual obstacle body size to compute avoidance radius
         const obsBodyW = obs.body?.width ?? 60
@@ -570,10 +574,8 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
           damageSource: 'spitter-projectile'
         })
         
-        import('../systems/effectsSystem').then(({ createImpactBurst }) => {
-          createImpactBurst(this.scene, proj.x, proj.y, {
-            color: 0x166534, radius: 10, endRadius: 28, particleCount: 12, duration: 180
-          })
+        createImpactBurst(this.scene, proj.x, proj.y, {
+          color: 0x166534, radius: 10, endRadius: 28, particleCount: 12, duration: 180
         })
         
         proj.destroy()
@@ -587,18 +589,21 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
       })
     }
 
-    // Destroy on world bounds
-    this.scene.physics.world.on('worldbounds', (body) => {
+    // Destroy on world bounds (named handler for proper cleanup)
+    const onWorldBounds = (body) => {
       if (body.gameObject === projectile) {
         projectile.destroy()
+        this.scene.physics.world.off('worldbounds', onWorldBounds)
       }
-    })
+    }
+    this.scene.physics.world.on('worldbounds', onWorldBounds)
 
-    // Destroy after lifetime (was using wrong variable name `proj` — caused ReferenceError crash)
+    // Destroy after lifetime
     this.scene.time.delayedCall(this.spitLifetimeMs, () => {
       if (projectile.active) {
         projectile.destroy()
       }
+      this.scene.physics.world.off('worldbounds', onWorldBounds)
     })
   }
 

@@ -61,12 +61,12 @@ export function createBloodSplatter(scene, x, y, intensity = 1) {
     onComplete: () => burst.destroy(),
   })
 
-  // Stain fades and is destroyed after a much longer wait to keep the arena messy
+  // Stain fades and is destroyed after a shorter window to limit active Graphics objects
   scene.tweens.add({
     targets: stain,
     alpha: 0,
-    delay: 12000, 
-    duration: 2500,
+    delay: 4000, 
+    duration: 2000,
     onComplete: () => stain.destroy(),
   })
 }

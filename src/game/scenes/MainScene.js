@@ -580,34 +580,43 @@ export default class MainScene extends Phaser.Scene {
 
       const allZombies = this.zombies.getChildren()
 
-      // 1. Clear screamer buffs from last frame
-      allZombies.forEach((zombie) => zombie?.clearScreamBuff?.())
+      // Single-pass: clear buffs, chase, and collect screamers
+      const screamers = []
+      for (let i = 0, len = allZombies.length; i < len; i++) {
+        const zombie = allZombies[i]
+        if (!zombie?.active) continue
 
-      // 2. Chase + apply screamer aura from active screamers
-      allZombies.forEach((zombie) => {
-        zombie?.chase(this.player);
-        zombie?.applyScreamAura?.(allZombies);
-      })
+        zombie.clearScreamBuff?.()
+        zombie.chase(this.player)
 
-      // 3. Apply accumulated scream buffs to movement speed and contact damage
-      allZombies.forEach((zombie) => {
-        if (!zombie?.active || zombie.isDead) return
-        if (zombie.screamBuffed) {
-          // Speed: capped by setSpeedModifier (max 1.4), so +35% = 1.35 is within bounds
-          zombie.setSpeedModifier(1 + (zombie.screamSpeedBonus ?? 0))
-          // Damage: capped at base + 2 to prevent runaway stacking
-          zombie.contactDamage = Math.min(
-            zombie.baseContactDamage + 2,
-            zombie.baseContactDamage + (zombie.screamDmgBonus ?? 0),
-          )
-        } else {
-          // Let upgradeSystem slow aura still control non-scream modifier
-          // Only reset if we weren't already slowed by the slow aura
-          if ((zombie.speedModifier ?? 1) > 1) {
-            zombie.setSpeedModifier(1)
+        if (zombie.screams && !zombie.isDead) {
+          screamers.push(zombie)
+        }
+      }
+
+      // Apply screamer auras only if screamers exist (avoids O(N²) when none)
+      if (screamers.length > 0) {
+        for (let s = 0; s < screamers.length; s++) {
+          screamers[s].applyScreamAura(allZombies)
+        }
+
+        // Apply accumulated scream buffs
+        for (let i = 0, len = allZombies.length; i < len; i++) {
+          const zombie = allZombies[i]
+          if (!zombie?.active || zombie.isDead) continue
+          if (zombie.screamBuffed) {
+            zombie.setSpeedModifier(1 + (zombie.screamSpeedBonus ?? 0))
+            zombie.contactDamage = Math.min(
+              zombie.baseContactDamage + 2,
+              zombie.baseContactDamage + (zombie.screamDmgBonus ?? 0),
+            )
+          } else {
+            if ((zombie.speedModifier ?? 1) > 1) {
+              zombie.setSpeedModifier(1)
+            }
           }
         }
-      })
+      }
 
       this.combat.update();
       if (this.turretDirector && this.turretDirector.update) {

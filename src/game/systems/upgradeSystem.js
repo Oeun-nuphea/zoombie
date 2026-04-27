@@ -102,13 +102,11 @@ export function createUpgradeDirector(scene, config) {
     const slowStrength = Phaser.Math.Clamp(stats.slowAuraStrength ?? 0, 0, 0.55)
     const hasAura = slowRadius > 0 && slowStrength > 0
 
+    // Skip iterating all zombies when no slow aura upgrade is active
+    if (!hasAura) return
+
     zombies.children.iterate((zombie) => {
       if (!zombie?.active || zombie.isDead) {
-        return
-      }
-
-      if (!hasAura) {
-        zombie.setSpeedModifier?.(1)
         return
       }
 

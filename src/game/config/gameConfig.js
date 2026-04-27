@@ -22,14 +22,12 @@ export function createGameConfig(parent) {
       },
     },
     render: {
-      antialias: false,
-      pixelArt: true,
-      roundPixels: true,
+      antialias: !runtimeProfile.isMobile,
+      roundPixels: false,
       powerPreference: 'high-performance',
     },
     fps: {
       target: 60,
-      forceSetTimeOut: true,
     },
     input: {
       activePointers: runtimeProfile.isMobile ? 5 : 2,

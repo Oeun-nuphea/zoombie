@@ -2972,11 +2972,6 @@ export function registerCustomZombieAnimations(scene) {
       }
     }
 
-    // Explicitly force nearest-neighbor (NEAREST) filtering on this texture.
-    // Even with pixelArt:true globally, per-texture filter can still default to LINEAR.
-    // NEAREST = no blending between pixels → crisp sharp edges at any display size.
-    tex.setFilter(Phaser.Textures.FilterMode.NEAREST)
-
     try {
       if (!scene.anims.exists(`${key}-idle`)) {
         scene.anims.create({

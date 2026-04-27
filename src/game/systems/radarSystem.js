@@ -54,7 +54,14 @@ export function createRadarSystem(scene, config) {
     drawStaticElements(); // Redraw static layer on resize/layout shift
   }
 
+  let radarFrameSkip = 0;
+
   function update() {
+    // Throttle: only redraw every 3 frames (minimap doesn't need 60fps)
+    radarFrameSkip++;
+    if (radarFrameSkip < 3) return;
+    radarFrameSkip = 0;
+
     graphics.clear();
     if (!player || !zombies || player.isDead) return;
     

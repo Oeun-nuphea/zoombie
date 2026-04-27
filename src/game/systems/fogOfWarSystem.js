@@ -78,6 +78,11 @@ export function createFogOfWarSystem(
   let lastEraseX = null;
   let lastEraseY = null;
 
+  let lastPlayerX = null;
+  let lastPlayerY = null;
+  let lastCamMidX = null;
+  let lastCamMidY = null;
+
   // ── update ─────────────────────────────────────────────────────────────
   function update(delta) {
     if (!player?.active) return;
@@ -96,11 +101,27 @@ export function createFogOfWarSystem(
       fog.setAlpha(1);
     }
     
-    // Center the fog sheet on the CAMERA midpoint so it always covers the
-    // full viewport, even when the camera is bounded at a world edge.
     const cam   = scene.cameras.main;
     const camCX = cam.midPoint.x;
     const camCY = cam.midPoint.y;
+
+    // Skip expensive redraw if player and camera haven't moved
+    const playerMoved = lastPlayerX === null
+      || Math.abs(player.x - lastPlayerX) > 1
+      || Math.abs(player.y - lastPlayerY) > 1;
+    const camMoved = lastCamMidX === null
+      || Math.abs(camCX - lastCamMidX) > 1
+      || Math.abs(camCY - lastCamMidY) > 1;
+
+    if (!playerMoved && !camMoved) {
+      return;
+    }
+
+    lastPlayerX = player.x;
+    lastPlayerY = player.y;
+    lastCamMidX = camCX;
+    lastCamMidY = camCY;
+
     const fogX  = camCX - FOG_W / 2;
     const fogY  = camCY - FOG_H / 2;
     fog.setPosition(fogX, fogY);

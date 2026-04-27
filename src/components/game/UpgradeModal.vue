@@ -1,57 +1,81 @@
 <template>
-  <div
-    v-if="visible"
-    :class="['upgrade-modal', { 'upgrade-modal--mobile': isMobile }]"
-  >
-    <div class="upgrade-modal__frame">
-      <div class="upgrade-modal__header">
-        <p class="upgrade-modal__label">Upgrade Draft</p>
-        <div class="upgrade-modal__header-main">
-          <h2 class="upgrade-modal__title">Pick your next edge.</h2>
-          <p
+  <Transition name="upgrade-enter">
+    <div
+      v-if="visible"
+      :class="['upgrade-modal', { 'upgrade-modal--mobile': isMobile }]"
+    >
+      <div class="upgrade-modal__frame">
+        <!-- Header -->
+        <div class="upgrade-modal__header">
+          <div class="upgrade-modal__badge">
+            <span class="upgrade-modal__badge-icon">⚡</span>
+            <span class="upgrade-modal__badge-text">Upgrade Draft</span>
+          </div>
+          <h2 class="upgrade-modal__title">Choose Your Edge</h2>
+          <div
             v-if="autoPickSeconds > 0"
-            class="upgrade-modal__timer">
-            Auto-picks in {{ autoPickSeconds }}s
-          </p>
-        </div>
-      </div>
-
-      <div class="upgrade-modal__body">
-        <div :class="['upgrade-modal__grid', { 'upgrade-modal__grid--two': choices.length <= 2 }]">
-          <button
-            v-for="(choice, index) in choices"
-            :key="choice.id"
-            :class="['upgrade-modal__card', { 'upgrade-modal__card--active': activeCardId === choice.id }]"
-            type="button"
-            :style="{ '--upgrade-accent': choice.accentColor || '#fb923c' }"
-            @mousedown="setActiveCard(choice.id)"
-            @touchstart="setActiveCard(choice.id)"
-            @focus="setActiveCard(choice.id)"
-            @mouseleave="clearActiveCard(choice.id)"
-            @touchend="clearActiveCard(choice.id)"
-            @touchcancel="clearActiveCard(choice.id)"
-            @blur="clearActiveCard(choice.id)"
-            @click="$emit('select', choice.id)"
+            class="upgrade-modal__timer"
           >
-            <span class="upgrade-modal__accent"></span>
-            <div class="upgrade-modal__meta">
-              <p class="upgrade-modal__kicker">
-                {{ index + 1 }} · {{ formatType(choice.type) }} · {{ formatStack(choice.id) }}
-              </p>
-              <p
-                v-if="isMobile && choice.quickLabel"
-                class="upgrade-modal__chip"
-              >
-                {{ choice.quickLabel }}
-              </p>
-            </div>
-            <h3 class="upgrade-modal__name">{{ choice.name }}</h3>
-            <p class="upgrade-modal__description">{{ getChoiceDescription(choice) }}</p>
-          </button>
+            <span class="upgrade-modal__timer-bar" :style="{ width: timerPercent + '%' }" />
+            <span class="upgrade-modal__timer-text">{{ autoPickSeconds }}s</span>
+          </div>
         </div>
+
+        <!-- Cards -->
+        <div class="upgrade-modal__body">
+          <div :class="['upgrade-modal__grid', { 'upgrade-modal__grid--two': choices.length <= 2 }]">
+            <button
+              v-for="(choice, index) in choices"
+              :key="choice.id"
+              :class="[
+                'upgrade-card',
+                { 'upgrade-card--active': activeCardId === choice.id },
+              ]"
+              type="button"
+              :style="{ '--accent': choice.accentColor || '#fb923c', '--accent-glow': (choice.accentColor || '#fb923c') + '33' }"
+              @mousedown="setActiveCard(choice.id)"
+              @touchstart="setActiveCard(choice.id)"
+              @focus="setActiveCard(choice.id)"
+              @mouseleave="clearActiveCard(choice.id)"
+              @touchend="clearActiveCard(choice.id)"
+              @touchcancel="clearActiveCard(choice.id)"
+              @blur="clearActiveCard(choice.id)"
+              @click="$emit('select', choice.id)"
+            >
+              <!-- Glow effect -->
+              <span class="upgrade-card__glow" />
+
+              <!-- Top row: number + type badge -->
+              <div class="upgrade-card__top">
+                <span class="upgrade-card__index">{{ index + 1 }}</span>
+                <span class="upgrade-card__type-badge">{{ formatType(choice.type) }}</span>
+                <span :class="['upgrade-card__stack-badge', { 'upgrade-card__stack-badge--new': !hasStack(choice.id) }]">
+                  {{ formatStack(choice.id) }}
+                </span>
+              </div>
+
+              <!-- Name -->
+              <h3 class="upgrade-card__name">{{ choice.name }}</h3>
+
+              <!-- Divider -->
+              <span class="upgrade-card__divider" />
+
+              <!-- Description -->
+              <p class="upgrade-card__desc">{{ getChoiceDescription(choice) }}</p>
+
+              <!-- Hotkey hint (desktop) -->
+              <span v-if="!isMobile" class="upgrade-card__hotkey">{{ index + 1 }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Keyboard hint -->
+        <p v-if="!isMobile" class="upgrade-modal__hint">
+          Press <kbd>1</kbd><template v-if="choices.length >= 2"> – <kbd>{{ choices.length }}</kbd></template> to pick
+        </p>
       </div>
     </div>
-  </div>
+  </Transition>
 </template>
 
 <script setup>
@@ -85,13 +109,19 @@ const now = ref(Date.now())
 const activeCardId = ref(null)
 let countdownInterval = null
 
+const AUTOPICK_DURATION_MS = 35000
+
 function formatType(type = 'passive') {
   return type.toUpperCase()
 }
 
+function hasStack(upgradeId) {
+  return (props.upgradeCounts?.[upgradeId] ?? 0) > 0
+}
+
 function formatStack(upgradeId) {
   const count = props.upgradeCounts?.[upgradeId] ?? 0
-  return count > 0 ? `STACK ${count}` : 'NEW'
+  return count > 0 ? `LV ${count + 1}` : 'NEW'
 }
 
 function handleKeydown(event) {
@@ -136,6 +166,12 @@ const autoPickSeconds = computed(() => {
   }
 
   return Math.max(0, Math.ceil((props.autoPickEndsAt - now.value) / 1000))
+})
+
+const timerPercent = computed(() => {
+  if (!props.visible || !props.autoPickEndsAt) return 0
+  const remaining = Math.max(0, props.autoPickEndsAt - now.value)
+  return Math.min(100, (remaining / AUTOPICK_DURATION_MS) * 100)
 })
 
 function stopCountdown() {
@@ -186,6 +222,7 @@ watch(
 </script>
 
 <style scoped>
+/* ── Overlay ─────────────────────────────────────────────────────────────── */
 .upgrade-modal {
   position: fixed;
   inset: 0;
@@ -203,71 +240,103 @@ watch(
     max(12px, env(safe-area-inset-bottom, 12px))
     max(12px, env(safe-area-inset-left, 12px));
   overscroll-behavior: contain;
-  background: rgba(2, 6, 12, 0.58);
-  backdrop-filter: blur(10px);
+  background: radial-gradient(ellipse at 50% 30%, rgba(251, 146, 60, 0.08) 0%, transparent 60%),
+              rgba(2, 6, 12, 0.72);
+  backdrop-filter: blur(16px) saturate(1.1);
 }
 
+/* ── Frame ───────────────────────────────────────────────────────────────── */
 .upgrade-modal__frame {
-  width: min(92vw, 56rem);
-  max-width: 56rem;
-  max-height: min(calc(100dvh - 2rem), 46rem);
+  width: min(94vw, 52rem);
+  max-width: 52rem;
+  max-height: min(calc(100dvh - 2rem), 44rem);
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  padding: clamp(1.15rem, 2.8vw, 1.75rem);
+  gap: 1.5rem;
+  padding: clamp(1.4rem, 3vw, 2rem);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: clamp(1rem, 3vw, 1.35rem);
-  background: rgba(8, 17, 28, 0.94);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1.5rem;
+  background: linear-gradient(170deg, rgba(15, 23, 42, 0.97) 0%, rgba(8, 12, 21, 0.98) 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 32px 80px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* ── Header ──────────────────────────────────────────────────────────────── */
 .upgrade-modal__header {
   display: flex;
   flex-direction: column;
-  gap: 0.42rem;
-  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.6rem;
   text-align: center;
 }
 
-.upgrade-modal__header-main {
-  display: flex;
-  flex-direction: column;
+.upgrade-modal__badge {
+  display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
 }
 
-.upgrade-modal__label {
-  margin: 0;
+.upgrade-modal__badge-icon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.upgrade-modal__badge-text {
   color: #fcd34d;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 
 .upgrade-modal__title {
   margin: 0;
   color: #f8fafc;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.6rem, 3.6vw, 2.2rem);
   font-weight: 900;
-  line-height: 1.05;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
+/* ── Timer ────────────────────────────────────────────────────────────────── */
 .upgrade-modal__timer {
-  margin: 0;
-  align-self: center;
-  padding: 0.48rem 0.82rem;
-  border: 1px solid rgba(147, 197, 253, 0.18);
+  position: relative;
+  width: 6rem;
+  height: 0.32rem;
   border-radius: 999px;
-  background: rgba(30, 41, 59, 0.56);
-  color: rgba(191, 219, 254, 0.86);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  background: rgba(30, 41, 59, 0.8);
+  overflow: hidden;
 }
 
+.upgrade-modal__timer-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #fbbf24, #f97316);
+  transition: width 0.25s linear;
+}
+
+.upgrade-modal__timer-text {
+  position: absolute;
+  top: 0.55rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(148, 163, 184, 0.7);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* ── Body / Grid ─────────────────────────────────────────────────────────── */
 .upgrade-modal__body {
   flex: 1 1 auto;
   min-height: 0;
@@ -278,237 +347,337 @@ watch(
 }
 
 .upgrade-modal__body::-webkit-scrollbar {
-  width: 0.36rem;
+  width: 0.3rem;
 }
 
 .upgrade-modal__body::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.3);
 }
 
 .upgrade-modal__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
-  gap: 1rem;
-  padding: 0;
-  overflow: visible;
-  scroll-snap-type: none;
-  touch-action: auto;
-}
-
-.upgrade-modal__grid::-webkit-scrollbar {
-  display: none;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.85rem;
 }
 
 .upgrade-modal__grid--two {
-  max-width: 52rem;
+  max-width: 44rem;
   margin: 0 auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.upgrade-modal__card {
-  --card-outline: rgba(255, 255, 255, 0.08);
+/* ── Card ────────────────────────────────────────────────────────────────── */
+.upgrade-card {
+  --card-bg: rgba(15, 23, 42, 0.7);
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: 0.65rem;
   overflow: hidden;
-  min-width: 0;
-  min-height: clamp(12rem, 28vh, 15rem);
-  padding: 1.35rem 1.4rem;
-  border: 0;
-  border-radius: 1.35rem;
-  background: rgba(10, 19, 32, 0.95);
+  min-height: clamp(11rem, 24vh, 14rem);
+  padding: 1.25rem 1.3rem 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1.1rem;
+  background: var(--card-bg);
   color: #f8fafc;
   text-align: left;
   cursor: pointer;
-  scroll-snap-align: unset;
-  box-shadow:
-    inset 0 0 0 1px var(--card-outline),
-    0 16px 34px rgba(0, 0, 0, 0.24);
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    background-color 180ms ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  transition: all 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.upgrade-modal__card:hover,
-.upgrade-modal__card:focus-visible,
-.upgrade-modal__card--active,
-.upgrade-modal__card:active {
-  --card-outline: var(--upgrade-accent);
-  transform: translateY(-3px);
-  background: rgba(13, 24, 40, 0.98);
+.upgrade-card:hover,
+.upgrade-card:focus-visible,
+.upgrade-card--active {
+  --card-bg: rgba(20, 30, 52, 0.9);
+  border-color: var(--accent);
   box-shadow:
-    inset 0 0 0 1px var(--card-outline),
-    0 20px 48px rgba(0, 0, 0, 0.3),
-    0 0 0 1px var(--upgrade-accent);
+    0 12px 36px rgba(0, 0, 0, 0.28),
+    0 0 24px var(--accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-.upgrade-modal__card:focus-visible {
+.upgrade-card:active {
+  opacity: 0.92;
+  transition-duration: 80ms;
+}
+
+.upgrade-card:focus-visible {
   outline: none;
 }
 
-.upgrade-modal__accent {
+/* Card glow */
+.upgrade-card__glow {
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 0.45rem;
-  background: var(--upgrade-accent);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 200ms ease;
 }
 
-.upgrade-modal__meta {
+.upgrade-card:hover .upgrade-card__glow,
+.upgrade-card--active .upgrade-card__glow {
+  opacity: 1;
+}
+
+/* Top row */
+.upgrade-card__top {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.45rem;
 }
 
-.upgrade-modal__kicker {
-  margin: 0;
-  color: rgba(191, 219, 254, 0.86);
-  font-size: 0.75rem;
+.upgrade-card__index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(226, 232, 240, 0.6);
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
 }
 
-.upgrade-modal__name {
-  margin: 0.85rem 0 0;
-  font-size: 1.55rem;
+.upgrade-card__type-badge {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(148, 163, 184, 0.85);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.upgrade-card__stack-badge {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.upgrade-card__stack-badge--new {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.22);
+  color: #6ee7b7;
+}
+
+/* Name */
+.upgrade-card__name {
+  margin: 0;
+  font-size: 1.35rem;
   font-weight: 900;
-  line-height: 1.08;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
   word-break: break-word;
 }
 
-.upgrade-modal__description {
-  margin: 0.85rem 0 0;
-  color: rgba(226, 232, 240, 0.82);
-  font-size: 1rem;
-  line-height: 1.65;
+/* Divider */
+.upgrade-card__divider {
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent 70%);
+  opacity: 0.25;
+}
+
+/* Description */
+.upgrade-card__desc {
+  margin: 0;
+  color: rgba(203, 213, 225, 0.82);
+  font-size: 0.88rem;
+  line-height: 1.5;
   word-break: break-word;
 }
 
-.upgrade-modal__chip {
+/* Hotkey hint */
+.upgrade-card__hotkey {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(148, 163, 184, 0.4);
+  font-size: 0.68rem;
+  font-weight: 700;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.upgrade-card:hover .upgrade-card__hotkey {
+  opacity: 1;
+}
+
+/* ── Keyboard hint ───────────────────────────────────────────────────────── */
+.upgrade-modal__hint {
+  margin: 0;
+  text-align: center;
+  color: rgba(148, 163, 184, 0.45);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.upgrade-modal__hint kbd {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
-  margin: 0.58rem 0 0;
-  padding: 0.28rem 0.52rem;
+  justify-content: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding: 0 0.32rem;
+  border-radius: 0.3rem;
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.74);
-  color: rgba(226, 232, 240, 0.9);
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.6);
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 800;
 }
 
+/* ── Transition ──────────────────────────────────────────────────────────── */
+.upgrade-enter-enter-active {
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.upgrade-enter-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.upgrade-enter-enter-from,
+.upgrade-enter-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(8px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE
+   ═══════════════════════════════════════════════════════════════════════════ */
 .upgrade-modal--mobile {
   align-items: center;
   justify-content: center;
 }
 
 .upgrade-modal--mobile .upgrade-modal__frame {
-  width: min(92vw, 420px);
+  width: min(94vw, 420px);
   max-width: 420px;
   max-height: min(78vh, calc(100vh - 24px));
-  gap: 0.5rem;
-  padding: 0.72rem;
-}
-
-.upgrade-modal--mobile .upgrade-modal__header {
-  gap: 0.2rem;
-  text-align: center;
-}
-
-.upgrade-modal--mobile .upgrade-modal__header-main {
-  align-items: center;
-  gap: 0.34rem;
+  gap: 0.75rem;
+  padding: 1rem;
 }
 
 .upgrade-modal--mobile .upgrade-modal__title {
-  font-size: clamp(1rem, 3.8vw, 1.24rem);
-  line-height: 1;
-}
-
-.upgrade-modal--mobile .upgrade-modal__timer {
-  align-self: center;
-  font-size: 0.56rem;
-  letter-spacing: 0.08em;
-  padding: 0.28rem 0.48rem;
+  font-size: clamp(1.1rem, 4vw, 1.35rem);
 }
 
 .upgrade-modal--mobile .upgrade-modal__body {
   flex: 0 0 auto;
-  min-height: 0;
   overflow: visible;
 }
 
-.upgrade-modal--mobile .upgrade-modal__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.5rem;
-  padding: 0;
-  overflow: visible;
-  scroll-snap-type: none;
-  touch-action: auto;
-}
-
+.upgrade-modal--mobile .upgrade-modal__grid,
 .upgrade-modal--mobile .upgrade-modal__grid--two {
   grid-template-columns: 1fr;
+  gap: 0.55rem;
 }
 
-.upgrade-modal--mobile .upgrade-modal__card {
-  width: 100%;
-  max-width: none;
-  min-width: 0;
-  min-height: 4.55rem;
-  padding: 0.64rem 0.72rem 0.68rem 0.82rem;
-  border-radius: 1rem;
-  scroll-snap-align: unset;
+.upgrade-modal--mobile .upgrade-card {
+  min-height: 5rem;
+  padding: 0.75rem 0.85rem 0.8rem;
+  gap: 0.4rem;
+  border-radius: 0.9rem;
 }
 
-.upgrade-modal--mobile .upgrade-modal__kicker {
-  font-size: 0.54rem;
-  letter-spacing: 0.1em;
-}
-
-.upgrade-modal--mobile .upgrade-modal__name {
-  margin-top: 0.28rem;
-  font-size: clamp(0.9rem, 3.3vw, 1rem);
-  line-height: 1.02;
+.upgrade-modal--mobile .upgrade-card__name {
+  font-size: clamp(0.95rem, 3.5vw, 1.1rem);
   display: -webkit-box;
   overflow: hidden;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
-.upgrade-modal--mobile .upgrade-modal__description {
-  margin-top: 0.18rem;
-  font-size: 0.72rem;
-  line-height: 1.16;
+.upgrade-modal--mobile .upgrade-card__desc {
+  font-size: 0.75rem;
+  line-height: 1.25;
   display: -webkit-box;
   overflow: hidden;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 
-.upgrade-modal--mobile .upgrade-modal__chip {
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 52%;
-  margin: 0;
-  padding: 0.18rem 0.38rem;
-  font-size: 0.48rem;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.upgrade-modal--mobile .upgrade-card__index {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.6rem;
+}
+
+.upgrade-modal--mobile .upgrade-card__type-badge,
+.upgrade-modal--mobile .upgrade-card__stack-badge {
+  font-size: 0.5rem;
+  padding: 0.14rem 0.4rem;
+}
+
+/* ── Landscape mobile ────────────────────────────────────────────────────── */
+@media (orientation: landscape) and (max-width: 1023px) {
+  .upgrade-modal--mobile .upgrade-modal__frame {
+    width: min(94vw, 36rem);
+    max-width: 36rem;
+    max-height: min(84dvh, calc(100dvh - 24px));
+    padding: 0.85rem 1rem;
+  }
+
+  .upgrade-modal--mobile .upgrade-modal__grid,
+  .upgrade-modal--mobile .upgrade-modal__grid--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .upgrade-modal--mobile .upgrade-card {
+    min-height: 5rem;
+  }
+}
+
+/* ── 3-column on wide screens ────────────────────────────────────────────── */
+@media (min-width: 1180px) {
+  .upgrade-modal__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ── Small screens ───────────────────────────────────────────────────────── */
+@media (max-width: 420px) {
+  .upgrade-modal__frame {
+    width: min(96vw, 24rem);
+    padding: 0.95rem;
+  }
+
+  .upgrade-card {
+    min-height: 10rem;
+    padding: 1rem;
+  }
+
+  .upgrade-card__desc {
+    font-size: 0.82rem;
+  }
 }
 
 @supports (height: 100dvh) {
   .upgrade-modal__frame {
-    max-height: min(calc(100dvh - 2rem), 46rem);
+    max-height: min(calc(100dvh - 2rem), 44rem);
   }
 
   .upgrade-modal--mobile .upgrade-modal__frame {
@@ -521,90 +690,6 @@ watch(
         - 24px
       )
     );
-  }
-}
-
-@media (orientation: landscape) and (max-width: 1023px) {
-  .upgrade-modal--mobile .upgrade-modal__frame {
-    width: min(94vw, 34rem);
-    max-width: 34rem;
-    max-height: min(82dvh, calc(100dvh - 24px));
-    padding: 0.66rem 0.72rem 0.72rem;
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__grid,
-  .upgrade-modal--mobile .upgrade-modal__grid--two {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__card {
-    min-height: 4.7rem;
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__title {
-    font-size: clamp(0.96rem, 2.8vw, 1.18rem);
-  }
-}
-
-@media (min-width: 1180px) {
-  .upgrade-modal__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 420px) {
-  .upgrade-modal__frame {
-    width: min(94vw, 24rem);
-    max-height: min(calc(100dvh - 0.8rem), 33rem);
-    padding: 0.85rem 0.85rem 1rem;
-  }
-
-  .upgrade-modal__card {
-    flex-basis: 84%;
-    min-height: 11rem;
-    padding-inline: 0.95rem;
-  }
-
-  .upgrade-modal__description {
-    font-size: 0.88rem;
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__frame {
-    width: min(92vw, 24rem);
-    max-height: min(78dvh, calc(100dvh - 24px));
-    padding: 0.7rem;
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__card {
-    min-height: 4.35rem;
-    padding-inline: 0.76rem;
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__title {
-    font-size: clamp(0.96rem, 4vw, 1.14rem);
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__description {
-    font-size: 0.68rem;
-  }
-}
-
-@media (max-height: 760px) and (max-width: 767px) {
-  .upgrade-modal__frame {
-    max-height: min(80dvh, calc(100dvh - 24px));
-  }
-
-  .upgrade-modal__card {
-    min-height: 10.5rem;
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__frame {
-    max-height: min(80dvh, calc(100dvh - 24px));
-  }
-
-  .upgrade-modal--mobile .upgrade-modal__card {
-    min-height: 4.2rem;
-    padding-block: 0.6rem 0.64rem;
   }
 }
 </style>
