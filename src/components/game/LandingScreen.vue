@@ -1218,6 +1218,16 @@ async function confirmMapAndStart() {
     align-items: center;
     padding-bottom: 4rem;
   }
+
+  .landing-screen__logo {
+    display: none;
+  }
+}
+
+@media (max-height: 450px) {
+  .landing-screen__logo {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1227,10 +1237,6 @@ async function confirmMapAndStart() {
 
   .landing-screen__hero {
     max-width: 100%;
-  }
-
-  .landing-screen__logo {
-    width: 100%;
   }
 
   .landing-screen__actions {
